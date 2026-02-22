@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { 
   TrendingUp, 
   BarChart4, 
@@ -34,21 +34,41 @@ const INTELLIGENCE_MODULES = [
 ];
 
 const MOCK_BENCHMARK = [
-  { brand: "CHIC ELAN (You)", product: "Premium Silk Kurta", orders: 1240, share: "12%", status: "up", category: "Ethnic" },
-  { brand: "Ethnic Roots", product: "Designer Lehenga", orders: 2150, share: "24%", status: "down", category: "Ethnic" },
-  { brand: "Vibe Fashion", product: "Oversized Graphic Tee", orders: 1890, share: "18%", status: "up", category: "T-shirt" },
-  { brand: "Urban Threads", product: "Slim Fit Chinos", orders: 3200, share: "31%", status: "neutral", category: "Casual" },
-  { brand: "Fab India", product: "Cotton Chikankari", orders: 980, share: "15%", status: "up", category: "Ethnic" },
+  { brand: "CHIC ELAN (You)", product: "Premium Silk Kurta", orders: 1240, share: "12%", status: "up", business: "fashion", category: "Ethnic" },
+  { brand: "Ethnic Roots", product: "Designer Lehenga", orders: 2150, share: "24%", status: "down", business: "fashion", category: "Ethnic" },
+  { brand: "Vibe Fashion", product: "Oversized Graphic Tee", orders: 1890, share: "18%", status: "up", business: "fashion", category: "T-shirt" },
+  { brand: "Urban Threads", product: "Slim Fit Chinos", orders: 3200, share: "31%", status: "neutral", business: "fashion", category: "Casual" },
+  { brand: "Fab India", product: "Cotton Chikankari", orders: 980, share: "15%", status: "up", business: "fashion", category: "Ethnic" },
+  { brand: "ElectroMax", product: "Pro Wireless Buds", orders: 4500, share: "40%", status: "up", business: "electronics", category: "Headphone" },
+  { brand: "TechNova", product: "4K DSLR Camera", orders: 800, share: "15%", status: "down", business: "electronics", category: "Camera" },
+  { brand: "Mobility", product: "Flagship X12", orders: 6000, share: "35%", status: "up", business: "electronics", category: "Mobile" },
 ];
 
+const BUSINESS_CATEGORIES: Record<string, string[]> = {
+  fashion: ["Dress", "Clothes", "Ethnic", "T-shirt", "Casual"],
+  electronics: ["Mobile", "Camera", "Headphone", "Laptop"],
+  home: ["Furniture", "Decor", "Kitchen"]
+};
+
 export default function GrowthPage() {
+  const [selectedBusiness, setSelectedBusiness] = useState("fashion");
   const [filterCategory, setFilterCategory] = useState("all");
   const [filterLocation, setFilterLocation] = useState("all");
 
-  const filteredData = MOCK_BENCHMARK.filter(item => {
-    if (filterCategory !== "all" && item.category !== filterCategory) return false;
-    return true;
-  });
+  const handleBusinessChange = (val: string) => {
+    setSelectedBusiness(val);
+    setFilterCategory("all"); // Reset category when business changes
+  };
+
+  const filteredData = useMemo(() => {
+    return MOCK_BENCHMARK.filter(item => {
+      if (item.business !== selectedBusiness) return false;
+      if (filterCategory !== "all" && item.category !== filterCategory) return false;
+      return true;
+    });
+  }, [selectedBusiness, filterCategory]);
+
+  const categories = BUSINESS_CATEGORIES[selectedBusiness] || [];
 
   return (
     <div className="space-y-8">
@@ -71,7 +91,7 @@ export default function GrowthPage() {
           </div>
           
           <div className="w-48">
-            <Select defaultValue="fashion">
+            <Select value={selectedBusiness} onValueChange={handleBusinessChange}>
               <SelectTrigger className="rounded-xl h-10">
                 <SelectValue placeholder="Business" />
               </SelectTrigger>
@@ -84,15 +104,15 @@ export default function GrowthPage() {
           </div>
 
           <div className="w-48">
-            <Select onValueChange={setFilterCategory} defaultValue="all">
+            <Select value={filterCategory} onValueChange={setFilterCategory}>
               <SelectTrigger className="rounded-xl h-10">
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Categories</SelectItem>
-                <SelectItem value="T-shirt">T-shirts</SelectItem>
-                <SelectItem value="Ethnic">Ethnic Wear</SelectItem>
-                <SelectItem value="Casual">Casual Wear</SelectItem>
+                {categories.map((cat) => (
+                  <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -165,7 +185,7 @@ export default function GrowthPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
-                    {filteredData.map((item, i) => (
+                    {filteredData.length > 0 ? filteredData.map((item, i) => (
                       <tr key={i} className="hover:bg-primary/5 transition-colors group">
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
@@ -199,7 +219,13 @@ export default function GrowthPage() {
                           </div>
                         </td>
                       </tr>
-                    ))}
+                    )) : (
+                      <tr>
+                        <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground italic">
+                          No competitor data found for this selection.
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
              </div>
@@ -214,7 +240,7 @@ export default function GrowthPage() {
             <CardTitle className="font-headline text-primary flex items-center gap-2">
               <Zap size={20} /> AI Recommendations
             </CardTitle>
-            <CardDescription className="text-primary/70">Highest impact actions based on {filterCategory === 'all' ? 'General' : filterCategory} trends.</CardDescription>
+            <CardDescription className="text-primary/70">Highest impact actions based on {filterCategory === 'all' ? (selectedBusiness.charAt(0).toUpperCase() + selectedBusiness.slice(1)) : filterCategory} trends.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 pt-4 flex-1">
             <div className="p-4 rounded-xl bg-background/50 border border-primary/10 group cursor-pointer hover:border-primary/50 transition-colors">
@@ -223,9 +249,9 @@ export default function GrowthPage() {
                 <ArrowUpRight size={14} className="text-primary/50 group-hover:text-primary transition-colors" />
               </div>
               <p className="text-sm font-medium leading-snug">
-                {filterCategory === 'Ethnic' 
-                  ? "Competitors in Delhi are pricing Silk Kurtas at ₹1,999. Adjusting your price could increase conversion by 18%."
-                  : "Based on current volume, a price drop of ₹200 on your top seller could capture 15% more market share."}
+                {selectedBusiness === 'fashion' 
+                  ? "Competitors in Delhi are pricing Ethnic Wear at ₹1,999. Adjusting your price could increase conversion by 18%."
+                  : "Based on current volume, a price drop of ₹2,000 on your electronics flagship could capture 15% more market share."}
               </p>
             </div>
             
@@ -234,7 +260,7 @@ export default function GrowthPage() {
                 <span className="text-xs font-bold text-primary uppercase">Inventory Alert</span>
                 <ArrowUpRight size={14} className="text-primary/50 group-hover:text-primary transition-colors" />
               </div>
-              <p className="text-sm font-medium leading-snug">High search intent for "Handcrafted {filterCategory === 'all' ? 'Fashion' : filterCategory}" detected in Mumbai. Stock up for the upcoming weekend spike.</p>
+              <p className="text-sm font-medium leading-snug">High search intent for "Handcrafted {filterCategory === 'all' ? (selectedBusiness === 'fashion' ? 'Fashion' : 'Tech') : filterCategory}" detected in Mumbai. Stock up for the upcoming weekend spike.</p>
             </div>
 
             <div className="p-4 rounded-xl bg-background/50 border border-primary/10 group cursor-pointer hover:border-primary/50 transition-colors">
