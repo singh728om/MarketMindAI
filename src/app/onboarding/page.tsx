@@ -157,7 +157,7 @@ export default function OnboardingPage() {
               <h2 className="text-3xl font-headline font-bold">Choose Goals</h2>
               <p className="text-muted-foreground">What do you want to achieve in the first 30 days?</p>
               <div className="grid grid-cols-2 gap-4">
-                {['Increase Sales', 'Improve CTR', 'Higher Conversion', 'Listing Quality', 'Reduce ROAS', 'Catalog Cleanup'].map(g => {
+                {['Increase Sales', 'AI Photoshoot', 'Higher Conversion', 'Listing Quality', 'Reduce ROAS', 'Onboarding E-com platform'].map(g => {
                   const isSelected = selectedGoals.includes(g);
                   return (
                     <div 
