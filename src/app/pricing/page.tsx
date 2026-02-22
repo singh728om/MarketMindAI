@@ -107,7 +107,7 @@ export default function PricingPage() {
               </Button>
             </LinkNext>
             <LinkNext href="/onboarding">
-              <Button className="rounded-full px-6">Start Free Audit</Button>
+              <Button className="rounded-full px-6">Start Free Trial</Button>
             </LinkNext>
           </div>
         </div>
@@ -142,7 +142,9 @@ export default function PricingPage() {
                     <category.icon size={24} />
                   </div>
                   <CardTitle className="font-headline text-2xl">{category.title}</CardTitle>
-                  <CardDescription className="text-muted-foreground">{category.description}</CardDescription>
+                  <CardContent className="px-0 pt-2">
+                    <p className="text-muted-foreground text-sm leading-relaxed">{category.description}</p>
+                  </CardContent>
                 </CardHeader>
                 <CardContent className="px-8 pb-8 space-y-4">
                   {category.items.map((item) => {

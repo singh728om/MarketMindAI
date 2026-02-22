@@ -35,7 +35,7 @@ export default function LandingPage() {
               <Button variant="ghost" className="hidden sm:inline-flex">Login</Button>
             </Link>
             <Link href="/onboarding">
-              <Button className="rounded-full px-6">Start Free Audit</Button>
+              <Button className="rounded-full px-6">Start Free Trial</Button>
             </Link>
           </div>
         </div>
