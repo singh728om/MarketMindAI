@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview Professional AI Photoshoot Agent with Dynamic Key Support.
+ * @fileOverview Professional AI Photoshoot Agent with Dynamic Key Support and Advanced Studio Angles.
  */
 
 import {genkit} from 'genkit';
@@ -36,10 +36,22 @@ export async function generatePhotoshoot(input: GeneratePhotoshootInput): Promis
   if (input.modelType === 'none') {
     modelText = 'the product alone in a clean setting';
   } else if (input.modelType === 'kids') {
-    const gender = input.kidGender === 'boy' ? 'boy' : 'girl';
+    const gender = input.kidGender === 'boy' ? 'baby boy' : 'baby girl';
     modelText = `a professional ${input.kidAge || '5'}-year-old ${gender} model wearing or holding the product`;
   } else {
     modelText = `a professional ${input.modelType} model wearing or holding the product`;
+  }
+
+  // Handle advanced shot angles for prompt engineering
+  let angleDescription = "";
+  switch (input.shotAngle) {
+    case 'front': angleDescription = "eye-level straight-on front view"; break;
+    case 'back': angleDescription = "view from behind showing the back details"; break;
+    case 'left-side': angleDescription = "left-side profile view showing product depth"; break;
+    case 'right-side': angleDescription = "right-side profile view showing product depth"; break;
+    case 'zoom': angleDescription = "macro close-up focus on textures and fine craftsmanship"; break;
+    case 'wide': angleDescription = "wide-angle contextual shot including background scenery"; break;
+    default: angleDescription = input.shotAngle || "standard commercial angle";
   }
   
   // Step 1: Creative Direction (Prompt Engineering)
@@ -49,7 +61,7 @@ export async function generatePhotoshoot(input: GeneratePhotoshootInput): Promis
     PRODUCT: ${input.productType}
     CATEGORY: ${input.category || 'General'}
     MODEL: ${modelText}
-    ANGLE: ${input.shotAngle || 'standard front view'}
+    ANGLE: ${angleDescription}
     BACKGROUND: ${input.background || 'professional high-key studio'}
     STYLE: ${input.style || 'high-end commercial editorial'}
     

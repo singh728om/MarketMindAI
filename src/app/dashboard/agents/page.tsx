@@ -140,7 +140,6 @@ export default function AgentsPage() {
 
     try {
       if (output.imageUrl) {
-        // Create link and download image
         const link = document.createElement("a");
         link.href = output.imageUrl;
         link.download = `marketmind-photoshoot-${Date.now()}.png`;
@@ -370,7 +369,7 @@ export default function AgentsPage() {
       </div>
 
       <Dialog open={!!selectedAgent} onOpenChange={(open) => !open && resetForm()}>
-        <DialogContent className="max-w-4xl bg-slate-900 border-white/10 rounded-2xl md:rounded-3xl overflow-hidden max-h-[95vh] flex flex-col p-0 text-white shadow-2xl">
+        <DialogContent className="max-w-4xl bg-slate-900 border-white/10 rounded-3xl overflow-hidden max-h-[95vh] flex flex-col p-0 text-white shadow-2xl">
           {selectedAgent && (
             <>
               <DialogHeader className="p-5 md:p-8 pb-4 shrink-0 border-b border-white/5 relative">
@@ -477,8 +476,10 @@ export default function AgentsPage() {
                                 <Select onValueChange={(val) => handleInputChange("shotAngle", val)} value={formData.shotAngle}>
                                   <SelectTrigger className="bg-slate-800 border-white/5 h-11 rounded-xl text-white text-sm"><SelectValue /></SelectTrigger>
                                   <SelectContent className="bg-slate-800 border-white/10 text-white">
-                                    <SelectItem value="front">Eye Level (Front)</SelectItem>
+                                    <SelectItem value="front">Eye Level (Front View)</SelectItem>
                                     <SelectItem value="back">Back View</SelectItem>
+                                    <SelectItem value="left-side">Left Side View</SelectItem>
+                                    <SelectItem value="right-side">Right Side View</SelectItem>
                                     <SelectItem value="zoom">Macro / Detailed Close-up</SelectItem>
                                     <SelectItem value="wide">Wide Angle Context</SelectItem>
                                   </SelectContent>
