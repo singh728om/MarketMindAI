@@ -1,7 +1,10 @@
 'use server';
 /**
- * @fileOverview A robust Genkit flow for professional AI photoshoots.
- * Supports both Image-to-Image (Gemini 2.5) and Text-to-Image (Imagen 4).
+ * @fileOverview Professional AI Photoshoot Agent.
+ * 
+ * This agent acts as a digital photo studio. It takes user parameters and an optional 
+ * raw product photo, uses Gemini to interpret and write a professional studio prompt, 
+ * and then generates a final commercial-grade image.
  *
  * - generatePhotoshoot - Primary function for generating commercial visual assets.
  */
@@ -40,21 +43,34 @@ const generatePhotoshootFlow = ai.defineFlow(
     outputSchema: GeneratePhotoshootOutputSchema,
   },
   async input => {
+    // STEP 1: ACT AS A PHOTOGRAPHER - Generate a professional prompt
     const modelText = input.modelType === 'none' ? 'the product alone' : `a ${input.modelType} model wearing or holding the product`;
-    const promptText = `A world-class commercial product photoshoot of a ${input.productType}. 
-Setting: ${input.background || 'professional high-key studio'}. 
-Model: ${modelText}. 
-Angle: ${input.shotAngle || 'standard front view'}. 
-Style: ${input.style || 'high-end commercial editorial, extremely detailed, 8k resolution, photorealistic, sharp focus, magazine quality'}.
-Ensure perfect lighting, natural shadows, and a premium marketplace aesthetic suitable for Amazon or Myntra.`;
+    
+    const promptEngineeringResponse = await ai.generate({
+      model: 'googleai/gemini-2.5-flash',
+      prompt: `You are a world-class commercial fashion photographer and creative director. 
+      Your task is to write a highly detailed, professional photography prompt for an AI image generator.
+      
+      PRODUCT: ${input.productType}
+      MODEL: ${modelText}
+      ANGLE: ${input.shotAngle || 'standard front view'}
+      BACKGROUND: ${input.background || 'professional high-key studio'}
+      STYLE: ${input.style || 'high-end commercial editorial'}
 
+      Write a detailed description including lighting (e.g., softbox, rim light), camera specs (e.g., 85mm lens, f/1.8), and specific texture details. 
+      Output ONLY the final prompt text.`,
+    });
+
+    const finalPromptText = promptEngineeringResponse.text;
+
+    // STEP 2: GENERATE THE IMAGE
     if (input.photoDataUri) {
-      // IMAGE-TO-IMAGE: Transform uploaded product
+      // IMAGE-TO-IMAGE: Reshoot uploaded product
       const response = await ai.generate({
         model: 'googleai/gemini-2.5-flash-image',
         prompt: [
           {media: {url: input.photoDataUri}},
-          {text: `Transform this product into a professional photoshoot. ${promptText} CONSTRAINT: Keep the product's colors, patterns, and design identical to the original image.`},
+          {text: `Perform a professional studio reshoot. ${finalPromptText} CONSTRAINT: Keep the product's colors, branding, and design identical to the original image. Place it realistically in the scene.`},
         ],
         config: {
           responseModalities: ['TEXT', 'IMAGE'],
@@ -63,18 +79,18 @@ Ensure perfect lighting, natural shadows, and a premium marketplace aesthetic su
 
       const mediaPart = response.message?.content.find(p => !!p.media);
       if (!mediaPart || !mediaPart.media) {
-        throw new Error('AI failed to generate image-to-image asset.');
+        throw new Error('AI Photographer failed to develop the asset.');
       }
       return { generatedImageDataUri: mediaPart.media.url };
     } else {
-      // TEXT-TO-IMAGE: Generate from description
+      // TEXT-TO-IMAGE: Create from scratch
       const { media } = await ai.generate({
         model: 'googleai/imagen-4.0-fast-generate-001',
-        prompt: promptText,
+        prompt: finalPromptText,
       });
 
       if (!media || !media.url) {
-        throw new Error('AI failed to generate text-to-image asset.');
+        throw new Error('AI Photographer failed to capture the scene.');
       }
       return { generatedImageDataUri: media.url };
     }
