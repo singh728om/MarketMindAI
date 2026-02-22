@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef } from "react";
@@ -20,7 +21,8 @@ import {
   Globe,
   MapPin,
   Link as LinkIcon,
-  Briefcase
+  Briefcase,
+  Phone
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -125,10 +127,10 @@ export default function AgentsPage() {
     } else if (selectedAgent.id === 'leads') {
       setOutput({
         leads: [
-          { name: "Rahul Mehta", email: "rahul@luxuryretail.in", role: "Store Owner", source: location || websiteUrl },
-          { name: "Sneha Kapoor", email: "sneha.k@fashionhub.com", role: "Procurement Manager", source: location || websiteUrl },
-          { name: "Vikram Singh", email: "v.singh@ethenicroots.co", role: "Chief Merchandiser", source: location || websiteUrl },
-          { name: "Anjali Das", email: "adas@boutiquefinds.net", role: "Founder", source: location || websiteUrl },
+          { name: "Rahul Mehta", email: "rahul@luxuryretail.in", mobile: "+91 98765 43210", role: "Store Owner", source: location || websiteUrl },
+          { name: "Sneha Kapoor", email: "sneha.k@fashionhub.com", mobile: "+91 87654 32109", role: "Procurement Manager", source: location || websiteUrl },
+          { name: "Vikram Singh", email: "v.singh@ethenicroots.co", mobile: "+91 76543 21098", role: "Chief Merchandiser", source: location || websiteUrl },
+          { name: "Anjali Das", email: "adas@boutiquefinds.net", mobile: "+91 65432 10987", role: "Founder", source: location || websiteUrl },
         ],
         type: 'leads'
       });
@@ -196,7 +198,7 @@ export default function AgentsPage() {
 
       {/* Agent Modal */}
       <Dialog open={!!selectedAgent} onOpenChange={(open) => !open && resetForm()}>
-        <DialogContent className="max-w-3xl bg-card border-white/10 rounded-3xl overflow-hidden max-h-[90vh] flex flex-col p-0">
+        <DialogContent className="max-w-4xl bg-card border-white/10 rounded-3xl overflow-hidden max-h-[90vh] flex flex-col p-0">
           {selectedAgent && (
             <>
               <DialogHeader className="p-8 pb-0">
@@ -465,19 +467,21 @@ export default function AgentsPage() {
                               </Button>
                             </div>
                             <div className="border rounded-xl overflow-hidden bg-background">
-                              <div className="grid grid-cols-3 gap-4 p-3 border-b bg-muted/50 text-[10px] font-bold uppercase tracking-wider">
+                              <div className="grid grid-cols-4 gap-4 p-3 border-b bg-muted/50 text-[10px] font-bold uppercase tracking-wider">
                                 <span>Name</span>
                                 <span>Email</span>
+                                <span>Mobile</span>
                                 <span>Role</span>
                               </div>
                               <div className="divide-y">
                                 {output.leads.map((lead: any, i: number) => (
-                                  <div key={i} className="grid grid-cols-3 gap-4 p-3 text-xs items-center hover:bg-primary/5 transition-colors group">
+                                  <div key={i} className="grid grid-cols-4 gap-4 p-3 text-xs items-center hover:bg-primary/5 transition-colors group">
                                     <span className="font-bold">{lead.name}</span>
                                     <span className="text-muted-foreground truncate">{lead.email}</span>
+                                    <span className="text-muted-foreground">{lead.mobile}</span>
                                     <div className="flex items-center justify-between">
-                                      <span className="px-2 py-0.5 rounded bg-muted text-[10px]">{lead.role}</span>
-                                      <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => copyToClipboard(lead.email)}>
+                                      <span className="px-2 py-0.5 rounded bg-muted text-[10px] whitespace-nowrap">{lead.role}</span>
+                                      <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => copyToClipboard(`${lead.email} | ${lead.mobile}`)}>
                                         <Copy size={10} />
                                       </Button>
                                     </div>
