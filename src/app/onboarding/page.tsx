@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { 
   ShoppingBag, 
   Upload, 
@@ -40,10 +41,10 @@ export default function OnboardingPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-background relative overflow-hidden hero-gradient">
-      <div className="absolute top-10 left-10 flex items-center gap-2">
+      <Link href="/" className="absolute top-10 left-10 flex items-center gap-2 hover:opacity-80 transition-opacity">
          <BrainCircuit className="text-primary w-8 h-8" />
          <span className="font-headline font-bold text-xl tracking-tight">MarketMind</span>
-      </div>
+      </Link>
 
       <div className="w-full max-w-2xl">
         <div className="mb-12 flex items-center justify-between">

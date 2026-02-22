@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,9 +36,9 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center p-6 bg-background hero-gradient">
       <Card className="w-full max-w-md rounded-3xl border-white/5 bg-card/80 backdrop-blur-xl shadow-2xl p-4">
         <CardHeader className="text-center">
-          <div className="mx-auto w-12 h-12 rounded-xl bg-primary flex items-center justify-center text-primary-foreground mb-4">
+          <Link href="/" className="mx-auto w-12 h-12 rounded-xl bg-primary flex items-center justify-center text-primary-foreground mb-4 hover:opacity-80 transition-opacity">
             <BrainCircuit size={28} />
-          </div>
+          </Link>
           <CardTitle className="text-2xl font-headline font-bold">Welcome Back</CardTitle>
           <CardDescription>Enter your email to access your growth dashboard.</CardDescription>
         </CardHeader>

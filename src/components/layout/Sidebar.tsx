@@ -28,12 +28,12 @@ export function Sidebar() {
 
   return (
     <div className="w-64 h-screen bg-card border-r flex flex-col fixed left-0 top-0 z-40">
-      <div className="p-6 flex items-center gap-3">
+      <Link href="/" className="p-6 flex items-center gap-3 hover:opacity-80 transition-opacity">
         <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-primary-foreground">
           <BrainCircuit size={24} />
         </div>
         <span className="font-headline text-xl font-bold tracking-tight">MarketMind</span>
-      </div>
+      </Link>
 
       <nav className="flex-1 px-4 py-4 space-y-1">
         {navItems.map((item) => {

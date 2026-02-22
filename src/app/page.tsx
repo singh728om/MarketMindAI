@@ -88,10 +88,10 @@ export default function LandingPage() {
       {/* Navbar */}
       <header className="fixed top-0 w-full z-50 border-b border-white/5 bg-background/80 backdrop-blur-xl">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <BrainCircuit className="text-primary w-8 h-8" />
             <span className="font-headline font-bold text-xl tracking-tight">MarketMind AI</span>
-          </div>
+          </Link>
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
             <Link href="#services" className="hover:text-primary transition-colors">Services</Link>
             <Link href="#how-it-works" className="hover:text-primary transition-colors">How it works</Link>
@@ -218,8 +218,9 @@ export default function LandingPage() {
               <Input id="company" placeholder="DTC Brand Ltd" className="rounded-xl" />
             </div>
           </div>
-          <DialogFooter>
-            <Button onClick={() => setDemoOpen(false)} className="w-full rounded-xl h-12">Schedule Demo</Button>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
+            <Button onClick={() => setDemoOpen(false)} variant="outline" className="flex-1 rounded-xl h-12 order-2 sm:order-1">Cancel</Button>
+            <Button onClick={() => setDemoOpen(false)} className="flex-1 rounded-xl h-12 order-1 sm:order-2">Schedule Demo</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -299,10 +300,10 @@ export default function LandingPage() {
       {/* Simple Footer */}
       <footer className="border-t py-12 bg-background">
         <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <BrainCircuit className="text-primary w-6 h-6" />
             <span className="font-headline font-bold text-lg">MarketMind AI</span>
-          </div>
+          </Link>
           <p className="text-muted-foreground text-sm">© 2024 MarketMind. All rights reserved.</p>
           <div className="flex items-center gap-6">
             <Link href="#" className="text-muted-foreground hover:text-foreground text-sm">Privacy</Link>
