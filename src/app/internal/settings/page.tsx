@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -22,6 +23,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { cn } from "@/lib/utils";
 
 export default function InternalSettingsPage() {
   const [showKey, setShowKey] = useState(false);
@@ -35,23 +37,40 @@ export default function InternalSettingsPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    const savedKeys = localStorage.getItem("marketmind_api_keys");
-    if (savedKeys) {
-      setKeys(JSON.parse(savedKeys));
+    try {
+      const savedKeys = localStorage.getItem("marketmind_api_keys");
+      if (savedKeys) {
+        setKeys(JSON.parse(savedKeys));
+      }
+    } catch (e) {
+      console.error("Failed to load keys from storage", e);
     }
   }, []);
 
   const handleSaveConfig = () => {
     setIsSaving(true);
+    
+    // Artificial delay to simulate node propagation
     setTimeout(() => {
-      localStorage.setItem("marketmind_api_keys", JSON.stringify(keys));
-      setIsSaving(false);
-      // Trigger event for local listeners in dashboard
-      window.dispatchEvent(new Event('storage'));
-      toast({
-        title: "System Config Updated",
-        description: "API keys and global constraints have been synced across all nodes.",
-      });
+      try {
+        localStorage.setItem("marketmind_api_keys", JSON.stringify(keys));
+        
+        // Trigger event for local listeners in dashboard
+        window.dispatchEvent(new Event('storage'));
+        
+        setIsSaving(false);
+        toast({
+          title: "System Config Updated",
+          description: "API keys and global constraints have been synced across all nodes.",
+        });
+      } catch (err) {
+        setIsSaving(false);
+        toast({
+          variant: "destructive",
+          title: "Sync Error",
+          description: "Failed to write to system vault.",
+        });
+      }
     }, 1500);
   };
 
