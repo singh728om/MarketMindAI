@@ -133,6 +133,56 @@ export default function AgentsPage() {
     }
   };
 
+  const handleDownload = () => {
+    if (!output) return;
+
+    try {
+      if (output.imageUrl) {
+        // Download Image
+        const link = document.createElement("a");
+        link.href = output.imageUrl;
+        link.download = `marketmind-photoshoot-${Date.now()}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else if (output.type === 'catalog' && output.templateContent) {
+        // Download CSV
+        const blob = new Blob([output.templateContent], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `marketmind-catalog-${Date.now()}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      } else {
+        // Download JSON as text
+        const text = JSON.stringify(output, null, 2);
+        const blob = new Blob([text], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `marketmind-${selectedAgent.id}-${Date.now()}.txt`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }
+
+      toast({
+        title: "Download Started",
+        description: "Your assets are being saved to your device.",
+      });
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        title: "Download Failed",
+        description: "An error occurred while preparing your download.",
+      });
+    }
+  };
+
   const handleRunAgent = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isApiActive) {
@@ -555,7 +605,10 @@ export default function AgentsPage() {
                       
                       <div className="flex flex-col sm:flex-row gap-3 pb-8">
                         <Button variant="outline" className="flex-1 h-11 md:h-12 rounded-xl border-white/10" onClick={() => setOutput(null)}>New Session</Button>
-                        <Button className="flex-1 h-11 md:h-12 rounded-xl bg-primary shadow-lg shadow-primary/20 font-bold">
+                        <Button 
+                          className="flex-1 h-11 md:h-12 rounded-xl bg-primary shadow-lg shadow-primary/20 font-bold"
+                          onClick={handleDownload}
+                        >
                           <FileDown size={18} className="mr-2" /> Download Assets
                         </Button>
                       </div>
