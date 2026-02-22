@@ -13,7 +13,12 @@ import {
   AlertCircle,
   ExternalLink,
   Trash2,
-  Edit2
+  Edit2,
+  ChevronRight,
+  Package,
+  Zap,
+  ShoppingBag,
+  Sparkles
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -31,43 +36,63 @@ import { useToast } from "@/hooks/use-toast";
 const MOCK_PROJECTS = [
   {
     id: "proj-1",
-    name: "Summer Ethnic Launch '24",
+    name: "Myntra Onboarding",
     marketplace: "Myntra",
-    status: "Active",
-    progress: 65,
-    updatedAt: "2 hours ago",
-    assets: 12,
-    priority: "High"
+    status: "In Progress",
+    progress: 45,
+    updatedAt: "1 hour ago",
+    assets: 0,
+    priority: "High",
+    type: "Onboarding",
+    icon: ShoppingBag
   },
   {
     id: "proj-2",
-    name: "Amazon Great Indian Festival",
+    name: "Amazon Onboarding",
     marketplace: "Amazon",
-    status: "Planning",
-    progress: 15,
-    updatedAt: "1 day ago",
-    assets: 4,
-    priority: "High"
+    status: "Verification",
+    progress: 75,
+    updatedAt: "3 hours ago",
+    assets: 10,
+    priority: "Medium",
+    type: "Onboarding",
+    icon: ShoppingBag
   },
   {
     id: "proj-3",
-    name: "Flipkart Big Billion Day Prep",
+    name: "Listing Optimization (Bulk)",
     marketplace: "Flipkart",
     status: "Completed",
     progress: 100,
-    updatedAt: "3 days ago",
-    assets: 45,
-    priority: "Medium"
+    updatedAt: "1 day ago",
+    assets: 25,
+    priority: "High",
+    type: "SEO",
+    icon: Zap
   },
   {
     id: "proj-4",
-    name: "New Arrivals: Silk Collection",
-    marketplace: "Ajio",
+    name: "AI Photoshoot Session",
+    marketplace: "Multi-channel",
     status: "Active",
-    progress: 40,
-    updatedAt: "5 hours ago",
+    progress: 20,
+    updatedAt: "30 mins ago",
     assets: 8,
-    priority: "Medium"
+    priority: "High",
+    type: "Creative",
+    icon: Sparkles
+  },
+  {
+    id: "proj-5",
+    name: "Ajio Onboarding",
+    marketplace: "Ajio",
+    status: "Document Review",
+    progress: 10,
+    updatedAt: "5 hours ago",
+    assets: 0,
+    priority: "Medium",
+    type: "Onboarding",
+    icon: ShoppingBag
   }
 ];
 
@@ -84,18 +109,19 @@ export default function ProjectsPage() {
 
   const filteredProjects = MOCK_PROJECTS.filter(p => 
     p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.marketplace.toLowerCase().includes(searchQuery.toLowerCase())
+    p.marketplace.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    p.type.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-headline font-bold mb-1">Campaign Projects</h1>
-          <p className="text-muted-foreground">Manage your marketplace product launches and marketing campaigns.</p>
+          <h1 className="text-3xl font-headline font-bold mb-1">Opted Projects</h1>
+          <p className="text-muted-foreground">Track the progress of your marketplace onboarding and AI services.</p>
         </div>
         <Button className="shadow-lg shadow-primary/20 rounded-xl h-12 px-6">
-          <Plus className="w-4 h-4 mr-2" /> New Project
+          <Plus className="w-4 h-4 mr-2" /> Start New Service
         </Button>
       </div>
 
@@ -104,7 +130,7 @@ export default function ProjectsPage() {
         <div className="relative flex-1 w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
           <Input 
-            placeholder="Search projects by name or marketplace..." 
+            placeholder="Search onboarding, SEO, or creative projects..." 
             className="pl-10 h-12 rounded-xl bg-card border-white/5"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -123,20 +149,19 @@ export default function ProjectsPage() {
               <div className="flex justify-between items-start">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <CardTitle className="font-headline text-xl">{project.name}</CardTitle>
-                    <Badge variant={project.status === 'Active' ? 'default' : 'secondary'} className="text-[10px] uppercase font-bold">
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                      <project.icon size={16} />
+                    </div>
+                    <CardTitle className="font-headline text-lg">{project.name}</CardTitle>
+                  </div>
+                  <div className="flex items-center gap-2 mt-2">
+                    <Badge variant={project.status === 'Completed' ? 'default' : 'secondary'} className="text-[10px] uppercase font-bold">
                       {project.status}
                     </Badge>
-                  </div>
-                  <CardDescription className="flex items-center gap-2">
                     <Badge variant="outline" className="text-[10px] font-bold border-primary/20 text-primary">
                       {project.marketplace}
                     </Badge>
-                    <span className="text-[10px]">•</span>
-                    <span className="text-xs text-muted-foreground flex items-center gap-1">
-                      <Clock size={12} /> Updated {project.updatedAt}
-                    </span>
-                  </CardDescription>
+                  </div>
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -146,13 +171,13 @@ export default function ProjectsPage() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="rounded-xl border-white/10">
                     <DropdownMenuItem onClick={() => handleAction("Edit", project.name)}>
-                      <Edit2 size={14} className="mr-2" /> Edit Project
+                      <Edit2 size={14} className="mr-2" /> View Details
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleAction("View", project.name)}>
-                      <ExternalLink size={14} className="mr-2" /> View Details
+                    <DropdownMenuItem onClick={() => handleAction("Support", project.name)}>
+                      <ExternalLink size={14} className="mr-2" /> Contact Agent
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="text-destructive" onClick={() => handleAction("Delete", project.name)}>
-                      <Trash2 size={14} className="mr-2" /> Delete Project
+                    <DropdownMenuItem className="text-destructive" onClick={() => handleAction("Cancel", project.name)}>
+                      <Trash2 size={14} className="mr-2" /> Cancel Service
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -161,27 +186,31 @@ export default function ProjectsPage() {
             <CardContent className="space-y-6">
               <div className="space-y-2">
                 <div className="flex justify-between text-xs font-bold mb-1">
-                  <span className="text-muted-foreground uppercase tracking-widest">Launch Progress</span>
+                  <span className="text-muted-foreground uppercase tracking-widest">Service Completion</span>
                   <span className="text-primary">{project.progress}%</span>
                 </div>
                 <Progress value={project.progress} className="h-2" />
               </div>
 
               <div className="flex items-center justify-between pt-4 border-t border-white/5">
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-6">
                   <div className="flex flex-col">
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">AI Assets</span>
-                    <span className="text-sm font-bold">{project.assets} Files</span>
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Project Type</span>
+                    <span className="text-sm font-bold text-foreground">{project.type}</span>
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Priority</span>
-                    <span className={`text-sm font-bold ${project.priority === 'High' ? 'text-rose-500' : 'text-amber-500'}`}>
-                      {project.priority}
-                    </span>
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Updated</span>
+                    <span className="text-sm font-bold">{project.updatedAt}</span>
                   </div>
+                  {project.assets > 0 && (
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">AI Assets</span>
+                      <span className="text-sm font-bold">{project.assets} Files</span>
+                    </div>
+                  )}
                 </div>
                 <Button variant="ghost" size="sm" className="group-hover:text-primary transition-colors">
-                  Open Project <ChevronRight className="ml-1 w-4 h-4" />
+                  Details <ChevronRight className="ml-1 w-4 h-4" />
                 </Button>
               </div>
             </CardContent>
@@ -191,8 +220,8 @@ export default function ProjectsPage() {
           <div className="col-span-full py-20 text-center space-y-4 bg-secondary/10 rounded-3xl border-2 border-dashed border-white/5">
              <FolderKanban size={48} className="mx-auto text-muted-foreground opacity-20" />
              <div className="space-y-2">
-                <h3 className="text-xl font-bold font-headline">No campaigns found</h3>
-                <p className="text-muted-foreground max-w-xs mx-auto">Try adjusting your search or create a new campaign to get started.</p>
+                <h3 className="text-xl font-bold font-headline">No matching services</h3>
+                <p className="text-muted-foreground max-w-xs mx-auto">Start a new onboarding or AI project to see it here.</p>
              </div>
              <Button variant="outline" onClick={() => setSearchQuery("")}>Clear Search</Button>
           </div>
@@ -202,21 +231,3 @@ export default function ProjectsPage() {
   );
 }
 
-function ChevronRight({ className }: { className?: string }) {
-  return (
-    <svg 
-      xmlns="http://www.w3.org/2000/svg" 
-      width="24" 
-      height="24" 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
-      strokeLinejoin="round" 
-      className={className}
-    >
-      <path d="m9 18 6-6-6-6"/>
-    </svg>
-  );
-}
