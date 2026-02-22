@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -23,7 +22,8 @@ import {
   FileDown,
   BarChart3,
   Mail,
-  ExternalLink
+  ExternalLink,
+  X
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -211,7 +211,8 @@ export default function AgentsPage() {
           break;
 
         case 'ranking':
-          // Simulate Ranking Finder
+          // Simulate Ranking Finder with small delay
+          await new Promise(r => setTimeout(r, 1500));
           setOutput({ 
             type: 'ranking',
             keywords: [
@@ -224,7 +225,8 @@ export default function AgentsPage() {
           break;
 
         case 'leads':
-          // Simulate Lead Gen
+          // Simulate Lead Gen with small delay
+          await new Promise(r => setTimeout(r, 1500));
           setOutput({
             type: 'leads',
             results: [
@@ -310,40 +312,40 @@ export default function AgentsPage() {
       </div>
 
       <Dialog open={!!selectedAgent} onOpenChange={(open) => !open && resetForm()}>
-        <DialogContent className="max-w-4xl bg-slate-900 border-white/10 rounded-3xl overflow-hidden max-h-[95vh] flex flex-col p-0 text-white shadow-2xl">
+        <DialogContent className="max-w-4xl bg-slate-900 border-white/10 rounded-2xl md:rounded-3xl overflow-hidden max-h-[95vh] flex flex-col p-0 text-white shadow-2xl">
           {selectedAgent && (
             <>
-              <DialogHeader className="p-6 md:p-8 pb-0 shrink-0 border-b border-white/5">
-                <div className="flex items-center gap-4 mb-4">
+              <DialogHeader className="p-5 md:p-8 pb-4 shrink-0 border-b border-white/5 relative">
+                <div className="flex items-center gap-4">
                   <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl bg-slate-800 flex items-center justify-center ${selectedAgent.color}`}>
                     <selectedAgent.icon size={24} />
                   </div>
-                  <div>
-                    <DialogTitle className="text-xl md:text-2xl font-headline font-bold text-white">{selectedAgent.title}</DialogTitle>
-                    <DialogDescription className="text-slate-400 text-xs md:text-sm">{selectedAgent.desc}</DialogDescription>
+                  <div className="min-w-0 flex-1 pr-8">
+                    <DialogTitle className="text-lg md:text-2xl font-headline font-bold text-white truncate">{selectedAgent.title}</DialogTitle>
+                    <DialogDescription className="text-slate-400 text-[10px] md:text-sm truncate">{selectedAgent.desc}</DialogDescription>
                   </div>
                 </div>
               </DialogHeader>
 
-              <ScrollArea className="flex-1 h-full">
-                <div className="p-6 md:p-8 pt-4 pb-12">
+              <ScrollArea className="flex-1 overflow-y-auto">
+                <div className="p-5 md:p-8 pt-4 pb-20">
                   {!output ? (
-                    <form onSubmit={handleRunAgent} className="space-y-8">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <form onSubmit={handleRunAgent} className="space-y-6 md:space-y-8">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                         <div className="space-y-2">
-                          <Label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Product Name</Label>
+                          <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Product Name</Label>
                           <Input 
                             placeholder="e.g. Silk Kurta" 
                             required 
-                            className="bg-slate-800 border-white/5 h-12 rounded-xl text-white"
+                            className="bg-slate-800 border-white/5 h-11 md:h-12 rounded-xl text-white text-sm"
                             value={formData.productName}
                             onChange={(e) => handleInputChange("productName", e.target.value)}
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Category</Label>
+                          <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Category</Label>
                           <Select onValueChange={(val) => handleInputChange("category", val)} required>
-                            <SelectTrigger className="bg-slate-800 border-white/5 h-12 rounded-xl text-white">
+                            <SelectTrigger className="bg-slate-800 border-white/5 h-11 md:h-12 rounded-xl text-white text-sm">
                               <SelectValue placeholder="Select Segment" />
                             </SelectTrigger>
                             <SelectContent className="bg-slate-800 border-white/10 text-white">
@@ -355,10 +357,10 @@ export default function AgentsPage() {
                           </Select>
                         </div>
                         <div className="md:col-span-2 space-y-2">
-                          <Label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Description / Details</Label>
+                          <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Description / Details</Label>
                           <Input 
                             placeholder="Brief details about the product..." 
-                            className="bg-slate-800 border-white/5 h-12 rounded-xl text-white"
+                            className="bg-slate-800 border-white/5 h-11 md:h-12 rounded-xl text-white text-sm"
                             value={formData.productDescription}
                             onChange={(e) => handleInputChange("productDescription", e.target.value)}
                           />
@@ -366,26 +368,26 @@ export default function AgentsPage() {
                       </div>
 
                       {selectedAgent.id === 'photoshoot' && (
-                        <div className="space-y-6 bg-slate-800/30 p-6 md:p-8 rounded-2xl border border-white/5 animate-in fade-in slide-in-from-top-2">
+                        <div className="space-y-6 bg-slate-800/30 p-4 md:p-8 rounded-2xl border border-white/5 animate-in fade-in slide-in-from-top-2">
                           <input type="file" className="hidden" ref={fileInputRef} onChange={handleFileChange} accept="image/*" />
                           <div 
                             onClick={() => fileInputRef.current?.click()}
                             className={cn(
-                              "border-2 border-dashed rounded-2xl p-8 md:p-12 flex flex-col items-center justify-center gap-4 hover:bg-slate-800 transition-all cursor-pointer group overflow-hidden",
+                              "border-2 border-dashed rounded-2xl p-6 md:p-12 flex flex-col items-center justify-center gap-3 hover:bg-slate-800 transition-all cursor-pointer group overflow-hidden",
                               formData.base64Image ? "border-primary/50 bg-primary/5" : "border-white/10"
                             )}
                           >
                              {formData.base64Image ? (
-                               <img src={formData.base64Image} alt="Input" className="w-full max-w-[200px] aspect-square object-contain rounded-xl shadow-2xl" />
+                               <img src={formData.base64Image} alt="Input" className="w-full max-w-[180px] aspect-square object-contain rounded-xl shadow-2xl" />
                              ) : (
-                               <><Upload size={28} className="text-primary" /><p className="text-sm font-bold">Upload Product Photo</p></>
+                               <><Upload size={24} className="text-primary" /><p className="text-xs md:text-sm font-bold">Upload Product Photo</p></>
                              )}
                           </div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
                             <div className="space-y-2">
-                              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Model</Label>
+                              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Target Model</Label>
                               <Select onValueChange={(val) => setModelType(val)} defaultValue="none">
-                                <SelectTrigger className="bg-slate-800 border-white/5 h-11 rounded-xl text-white"><SelectValue /></SelectTrigger>
+                                <SelectTrigger className="bg-slate-800 border-white/5 h-11 rounded-xl text-white text-sm"><SelectValue /></SelectTrigger>
                                 <SelectContent className="bg-slate-800 border-white/10 text-white">
                                   <SelectItem value="male">Male</SelectItem>
                                   <SelectItem value="female">Female</SelectItem>
@@ -395,13 +397,13 @@ export default function AgentsPage() {
                               </Select>
                             </div>
                             <div className="space-y-2">
-                              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Angle</Label>
+                              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Lens / Angle</Label>
                               <Select onValueChange={(val) => handleInputChange("shotAngle", val)} defaultValue="front">
-                                <SelectTrigger className="bg-slate-800 border-white/5 h-11 rounded-xl text-white"><SelectValue /></SelectTrigger>
+                                <SelectTrigger className="bg-slate-800 border-white/5 h-11 rounded-xl text-white text-sm"><SelectValue /></SelectTrigger>
                                 <SelectContent className="bg-slate-800 border-white/10 text-white">
-                                  <SelectItem value="front">Front</SelectItem>
-                                  <SelectItem value="back">Back</SelectItem>
-                                  <SelectItem value="zoom">Macro Zoom</SelectItem>
+                                  <SelectItem value="front">Eye Level (Front)</SelectItem>
+                                  <SelectItem value="back">Back View</SelectItem>
+                                  <SelectItem value="zoom">Macro Close-up</SelectItem>
                                 </SelectContent>
                               </Select>
                             </div>
@@ -409,38 +411,40 @@ export default function AgentsPage() {
                         </div>
                       )}
 
-                      <Button 
-                        type="submit" 
-                        className="w-full h-14 rounded-xl text-lg font-bold bg-primary hover:bg-primary/90 shadow-xl shadow-primary/20" 
-                        disabled={isRunning}
-                      >
-                        {isRunning ? <><RefreshCw className="mr-2 h-5 w-5 animate-spin" /> Orchestrating AI...</> : <><Zap className="mr-2 h-5 w-5" /> Start Production</>}
-                      </Button>
+                      <div className="pt-4">
+                        <Button 
+                          type="submit" 
+                          className="w-full h-12 md:h-14 rounded-xl text-sm md:text-lg font-bold bg-primary hover:bg-primary/90 shadow-xl shadow-primary/20" 
+                          disabled={isRunning}
+                        >
+                          {isRunning ? <><RefreshCw className="mr-2 h-5 w-5 animate-spin" /> Orchestrating AI...</> : <><Zap className="mr-2 h-5 w-5" /> Start Production</>}
+                        </Button>
+                      </div>
                     </form>
                   ) : (
-                    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">
-                      <div className="p-6 md:p-10 rounded-3xl bg-slate-800/50 border border-white/5 space-y-8">
+                    <div className="space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-4">
+                      <div className="p-5 md:p-10 rounded-2xl md:rounded-3xl bg-slate-800/50 border border-white/5 space-y-6 md:space-y-8">
                         <div className="flex items-center justify-between">
-                          <h4 className="font-bold font-headline text-xl">Output Generated</h4>
-                          <Badge className="bg-emerald-500">Production Ready</Badge>
+                          <h4 className="font-bold font-headline text-lg md:text-xl">Output Generated</h4>
+                          <Badge className="bg-emerald-500 text-[10px]">Production Ready</Badge>
                         </div>
                         
                         {output.imageUrl && (
-                          <div className="w-full max-w-lg mx-auto aspect-square rounded-[2rem] overflow-hidden border-4 border-white/5 shadow-2xl">
+                          <div className="w-full max-w-lg mx-auto aspect-square rounded-2xl md:rounded-[2rem] overflow-hidden border-4 border-white/5 shadow-2xl bg-slate-900">
                             <img src={output.imageUrl} alt="AI Result" className="w-full h-full object-cover" />
                           </div>
                         )}
 
                         {output.type === 'listing' && (
-                          <div className="space-y-6">
-                            <div className="p-4 bg-slate-900 rounded-xl space-y-2">
+                          <div className="space-y-4 md:space-y-6">
+                            <div className="p-4 bg-slate-900 rounded-xl space-y-2 border border-white/5">
                               <Label className="text-[10px] font-bold uppercase text-slate-500">Optimized Title</Label>
-                              <p className="font-bold">{output.title}</p>
+                              <p className="font-bold text-sm md:text-base leading-snug">{output.title}</p>
                             </div>
                             <div className="grid grid-cols-1 gap-2">
                               {output.bulletPoints.map((b: string, i: number) => (
-                                <div key={i} className="flex gap-3 p-3 bg-slate-900 rounded-xl text-sm border border-white/5">
-                                  <CheckCircle2 className="text-emerald-500 size-4 shrink-0" /> {b}
+                                <div key={i} className="flex gap-3 p-3 bg-slate-900 rounded-xl text-xs md:text-sm border border-white/5">
+                                  <CheckCircle2 className="text-emerald-500 size-4 shrink-0 mt-0.5" /> {b}
                                 </div>
                               ))}
                             </div>
@@ -449,27 +453,27 @@ export default function AgentsPage() {
 
                         {output.type === 'catalog' && (
                           <div className="space-y-4">
-                            <div className="p-4 bg-slate-900 rounded-xl font-mono text-xs overflow-x-auto whitespace-pre">
+                            <div className="p-4 bg-slate-900 rounded-xl font-mono text-[10px] md:text-xs overflow-x-auto whitespace-pre border border-white/5">
                               {output.templateContent}
                             </div>
-                            <p className="text-xs text-slate-400 italic">{output.notes}</p>
+                            <p className="text-[10px] md:text-xs text-slate-400 italic leading-relaxed">{output.notes}</p>
                           </div>
                         )}
 
                         {output.type === 'video' && (
-                          <div className="space-y-6">
-                            <div className="grid grid-cols-1 gap-4">
+                          <div className="space-y-4 md:space-y-6">
+                            <div className="grid grid-cols-1 gap-3">
                               {output.storyboard.map((s: any) => (
                                 <div key={s.sceneNumber} className="p-4 bg-slate-900 rounded-xl border border-white/5">
-                                  <p className="text-xs font-bold text-accent mb-1">Scene {s.sceneNumber}</p>
-                                  <p className="text-sm font-medium">{s.description}</p>
-                                  <p className="text-[10px] text-slate-500 mt-2">{s.visualElements}</p>
+                                  <p className="text-[10px] font-bold text-rose-400 mb-1 uppercase">Scene {s.sceneNumber}</p>
+                                  <p className="text-xs md:text-sm font-medium leading-relaxed">{s.description}</p>
+                                  <p className="text-[10px] text-slate-500 mt-2 italic">{s.visualElements}</p>
                                 </div>
                               ))}
                             </div>
-                            <div className="p-4 bg-accent/10 border border-accent/20 rounded-xl">
-                              <Label className="text-[10px] font-bold uppercase text-accent">Generation Prompt</Label>
-                              <p className="text-xs italic mt-1">{output.videoGenerationPrompt}</p>
+                            <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-xl">
+                              <Label className="text-[10px] font-bold uppercase text-rose-400">Generation Prompt</Label>
+                              <p className="text-[10px] md:text-xs italic mt-1 leading-relaxed">{output.videoGenerationPrompt}</p>
                             </div>
                           </div>
                         )}
@@ -480,40 +484,40 @@ export default function AgentsPage() {
                               <Label className="text-[10px] font-bold uppercase text-orange-500">Creative Hooks</Label>
                               <div className="flex flex-wrap gap-2">
                                 {output.creativeHooks.map((h: string, i: number) => (
-                                  <Badge key={i} variant="secondary" className="bg-slate-900">{h}</Badge>
+                                  <Badge key={i} variant="secondary" className="bg-slate-900 text-[10px] py-1 border border-white/5">{h}</Badge>
                                 ))}
                               </div>
                             </div>
                             <div className="p-4 bg-slate-900 rounded-xl border border-white/5">
                               <Label className="text-[10px] font-bold uppercase text-orange-500">Creator Brief</Label>
-                              <p className="text-xs mt-2 leading-relaxed whitespace-pre-wrap">{output.creatorBrief}</p>
+                              <p className="text-[10px] md:text-xs mt-2 leading-relaxed whitespace-pre-wrap text-slate-300">{output.creatorBrief}</p>
                             </div>
                           </div>
                         )}
 
                         {output.type === 'report' && (
-                          <div className="p-6 bg-slate-900 rounded-2xl border border-white/5">
-                            <p className="text-sm leading-relaxed whitespace-pre-wrap text-slate-300">{output.narrativeSummary}</p>
+                          <div className="p-5 md:p-6 bg-slate-900 rounded-2xl border border-white/5">
+                            <p className="text-xs md:text-sm leading-relaxed whitespace-pre-wrap text-slate-300">{output.narrativeSummary}</p>
                           </div>
                         )}
 
                         {output.type === 'ranking' && (
                           <div className="space-y-4">
-                            <div className="grid grid-cols-1 gap-3">
+                            <div className="grid grid-cols-1 gap-2 md:gap-3">
                               {output.keywords.map((k: any, i: number) => (
-                                <div key={i} className="flex items-center justify-between p-4 bg-slate-900 rounded-xl border border-white/5">
-                                  <div className="flex items-center gap-3">
-                                    <BarChart3 className="text-amber-500 size-4" />
-                                    <span className="font-bold text-sm">{k.term}</span>
+                                <div key={i} className="flex items-center justify-between p-3 md:p-4 bg-slate-900 rounded-xl border border-white/5">
+                                  <div className="flex items-center gap-3 min-w-0">
+                                    <BarChart3 className="text-amber-500 size-4 shrink-0" />
+                                    <span className="font-bold text-xs md:text-sm truncate">{k.term}</span>
                                   </div>
-                                  <div className="flex gap-4">
+                                  <div className="flex gap-3 md:gap-4 shrink-0">
                                     <div className="text-right">
                                       <p className="text-[8px] uppercase text-slate-500 font-bold">Vol</p>
-                                      <p className="text-xs font-mono">{k.volume}</p>
+                                      <p className="text-[10px] md:text-xs font-mono">{k.volume}</p>
                                     </div>
-                                    <div className="text-right">
+                                    <div className="text-right hidden sm:block">
                                       <p className="text-[8px] uppercase text-slate-500 font-bold">Diff</p>
-                                      <Badge variant="outline" className="text-[8px] h-4 py-0">{k.difficulty}</Badge>
+                                      <Badge variant="outline" className="text-[8px] h-4 py-0 border-white/10">{k.difficulty}</Badge>
                                     </div>
                                   </div>
                                 </div>
@@ -524,19 +528,19 @@ export default function AgentsPage() {
 
                         {output.type === 'leads' && (
                           <div className="space-y-4">
-                            <div className="grid grid-cols-1 gap-3">
+                            <div className="grid grid-cols-1 gap-2 md:gap-3">
                               {output.results.map((l: any, i: number) => (
-                                <div key={i} className="p-4 bg-slate-900 rounded-xl border border-white/5 flex items-center justify-between">
-                                  <div className="space-y-1">
-                                    <p className="font-bold text-sm text-cyan-400">{l.company}</p>
-                                    <p className="text-xs text-slate-400 flex items-center gap-1"><Users size={10} /> {l.contact}</p>
+                                <div key={i} className="p-3 md:p-4 bg-slate-900 rounded-xl border border-white/5 flex items-center justify-between">
+                                  <div className="space-y-0.5 min-w-0 flex-1 mr-2">
+                                    <p className="font-bold text-xs md:text-sm text-cyan-400 truncate">{l.company}</p>
+                                    <p className="text-[10px] text-slate-400 flex items-center gap-1"><Users size={10} /> {l.contact}</p>
                                   </div>
-                                  <div className="flex gap-2">
+                                  <div className="flex gap-1 md:gap-2 shrink-0">
                                     <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-white" title="Email Lead">
-                                      <Mail size={14} />
+                                      <Mail size={12} />
                                     </Button>
                                     <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-white" title="Visit Site">
-                                      <ExternalLink size={14} />
+                                      <ExternalLink size={12} />
                                     </Button>
                                   </div>
                                 </div>
@@ -546,9 +550,9 @@ export default function AgentsPage() {
                         )}
                       </div>
                       
-                      <div className="flex flex-col sm:flex-row gap-4">
-                        <Button variant="outline" className="flex-1 h-12 rounded-xl" onClick={() => setOutput(null)}>New Session</Button>
-                        <Button className="flex-1 h-12 rounded-xl bg-primary shadow-lg shadow-primary/20">
+                      <div className="flex flex-col sm:flex-row gap-3 pb-8">
+                        <Button variant="outline" className="flex-1 h-11 md:h-12 rounded-xl border-white/10" onClick={() => setOutput(null)}>New Session</Button>
+                        <Button className="flex-1 h-11 md:h-12 rounded-xl bg-primary shadow-lg shadow-primary/20 font-bold">
                           <FileDown size={18} className="mr-2" /> Download Assets
                         </Button>
                       </div>
@@ -557,9 +561,9 @@ export default function AgentsPage() {
                 </div>
               </ScrollArea>
               
-              <div className="p-4 bg-slate-950/50 border-t border-white/5 flex items-center justify-center gap-2 shrink-0">
-                <div className={`w-2 h-2 rounded-full ${isApiActive ? 'bg-emerald-500 animate-pulse' : 'bg-slate-600'}`} />
-                <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">
+              <div className="p-3 md:p-4 bg-slate-950/50 border-t border-white/5 flex items-center justify-center gap-2 shrink-0">
+                <div className={`w-1.5 h-1.5 rounded-full ${isApiActive ? 'bg-emerald-500 animate-pulse' : 'bg-slate-600'}`} />
+                <span className="text-[8px] md:text-[10px] text-slate-500 uppercase tracking-widest font-bold">
                   {isApiActive ? 'AI Production Pipeline Active' : 'Internal Node Offline - Demo Only'}
                 </span>
               </div>
