@@ -279,22 +279,41 @@ export default function AgentsPage() {
                            <h4 className="font-bold font-headline text-xl text-primary">Intelligence Output</h4>
                         </div>
                         <div className="flex gap-2">
-                          <Button variant="ghost" size="icon" onClick={() => copyToClipboard(JSON.stringify(output))}><Copy size={16} /></Button>
-                          <Button variant="ghost" size="icon"><Download size={16} /></Button>
+                          <Button variant="ghost" size="icon" onClick={() => copyToClipboard(JSON.stringify(output))}><Download size={16} /></Button>
                         </div>
                       </div>
                       
                       <div className="grid grid-cols-1 gap-6 text-sm">
                         {output.title && (
                           <div className="space-y-2">
-                            <Label className="text-muted-foreground">Generated Title</Label>
+                            <div className="flex items-center justify-between">
+                              <Label className="text-muted-foreground">Generated Title</Label>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="h-6 px-2 text-[10px] hover:bg-primary/10 hover:text-primary transition-colors" 
+                                onClick={() => copyToClipboard(output.title)}
+                              >
+                                <Copy size={12} className="mr-1" /> Copy Title
+                              </Button>
+                            </div>
                             <div className="p-4 bg-background rounded-xl border font-bold text-foreground">{output.title}</div>
                           </div>
                         )}
                         
                         {output.bullets && (
                           <div className="space-y-2">
-                            <Label className="text-muted-foreground">Key Features (Bullet Points)</Label>
+                            <div className="flex items-center justify-between">
+                              <Label className="text-muted-foreground">Key Features (Bullet Points)</Label>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="h-6 px-2 text-[10px] hover:bg-primary/10 hover:text-primary transition-colors" 
+                                onClick={() => copyToClipboard(output.bullets.join("\n"))}
+                              >
+                                <Copy size={12} className="mr-1" /> Copy All Bullets
+                              </Button>
+                            </div>
                             <div className="p-4 bg-background rounded-xl border space-y-2">
                               {output.bullets.map((bullet: string, i: number) => (
                                 <div key={i} className="flex gap-2 items-start">
@@ -310,7 +329,15 @@ export default function AgentsPage() {
                           <div className="space-y-2">
                             <Label className="text-muted-foreground">Generated Prompt / Preview</Label>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div className="p-4 bg-background rounded-xl border italic text-muted-foreground text-xs leading-relaxed">
+                              <div className="p-4 bg-background rounded-xl border italic text-muted-foreground text-xs leading-relaxed relative group">
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  onClick={() => copyToClipboard(output.prompt)}
+                                >
+                                  <Copy size={10} />
+                                </Button>
                                 "{output.prompt}"
                               </div>
                               <div className="aspect-video bg-muted rounded-xl flex items-center justify-center overflow-hidden border">
@@ -322,7 +349,17 @@ export default function AgentsPage() {
 
                         {output.description && (
                           <div className="space-y-2">
-                            <Label className="text-muted-foreground">Detailed Description</Label>
+                            <div className="flex items-center justify-between">
+                              <Label className="text-muted-foreground">Detailed Description</Label>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="h-6 px-2 text-[10px] hover:bg-primary/10 hover:text-primary transition-colors" 
+                                onClick={() => copyToClipboard(output.description)}
+                              >
+                                <Copy size={12} className="mr-1" /> Copy Description
+                              </Button>
+                            </div>
                             <div className="p-4 bg-background rounded-xl border text-foreground leading-relaxed whitespace-pre-wrap">
                               {output.description}
                             </div>
