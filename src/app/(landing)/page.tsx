@@ -28,14 +28,14 @@ export default function LandingPage() {
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
             <Link href="#services" className="hover:text-primary transition-colors">Services</Link>
             <Link href="#how-it-works" className="hover:text-primary transition-colors">How it works</Link>
-            <Link href="#pricing" className="hover:text-primary transition-colors">Pricing</Link>
+            <Link href="/pricing" className="hover:text-primary transition-colors">Pricing</Link>
           </nav>
           <div className="flex items-center gap-4">
             <Link href="/login">
               <Button variant="ghost" className="hidden sm:inline-flex">Login</Button>
             </Link>
-            <Link href="/onboarding">
-              <Button className="rounded-full px-6">Start Free Trial</Button>
+            <Link href="/signup">
+              <Button className="rounded-full px-6">Sign Up</Button>
             </Link>
           </div>
         </div>
@@ -56,7 +56,7 @@ export default function LandingPage() {
               Automate your marketplace operations with expert-trained AI agents for photoshoots, listings, video ads, and growth intelligence.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link href="/onboarding">
+              <Link href="/signup">
                 <Button size="lg" className="rounded-full px-8 text-lg h-14 w-full sm:w-auto shadow-2xl shadow-primary/40">
                   Get Started Now <ArrowRight size={20} className="ml-2" />
                 </Button>

@@ -7,24 +7,28 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { BrainCircuit, Loader2, Eye, EyeOff } from "lucide-react";
+import { BrainCircuit, Loader2, Eye, EyeOff, ShieldCheck } from "lucide-react";
 
-export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+export default function SignupPage() {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleSignup = (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate login verification delay
+    // Simulate signup and account creation delay
     setTimeout(() => {
       setIsLoading(false);
-      router.push("/dashboard");
-    }, 1500);
+      // After signup, take them to the brand onboarding
+      router.push("/onboarding");
+    }, 2000);
   };
 
   return (
@@ -34,40 +38,47 @@ export default function LoginPage() {
           <Link href="/" className="mx-auto w-12 h-12 rounded-xl bg-primary flex items-center justify-center text-primary-foreground mb-4 hover:opacity-80 transition-opacity shadow-lg shadow-primary/20">
             <BrainCircuit size={28} />
           </Link>
-          <CardTitle className="text-2xl font-headline font-bold">Welcome Back</CardTitle>
-          <CardDescription>Enter your credentials to access your growth dashboard.</CardDescription>
+          <CardTitle className="text-2xl font-headline font-bold">Create Account</CardTitle>
+          <CardDescription>Start your 7-day high-performance trial today.</CardDescription>
         </CardHeader>
         <CardContent className="relative z-10">
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleSignup} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Full Name</Label>
+              <Input 
+                id="name" 
+                placeholder="John Doe" 
+                required 
+                className="rounded-xl h-12 bg-background/50"
+                value={formData.name}
+                onChange={(e) => setFormData({...formData, name: e.target.value})}
+              />
+            </div>
+            
             <div className="space-y-2">
               <Label htmlFor="email">Work Email</Label>
               <Input 
                 id="email" 
                 type="email" 
-                placeholder="name@company.com" 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                placeholder="john@company.com" 
                 required 
                 className="rounded-xl h-12 bg-background/50"
+                value={formData.email}
+                onChange={(e) => setFormData({...formData, email: e.target.value})}
               />
             </div>
             
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
-                <Button variant="link" size="sm" className="px-0 font-bold text-xs h-auto text-primary hover:text-primary/80" type="button">
-                  Forgot password?
-                </Button>
-              </div>
+              <Label htmlFor="password">Password</Label>
               <div className="relative">
                 <Input 
                   id="password" 
                   type={showPassword ? "text" : "password"} 
                   placeholder="••••••••" 
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
                   required 
                   className="rounded-xl h-12 bg-background/50 pr-10"
+                  value={formData.password}
+                  onChange={(e) => setFormData({...formData, password: e.target.value})}
                 />
                 <button
                   type="button"
@@ -81,17 +92,22 @@ export default function LoginPage() {
 
             <Button type="submit" className="w-full h-12 rounded-xl font-bold shadow-xl shadow-primary/20 mt-2" disabled={isLoading}>
               {isLoading ? (
-                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Authorizing...</>
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating Account...</>
               ) : (
-                "Sign In to MarketMind"
+                "Sign Up"
               )}
             </Button>
 
+            <div className="flex items-center justify-center gap-2 text-[10px] text-muted-foreground">
+              <ShieldCheck size={12} className="text-primary" />
+              <span>By signing up, you agree to our Terms and Privacy Policy.</span>
+            </div>
+
             <div className="text-center pt-4">
               <p className="text-xs text-muted-foreground">
-                Don&apos;t have an account?{" "}
-                <Link href="/signup" className="text-primary font-bold hover:underline">
-                  Sign Up
+                Already have an account?{" "}
+                <Link href="/login" className="text-primary font-bold hover:underline">
+                  Sign In
                 </Link>
               </p>
             </div>
