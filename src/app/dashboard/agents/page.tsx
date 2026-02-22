@@ -30,7 +30,8 @@ import {
   Eye,
   MapPin,
   Link as LinkIcon,
-  Phone
+  Phone,
+  Building2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -102,7 +103,8 @@ function AgentsContent() {
     kidAge: "5",
     kidGender: "boy",
     base64Image: null as string | null,
-    location: "India",
+    location: "",
+    country: "India",
     websiteUrl: "",
   });
 
@@ -354,7 +356,7 @@ function AgentsContent() {
         case 'leads':
           result = await generateB2BLeads({
             niche: formData.category,
-            location: formData.location || undefined,
+            location: `${formData.location}, ${formData.country}`,
             websiteUrl: formData.websiteUrl || undefined,
             apiKey: activeKey
           });
@@ -397,7 +399,8 @@ function AgentsContent() {
       kidAge: "5",
       kidGender: "boy",
       base64Image: null,
-      location: "India",
+      location: "",
+      country: "India",
       websiteUrl: ""
     });
   };
@@ -476,7 +479,7 @@ function AgentsContent() {
                         )}
                         <div className={cn("space-y-2", selectedAgent.id === 'leads' && "md:col-span-2")}>
                           <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                            {selectedAgent.id === 'leads' ? 'Product Category (Industry)' : 'Category / Niche'}
+                            {selectedAgent.id === 'leads' ? 'Target Industry' : 'Category / Niche'}
                           </Label>
                           <Select value={formData.category} onValueChange={(val) => handleInputChange("category", val)} required>
                             <SelectTrigger className="bg-slate-800 border-white/5 h-11 md:h-12 rounded-xl text-white text-sm">
@@ -496,18 +499,35 @@ function AgentsContent() {
                           <>
                             <div className="space-y-2">
                               <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1">
-                                <MapPin size={10} /> Target Location (City in India)
+                                <Globe size={10} /> Select Country
                               </Label>
-                              <Input 
-                                placeholder="e.g. India, Mumbai or Delhi"
-                                className="bg-slate-800 border-white/5 h-11 md:h-12 rounded-xl text-white text-sm"
-                                value={formData.location}
-                                onChange={(e) => handleInputChange("location", e.target.value)}
-                              />
+                              <Select value={formData.country} onValueChange={(val) => handleInputChange("country", val)} required>
+                                <SelectTrigger className="bg-slate-800 border-white/5 h-11 md:h-12 rounded-xl text-white text-sm">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="bg-slate-800 border-white/10 text-white">
+                                  <SelectItem value="India">India</SelectItem>
+                                  <SelectItem value="USA">USA</SelectItem>
+                                  <SelectItem value="UAE">UAE</SelectItem>
+                                  <SelectItem value="UK">UK</SelectItem>
+                                </SelectContent>
+                              </Select>
                             </div>
                             <div className="space-y-2">
                               <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1">
-                                <LinkIcon size={10} /> Website URL (Optional)
+                                <MapPin size={10} /> Enter Indian Cities
+                              </Label>
+                              <Input 
+                                placeholder="e.g. Mumbai, Delhi, Bangalore"
+                                className="bg-slate-800 border-white/5 h-11 md:h-12 rounded-xl text-white text-sm"
+                                value={formData.location}
+                                onChange={(e) => handleInputChange("location", e.target.value)}
+                                required
+                              />
+                            </div>
+                            <div className="md:col-span-2 space-y-2">
+                              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1">
+                                <LinkIcon size={10} /> Brand Website URL (Optional Context)
                               </Label>
                               <Input 
                                 placeholder="https://yourbrand.com"
