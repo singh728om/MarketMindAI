@@ -14,6 +14,7 @@ const GeneratePhotoshootInputSchema = z.object({
   shotAngle: z.string().optional(),
   modelType: z.string().optional(),
   kidAge: z.string().optional(),
+  kidGender: z.string().optional(),
   background: z.string().optional(),
   style: z.string().optional(),
   apiKey: z.string().optional(),
@@ -35,7 +36,8 @@ export async function generatePhotoshoot(input: GeneratePhotoshootInput): Promis
   if (input.modelType === 'none') {
     modelText = 'the product alone in a clean setting';
   } else if (input.modelType === 'kids') {
-    modelText = `a ${input.kidAge || '5'}-year-old child model wearing or holding the product`;
+    const gender = input.kidGender === 'boy' ? 'boy' : 'girl';
+    modelText = `a professional ${input.kidAge || '5'}-year-old ${gender} model wearing or holding the product`;
   } else {
     modelText = `a professional ${input.modelType} model wearing or holding the product`;
   }

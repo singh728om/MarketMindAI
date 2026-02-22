@@ -85,6 +85,7 @@ export default function AgentsPage() {
     shotAngle: "front",
     background: "professional-studio",
     kidAge: "5",
+    kidGender: "boy",
     base64Image: null as string | null,
   });
 
@@ -207,6 +208,7 @@ export default function AgentsPage() {
             shotAngle: formData.shotAngle,
             modelType: modelType,
             kidAge: modelType === 'kids' ? formData.kidAge : undefined,
+            kidGender: modelType === 'kids' ? formData.kidGender : undefined,
             background: formData.background,
             style: "high-fashion commercial editorial, professional studio lighting, extremely detailed, 8k resolution",
             apiKey: activeKey
@@ -325,6 +327,7 @@ export default function AgentsPage() {
       shotAngle: "front",
       background: "professional-studio",
       kidAge: "5",
+      kidGender: "boy",
       base64Image: null
     });
   };
@@ -429,7 +432,7 @@ export default function AgentsPage() {
                               </Select>
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                               <div className="space-y-2">
                                 <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Model Selection</Label>
                                 <Select onValueChange={(val) => setModelType(val)} value={modelType}>
@@ -444,17 +447,29 @@ export default function AgentsPage() {
                               </div>
 
                               {modelType === 'kids' && (
-                                <div className="space-y-2 animate-in fade-in slide-in-from-left-2">
-                                  <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Model Age</Label>
-                                  <Select onValueChange={(val) => handleInputChange("kidAge", val)} value={formData.kidAge}>
-                                    <SelectTrigger className="bg-slate-800 border-white/5 h-11 rounded-xl text-white text-sm"><SelectValue /></SelectTrigger>
-                                    <SelectContent className="bg-slate-800 border-white/10 text-white">
-                                      {Array.from({ length: 12 }, (_, i) => i + 1).map(age => (
-                                        <SelectItem key={age} value={age.toString()}>{age} Year Old</SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
+                                <>
+                                  <div className="space-y-2 animate-in fade-in slide-in-from-left-2">
+                                    <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Model Gender</Label>
+                                    <Select onValueChange={(val) => handleInputChange("kidGender", val)} value={formData.kidGender}>
+                                      <SelectTrigger className="bg-slate-800 border-white/5 h-11 rounded-xl text-white text-sm"><SelectValue /></SelectTrigger>
+                                      <SelectContent className="bg-slate-800 border-white/10 text-white">
+                                        <SelectItem value="boy">Baby Boy</SelectItem>
+                                        <SelectItem value="girl">Baby Girl</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                  <div className="space-y-2 animate-in fade-in slide-in-from-left-2">
+                                    <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Model Age</Label>
+                                    <Select onValueChange={(val) => handleInputChange("kidAge", val)} value={formData.kidAge}>
+                                      <SelectTrigger className="bg-slate-800 border-white/5 h-11 rounded-xl text-white text-sm"><SelectValue /></SelectTrigger>
+                                      <SelectContent className="bg-slate-800 border-white/10 text-white">
+                                        {Array.from({ length: 12 }, (_, i) => i + 1).map(age => (
+                                          <SelectItem key={age} value={age.toString()}>{age} Year Old</SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                </>
                               )}
 
                               <div className="space-y-2">
