@@ -9,3 +9,5 @@ import '@/ai/flows/manage-reviews-and-reputation.ts';
 import '@/ai/flows/generate-photoshoot-prompts.ts';
 import '@/ai/flows/generate-client-report-narrative.ts';
 import '@/ai/flows/generate-growth-recommendations.ts';
+import '@/ai/flows/find-ranking-keywords.ts';
+import '@/ai/flows/generate-b2b-leads.ts';

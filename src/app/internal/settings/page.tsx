@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -28,9 +27,9 @@ export default function InternalSettingsPage() {
   const [showKey, setShowKey] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [keys, setKeys] = useState({
-    gemini: "AIzaSyCqOB3Ka2dA0Nl5kbLFrg9KER2whBkt3pA",
+    gemini: "",
     openai: "",
-    status: "Active"
+    status: "Pending"
   });
   
   const { toast } = useToast();
@@ -39,9 +38,6 @@ export default function InternalSettingsPage() {
     const savedKeys = localStorage.getItem("marketmind_api_keys");
     if (savedKeys) {
       setKeys(JSON.parse(savedKeys));
-    } else {
-      // Auto-provision default working key on first access
-      localStorage.setItem("marketmind_api_keys", JSON.stringify(keys));
     }
   }, []);
 
@@ -50,7 +46,7 @@ export default function InternalSettingsPage() {
     setTimeout(() => {
       localStorage.setItem("marketmind_api_keys", JSON.stringify(keys));
       setIsSaving(false);
-      // Trigger event for local listeners
+      // Trigger event for local listeners in dashboard
       window.dispatchEvent(new Event('storage'));
       toast({
         title: "System Config Updated",
@@ -86,11 +82,17 @@ export default function InternalSettingsPage() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between mb-2">
                   <Label className="text-slate-300 font-bold uppercase tracking-widest text-[10px]">Google Gemini API Key (Pro 1.5)</Label>
-                  <Badge variant="outline" className="text-emerald-500 border-emerald-500/20 bg-emerald-500/5 px-2">Active</Badge>
+                  <Badge variant="outline" className={cn(
+                    "px-2",
+                    keys.gemini ? "text-emerald-500 border-emerald-500/20 bg-emerald-500/5" : "text-slate-500 border-white/10"
+                  )}>
+                    {keys.gemini ? 'Configured' : 'Offline'}
+                  </Badge>
                 </div>
                 <div className="relative">
                   <Input 
                     type={showKey ? "text" : "password"} 
+                    placeholder="Enter Gemini Key..."
                     value={keys.gemini}
                     onChange={(e) => setKeys({...keys, gemini: e.target.value})}
                     className="h-12 rounded-xl bg-slate-800 border-white/5 text-white font-mono text-sm pr-20"

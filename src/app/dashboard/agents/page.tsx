@@ -51,6 +51,8 @@ import { generateCatalogTemplate } from "@/ai/flows/generate-catalog-template";
 import { generateVideoAdContent } from "@/ai/flows/generate-video-ad-content";
 import { generateUgcCampaignAssets } from "@/ai/flows/generate-ugc-campaign-assets";
 import { generateClientReportNarrative } from "@/ai/flows/generate-client-report-narrative";
+import { findRankingKeywords } from "@/ai/flows/find-ranking-keywords";
+import { generateB2BLeads } from "@/ai/flows/generate-b2b-leads";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -220,28 +222,22 @@ export default function AgentsPage() {
           break;
 
         case 'ranking':
-          await new Promise(r => setTimeout(r, 1500));
-          setOutput({ 
-            type: 'ranking',
-            keywords: [
-              { term: `${formData.productName} for festive season`, volume: "12.5k", difficulty: "Medium" },
-              { term: `Best ${formData.category} under 2000`, volume: "45k", difficulty: "High" },
-              { term: `Handcrafted ${formData.productName}`, volume: "3.2k", difficulty: "Low" },
-              { term: `${formData.marketplace} fashion trends 2024`, volume: "89k", difficulty: "Very High" }
-            ]
+          result = await findRankingKeywords({
+            productName: formData.productName,
+            category: formData.category,
+            marketplace: formData.marketplace,
+            apiKey: activeKey
           });
+          setOutput({ ...result, type: 'ranking' });
           break;
 
         case 'leads':
-          await new Promise(r => setTimeout(r, 1500));
-          setOutput({
-            type: 'leads',
-            results: [
-              { company: "Ethnic Elegance Exports", contact: "Vikram Mehta", email: "v.exports@elegance.com", website: "eleganceexports.in" },
-              { company: "Vastra Boutique Group", contact: "Ananya Iyer", email: "buying@vastra.com", website: "vastraboutique.in" },
-              { company: "Retail Core India", contact: "Sameer Shah", email: "vendor@retailcore.co.in", website: "retailcore.in" }
-            ]
+          result = await generateB2BLeads({
+            niche: formData.productName + " " + formData.category,
+            location: "India",
+            apiKey: activeKey
           });
+          setOutput({ ...result, type: 'leads' });
           break;
 
         default:
@@ -291,7 +287,7 @@ export default function AgentsPage() {
         {isApiActive && (
           <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 px-4 py-1.5 flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-            Production Ready
+            Authenticated AI Instance active
           </Badge>
         )}
       </div>
@@ -340,7 +336,7 @@ export default function AgentsPage() {
                     <form onSubmit={handleRunAgent} className="space-y-6 md:space-y-8">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                         <div className="space-y-2">
-                          <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Product Name</Label>
+                          <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Product / Niche Name</Label>
                           <Input 
                             placeholder="e.g. Silk Kurta" 
                             required 
@@ -364,9 +360,9 @@ export default function AgentsPage() {
                           </Select>
                         </div>
                         <div className="md:col-span-2 space-y-2">
-                          <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Description / Details</Label>
+                          <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Description / Context</Label>
                           <Input 
-                            placeholder="Brief details about the product..." 
+                            placeholder="Brief details about the product or campaign..." 
                             className="bg-slate-800 border-white/5 h-11 md:h-12 rounded-xl text-white text-sm"
                             value={formData.productDescription}
                             onChange={(e) => handleInputChange("productDescription", e.target.value)}
