@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { 
   HardDrive, 
   Database, 
@@ -48,16 +49,38 @@ export default function StoragePage() {
   const [isActivating, setIsActivating] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [files, setFiles] = useState(INITIAL_FILES);
+  const [files, setFiles] = useState<any[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
+  // Load persistent state
+  useEffect(() => {
+    const active = localStorage.getItem("marketmind_vault_active") === "true";
+    const savedFiles = localStorage.getItem("marketmind_vault_files");
+    
+    setIsVaultActive(active);
+    if (savedFiles) {
+      setFiles(JSON.parse(savedFiles));
+    } else {
+      setFiles(INITIAL_FILES);
+    }
+    setIsLoaded(true);
+  }, []);
+
+  // Save files whenever list changes
+  useEffect(() => {
+    if (isLoaded) {
+      localStorage.setItem("marketmind_vault_files", JSON.stringify(files));
+    }
+  }, [files, isLoaded]);
+
   const handleActivateVault = () => {
     setIsActivating(true);
-    // Simulate provisioning internal storage node
     setTimeout(() => {
       setIsActivating(false);
       setIsVaultActive(true);
+      localStorage.setItem("marketmind_vault_active", "true");
       toast({
         title: "Brand Vault Online",
         description: "Your dedicated MarketMind storage node has been provisioned.",
@@ -76,34 +99,33 @@ export default function StoragePage() {
     setIsUploading(true);
     setUploadProgress(0);
 
-    // Simulate upload progress
     const interval = setInterval(() => {
-      setUploadProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          return 100;
-        }
-        return prev + 10;
-      });
+      setUploadProgress(prev => Math.min(prev + 10, 100));
     }, 200);
 
     setTimeout(() => {
+      clearInterval(interval);
       setIsUploading(false);
       const newFile = {
-        id: files.length + 1,
+        id: Date.now(),
         name: file.name,
         type: file.name.split('.').pop()?.toUpperCase() || 'DATA',
         size: (file.size / (1024 * 1024)).toFixed(1) + " MB",
         date: "Just now",
         status: "Stored"
       };
-      setFiles([newFile, ...files]);
+      setFiles(prev => [newFile, ...prev]);
       toast({
         title: "File Secured in Vault",
         description: `${file.name} has been encrypted and stored.`,
       });
       if (fileInputRef.current) fileInputRef.current.value = "";
     }, 2500);
+  };
+
+  const deleteFile = (id: number) => {
+    setFiles(prev => prev.filter(f => f.id !== id));
+    toast({ title: "File Purged", description: "Asset removed from Brand Vault." });
   };
 
   const getFileIcon = (type: string) => {
@@ -119,6 +141,8 @@ export default function StoragePage() {
       default: return <File size={16} />;
     }
   };
+
+  if (!isLoaded) return <div className="flex items-center justify-center min-h-[60vh]"><Loader2 className="animate-spin text-primary w-12 h-12" /></div>;
 
   return (
     <div className="space-y-8 pb-20">
@@ -169,7 +193,6 @@ export default function StoragePage() {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="lg:col-span-2 space-y-8">
-            {/* File Management Header */}
             <div className="flex flex-col sm:flex-row gap-4 items-center">
               <div className="relative flex-1 w-full">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
@@ -203,7 +226,6 @@ export default function StoragePage() {
               </Card>
             )}
 
-            {/* Recent Files Table */}
             <Card className="rounded-3xl border-white/5 bg-card overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-left">
@@ -247,7 +269,7 @@ export default function StoragePage() {
                               <DropdownMenuItem className="flex items-center gap-2">
                                 <ExternalLink size={14} /> Open Preview
                               </DropdownMenuItem>
-                              <DropdownMenuItem className="text-rose-500 flex items-center gap-2" onClick={() => setFiles(files.filter(f => f.id !== file.id))}>
+                              <DropdownMenuItem className="text-rose-500 flex items-center gap-2" onClick={() => deleteFile(file.id)}>
                                 <X size={14} /> Purge from Vault
                               </DropdownMenuItem>
                             </DropdownMenuContent>
@@ -267,7 +289,6 @@ export default function StoragePage() {
           </div>
 
           <div className="space-y-8">
-            {/* Storage Quota */}
             <Card className="rounded-3xl border-white/5 bg-card overflow-hidden">
               <CardHeader className="bg-primary/5 border-b border-white/5">
                 <CardTitle className="text-lg font-headline flex items-center gap-2">
@@ -278,32 +299,31 @@ export default function StoragePage() {
                 <div className="space-y-4">
                   <div className="flex justify-between text-xs font-bold uppercase tracking-widest">
                     <span className="text-muted-foreground">Node Capacity</span>
-                    <span className="text-primary">12.4 GB / 100 GB</span>
+                    <span className="text-primary">{(files.length * 1.2).toFixed(1)} GB / 100 GB</span>
                   </div>
-                  <Progress value={12.4} className="h-2 bg-slate-800" />
+                  <Progress value={files.length * 1.2} className="h-2 bg-slate-800" />
                   <p className="text-[10px] text-muted-foreground leading-relaxed">
-                    You are utilizing 12.4% of your high-speed agency storage. All data is replicated across 3 regional nodes.
+                    You are utilizing {(files.length * 1.2).toFixed(1)}% of your high-speed agency storage. All data is replicated across 3 regional nodes.
                   </p>
                 </div>
                 
                 <div className="space-y-3 pt-4 border-t border-white/5">
                   <div className="flex items-center gap-3 text-xs text-slate-300">
                     <div className="w-2 h-2 rounded-full bg-blue-500" />
-                    <span>AI Content (4.2 GB)</span>
+                    <span>AI Content ({(files.filter(f => ['PNG', 'JPG', 'IMAGE'].includes(f.type)).length * 0.8).toFixed(1)} GB)</span>
                   </div>
                   <div className="flex items-center gap-3 text-xs text-slate-300">
                     <div className="w-2 h-2 rounded-full bg-purple-500" />
-                    <span>Video Masters (6.8 GB)</span>
+                    <span>Video Masters ({(files.filter(f => ['MP4', 'VIDEO'].includes(f.type)).length * 2.4).toFixed(1)} GB)</span>
                   </div>
                   <div className="flex items-center gap-3 text-xs text-slate-300">
                     <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                    <span>Marketplace Intel (1.4 GB)</span>
+                    <span>Marketplace Intel ({(files.filter(f => ['CSV', 'PDF', 'DATA'].includes(f.type)).length * 0.4).toFixed(1)} GB)</span>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Encryption Status */}
             <Card className="rounded-3xl border-white/5 bg-card overflow-hidden">
               <CardHeader>
                 <CardTitle className="text-lg font-headline">Vault Security</CardTitle>
@@ -326,7 +346,6 @@ export default function StoragePage() {
               </CardContent>
             </Card>
 
-            {/* Pro Tip */}
             <div className="p-6 rounded-3xl bg-primary/5 border border-primary/20 space-y-3">
                <h4 className="font-bold text-primary text-sm flex items-center gap-2">
                  <Zap size={16} /> Asset tip

@@ -189,12 +189,38 @@ function AgentsContent() {
   };
 
   const handleSaveToVault = () => {
+    if (!output) return;
     setIsVaulting(true);
+    
     setTimeout(() => {
+      // Logic to actually save to persistent localStorage used by StoragePage
+      const savedFilesStr = localStorage.getItem("marketmind_vault_files");
+      let savedFiles = savedFilesStr ? JSON.parse(savedFilesStr) : [];
+      
+      let fileType = "DATA";
+      let fileName = `ai_${selectedAgent.id}_${Date.now()}`;
+
+      if (output.imageUrl) { fileType = "PNG"; fileName += ".png"; }
+      else if (output.videoUrl) { fileType = "MP4"; fileName += ".mp4"; }
+      else if (output.type === 'listing') { fileType = "PDF"; fileName += ".pdf"; }
+      else if (output.type === 'ceo') { fileType = "CSV"; fileName += ".csv"; }
+
+      const newFile = {
+        id: Date.now(),
+        name: fileName,
+        type: fileType,
+        size: "1.2 MB", // Mock size
+        date: "Just now",
+        status: "Stored"
+      };
+
+      savedFiles = [newFile, ...savedFiles];
+      localStorage.setItem("marketmind_vault_files", JSON.stringify(savedFiles));
+      
       setIsVaulting(false);
       toast({
         title: "Secured in Brand Vault",
-        description: `Output from ${selectedAgent.title} has been encrypted and archived.`,
+        description: `${fileName} has been encrypted and archived.`,
       });
     }, 1500);
   };
