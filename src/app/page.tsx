@@ -106,7 +106,7 @@ export default function LandingPage() {
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
             <Link href="#services" className="hover:text-primary transition-colors">Services</Link>
             <Link href="#how-it-works" className="hover:text-primary transition-colors">How it works</Link>
-            <Link href="#pricing" className="hover:text-primary transition-colors">Pricing</Link>
+            <Link href="/pricing" className="hover:text-primary transition-colors">Pricing</Link>
           </nav>
           <div className="flex items-center gap-4">
             <Link href="/login">
@@ -271,7 +271,9 @@ export default function LandingPage() {
                       accept="image/*"
                     />
                     <div 
-                      onClick={() => fileInputRef.current?.click()}
+                      onClick={() => {
+                        if (fileInputRef.current) fileInputRef.current.click();
+                      }}
                       className="border-2 border-dashed border-white/10 rounded-2xl p-12 flex flex-col items-center justify-center gap-4 bg-secondary/20 hover:bg-secondary/30 transition-colors cursor-pointer group"
                     >
                       <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
