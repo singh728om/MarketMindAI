@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -103,7 +104,7 @@ export default function LoginPage() {
                   </Button>
                   <div className="text-center pt-4">
                     <p className="text-xs text-muted-foreground">
-                      Don&apos;t have an account? <Link href="/signup" className="text-primary font-bold hover:underline">Sign Up</Link>
+                      Don&apos;t have an account? <Link href="/signup" className="text-primary font-bold hover:underline">Start Free Trial</Link>
                     </p>
                   </div>
                 </form>

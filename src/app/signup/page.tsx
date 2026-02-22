@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -94,7 +95,7 @@ export default function SignupPage() {
               {isLoading ? (
                 <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating Account...</>
               ) : (
-                "Sign Up"
+                "Start Free Trial"
               )}
             </Button>
 

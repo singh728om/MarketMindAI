@@ -123,7 +123,7 @@ export default function LandingPage() {
               <Button variant="ghost">Login</Button>
             </Link>
             <Link href="/signup" className="hidden sm:inline-flex">
-              <Button className="rounded-full px-6">Sign Up</Button>
+              <Button className="rounded-full px-6">Start Free Trial</Button>
             </Link>
             
             {/* Mobile Menu Toggle */}
@@ -144,7 +144,7 @@ export default function LandingPage() {
                     <Button variant="outline" className="w-full h-12 rounded-xl">Login</Button>
                   </Link>
                   <Link href="/signup" onClick={() => setIsMobileMenuOpen(false)}>
-                    <Button className="w-full h-12 rounded-xl">Sign Up</Button>
+                    <Button className="w-full h-12 rounded-xl">Start Free Trial</Button>
                   </Link>
                 </div>
               </SheetContent>
@@ -170,7 +170,7 @@ export default function LandingPage() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 px-4">
               <Link href="/signup" className="w-full sm:w-auto">
                 <Button size="lg" className="rounded-full px-8 text-lg h-14 w-full shadow-2xl shadow-primary/40">
-                  Get Started Now <ArrowRight size={20} className="ml-2" />
+                  Start Free Trial <ArrowRight size={20} className="ml-2" />
                 </Button>
               </Link>
               <Button 
@@ -395,7 +395,7 @@ export default function LandingPage() {
 
                 <div className="pt-4 flex flex-col sm:flex-row gap-4">
                   <Link href="/signup" className="flex-1">
-                    <Button className="w-full h-12 rounded-xl text-lg font-bold">Sign Up for Free</Button>
+                    <Button className="w-full h-12 rounded-xl text-lg font-bold">Start Free Trial</Button>
                   </Link>
                   <Button variant="outline" className="h-12 rounded-xl px-8" onClick={() => setServiceOpen(null)}>Close</Button>
                 </div>
