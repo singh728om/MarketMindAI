@@ -409,21 +409,23 @@ function AgentsContent() {
                     <form onSubmit={handleRunAgent} className="space-y-6 md:space-y-8">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                         {/* Generic Fields */}
-                        <div className="space-y-2">
-                          <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Select Marketplace</Label>
-                          <Select value={formData.marketplace} onValueChange={(val) => handleInputChange("marketplace", val)} required>
-                            <SelectTrigger className="bg-slate-800 border-white/5 h-11 md:h-12 rounded-xl text-white text-sm">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="bg-slate-800 border-white/10 text-white">
-                              <SelectItem value="Amazon">Amazon India</SelectItem>
-                              <SelectItem value="Flipkart">Flipkart</SelectItem>
-                              <SelectItem value="Myntra">Myntra</SelectItem>
-                              <SelectItem value="Ajio">Ajio</SelectItem>
-                              <SelectItem value="Nykaa">Nykaa</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
+                        {selectedAgent.id !== 'photoshoot' && (
+                          <div className="space-y-2">
+                            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Select Marketplace</Label>
+                            <Select value={formData.marketplace} onValueChange={(val) => handleInputChange("marketplace", val)} required>
+                              <SelectTrigger className="bg-slate-800 border-white/5 h-11 md:h-12 rounded-xl text-white text-sm">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="bg-slate-800 border-white/10 text-white">
+                                <SelectItem value="Amazon">Amazon India</SelectItem>
+                                <SelectItem value="Flipkart">Flipkart</SelectItem>
+                                <SelectItem value="Myntra">Myntra</SelectItem>
+                                <SelectItem value="Ajio">Ajio</SelectItem>
+                                <SelectItem value="Nykaa">Nykaa</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )}
 
                         {selectedAgent.id === 'ceo' ? (
                           <div className="md:col-span-2 space-y-4">
@@ -484,7 +486,7 @@ function AgentsContent() {
                               </Select>
                             </div>
 
-                            {(selectedAgent.id === 'photoshoot' || selectedAgent.id === 'listing' || selectedAgent.id === 'ranking') && (
+                            {(selectedAgent.id === 'listing' || selectedAgent.id === 'ranking') && (
                               <div className="space-y-2">
                                 <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Product Color</Label>
                                 <Input 
