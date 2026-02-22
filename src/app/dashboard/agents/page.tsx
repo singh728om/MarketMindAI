@@ -29,7 +29,8 @@ import {
   Save,
   Eye,
   MapPin,
-  Link as LinkIcon
+  Link as LinkIcon,
+  Phone
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -101,7 +102,7 @@ function AgentsContent() {
     kidAge: "5",
     kidGender: "boy",
     base64Image: null as string | null,
-    location: "",
+    location: "India",
     websiteUrl: "",
   });
 
@@ -396,7 +397,7 @@ function AgentsContent() {
       kidAge: "5",
       kidGender: "boy",
       base64Image: null,
-      location: "",
+      location: "India",
       websiteUrl: ""
     });
   };
@@ -495,10 +496,10 @@ function AgentsContent() {
                           <>
                             <div className="space-y-2">
                               <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1">
-                                <MapPin size={10} /> Target Location (Optional)
+                                <MapPin size={10} /> Target Location (City in India)
                               </Label>
                               <Input 
-                                placeholder="e.g. India, USA, or Delhi"
+                                placeholder="e.g. India, Mumbai or Delhi"
                                 className="bg-slate-800 border-white/5 h-11 md:h-12 rounded-xl text-white text-sm"
                                 value={formData.location}
                                 onChange={(e) => handleInputChange("location", e.target.value)}
@@ -767,23 +768,25 @@ function AgentsContent() {
                           <div className="space-y-4">
                             <div className="grid grid-cols-1 gap-2 md:gap-3">
                               {output.results.map((l: any, i: number) => (
-                                <div key={i} className="p-3 md:p-4 bg-slate-900 rounded-xl border border-white/5 space-y-3">
+                                <div key={i} className="p-4 md:p-6 bg-slate-900 rounded-2xl border border-white/5 space-y-4">
                                   <div className="flex items-center justify-between">
-                                    <div className="space-y-0.5 min-w-0 flex-1 mr-2">
-                                      <p className="font-bold text-xs md:text-sm text-cyan-400 truncate">{l.company}</p>
-                                      <p className="text-[10px] text-slate-400 flex items-center gap-1"><Users size={10} /> {l.contact}</p>
+                                    <div className="space-y-1">
+                                      <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Business Name</p>
+                                      <p className="font-bold text-sm md:text-lg text-cyan-400">{l.businessName}</p>
                                     </div>
-                                    <div className="flex gap-1 md:gap-2 shrink-0">
-                                      <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-white" title="Email Lead">
-                                        <Mail size={12} />
-                                      </Button>
-                                      <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-white" title="Visit Site">
-                                        <ExternalLink size={12} />
-                                      </Button>
+                                    <div className="w-10 h-10 rounded-full bg-cyan-500/10 flex items-center justify-center text-cyan-500">
+                                      <Building2 size={20} />
                                     </div>
                                   </div>
-                                  <div className="p-2 bg-slate-950/50 rounded-lg border border-white/5">
-                                    <p className="text-[10px] text-slate-400 leading-relaxed"><Sparkles size={10} className="inline mr-1 text-cyan-500" /> {l.reason}</p>
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-white/5">
+                                    <div className="space-y-1">
+                                      <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1"><Phone size={10} /> Mobile</p>
+                                      <p className="text-xs md:text-sm font-medium text-slate-200">{l.mobile}</p>
+                                    </div>
+                                    <div className="space-y-1">
+                                      <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1"><Mail size={10} /> Email</p>
+                                      <p className="text-xs md:text-sm font-medium text-slate-200">{l.email}</p>
+                                    </div>
                                   </div>
                                 </div>
                               ))}
