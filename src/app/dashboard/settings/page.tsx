@@ -1,10 +1,8 @@
-
 "use client";
 
 import { useState } from "react";
 import { 
   Settings, 
-  User, 
   Globe, 
   Bell, 
   Shield, 
@@ -14,7 +12,9 @@ import {
   ShoppingBag,
   ExternalLink,
   Smartphone,
-  CheckCircle2
+  CheckCircle2,
+  Lock,
+  User
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -35,7 +35,7 @@ export default function SettingsPage() {
       setIsSaving(false);
       toast({
         title: "Settings Saved",
-        description: "Your brand preferences and API keys have been updated.",
+        description: "Your platform preferences and security keys have been updated.",
       });
     }, 1500);
   };
@@ -44,58 +44,21 @@ export default function SettingsPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-headline font-bold mb-1">Settings</h1>
-        <p className="text-muted-foreground">Manage your brand identity, integrations, and preferences.</p>
+        <p className="text-muted-foreground">Manage platform integrations, notification logic, and security.</p>
       </div>
 
-      <Tabs defaultValue="brand" className="space-y-8">
+      <Tabs defaultValue="marketplaces" className="space-y-8">
         <TabsList className="bg-muted/50 p-1 rounded-2xl border border-white/5 h-12 inline-flex">
-          <TabsTrigger value="brand" className="rounded-xl px-6 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-            <User className="w-4 h-4 mr-2" /> Brand Profile
-          </TabsTrigger>
           <TabsTrigger value="marketplaces" className="rounded-xl px-6 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             <Globe className="w-4 h-4 mr-2" /> Marketplaces
           </TabsTrigger>
           <TabsTrigger value="notifications" className="rounded-xl px-6 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             <Bell className="w-4 h-4 mr-2" /> Notifications
           </TabsTrigger>
-          <TabsTrigger value="billing" className="rounded-xl px-6 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-            <CreditCard className="w-4 h-4 mr-2" /> Plan & Billing
+          <TabsTrigger value="security" className="rounded-xl px-6 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <Lock className="w-4 h-4 mr-2" /> Security
           </TabsTrigger>
         </TabsList>
-
-        <TabsContent value="brand" className="space-y-6 animate-in fade-in slide-in-from-left-4">
-          <Card className="rounded-2xl border-white/5 bg-card overflow-hidden">
-            <CardHeader>
-              <CardTitle className="font-headline">Identity & Details</CardTitle>
-              <CardDescription>Public information used across AI generation agents.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="brand-name">Brand Name</Label>
-                  <Input id="brand-name" defaultValue="CHIC ELAN" className="rounded-xl" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="website">Website URL</Label>
-                  <Input id="website" defaultValue="https://chicelan.in" className="rounded-xl" />
-                </div>
-                <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="bio">Brand Description</Label>
-                  <textarea 
-                    id="bio" 
-                    className="flex min-h-[100px] w-full rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    placeholder="Describe your brand voice, tone, and mission..."
-                  />
-                </div>
-              </div>
-            </CardContent>
-            <CardFooter className="bg-muted/30 p-6 flex justify-end">
-              <Button onClick={handleSave} disabled={isSaving} className="rounded-xl px-8 font-bold">
-                {isSaving ? "Saving..." : <><Save className="w-4 h-4 mr-2" /> Save Changes</>}
-              </Button>
-            </CardFooter>
-          </Card>
-        </TabsContent>
 
         <TabsContent value="marketplaces" className="space-y-6 animate-in fade-in slide-in-from-left-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -136,7 +99,10 @@ export default function SettingsPage() {
                     <p className="text-xs text-muted-foreground">Used for real-time inventory and pricing sync.</p>
                   </div>
                 </div>
-                <Button variant="outline" size="sm" className="rounded-lg h-8">Rotate Key</Button>
+                <div className="flex items-center gap-2">
+                   <Badge variant="outline" className="font-mono text-[10px]">AKIA...4X7Y</Badge>
+                   <Button variant="outline" size="sm" className="rounded-lg h-8">Rotate Key</Button>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -171,41 +137,43 @@ export default function SettingsPage() {
                 <Switch />
               </div>
             </CardContent>
+            <CardFooter className="bg-muted/10 p-6 flex justify-end">
+               <Button onClick={handleSave} disabled={isSaving} className="rounded-xl px-8 shadow-lg shadow-primary/20">
+                 {isSaving ? "Saving..." : <><Save size={16} className="mr-2" /> Save Preferences</>}
+               </Button>
+            </CardFooter>
           </Card>
         </TabsContent>
 
-        <TabsContent value="billing" className="space-y-6 animate-in fade-in slide-in-from-left-4">
-          <Card className="rounded-2xl border-primary/20 bg-primary/5 relative overflow-hidden">
-             <div className="absolute top-0 right-0 p-8 opacity-10">
-               <Zap size={120} strokeWidth={1} />
-             </div>
-             <CardHeader>
-               <div className="flex items-center gap-2 mb-2">
-                 <Badge className="bg-primary text-white">Current Plan</Badge>
-                 <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">7 Days Left</span>
+        <TabsContent value="security" className="space-y-6 animate-in fade-in slide-in-from-left-4">
+           <Card className="rounded-2xl border-white/5 bg-card">
+            <CardHeader>
+              <CardTitle className="font-headline">Access & Security</CardTitle>
+              <CardDescription>Manage your authentication and account safety.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+               <div className="p-4 rounded-xl border border-white/5 bg-secondary/20 flex items-center justify-between">
+                 <div className="flex items-center gap-3">
+                   <User className="text-primary" />
+                   <div>
+                     <p className="text-sm font-bold">Two-Factor Authentication</p>
+                     <p className="text-xs text-muted-foreground">Enhance security with mobile OTP verification.</p>
+                   </div>
+                 </div>
+                 <Switch defaultChecked />
                </div>
-               <CardTitle className="text-3xl font-headline font-bold">Free Trial Experience</CardTitle>
-               <CardDescription className="max-w-md">You are currently experiencing the limited agency tier. Upgrade to unlock full AI production capabilities.</CardDescription>
-             </CardHeader>
-             <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                  <div className="p-4 rounded-xl bg-background/50 border border-white/5">
-                    <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">AI Credits</p>
-                    <p className="text-xl font-bold">12 / 50</p>
-                  </div>
-                  <div className="p-4 rounded-xl bg-background/50 border border-white/5">
-                    <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Projects</p>
-                    <p className="text-xl font-bold">3 / 5</p>
-                  </div>
-                  <div className="p-4 rounded-xl bg-background/50 border border-white/5">
-                    <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Marketplaces</p>
-                    <p className="text-xl font-bold">Unlimited</p>
-                  </div>
-                </div>
-                <Button className="w-full h-14 rounded-xl text-lg font-bold shadow-xl shadow-primary/20 bg-primary hover:bg-primary/90">
-                  Upgrade to Agency Pro
-                </Button>
-             </CardContent>
+               
+               <div className="p-4 rounded-xl border border-white/5 bg-secondary/20 flex items-center justify-between">
+                 <div className="flex items-center gap-3">
+                   <Lock className="text-primary" />
+                   <div>
+                     <p className="text-sm font-bold">Session Management</p>
+                     <p className="text-xs text-muted-foreground">Logout from all other active devices.</p>
+                   </div>
+                 </div>
+                 <Button variant="outline" size="sm" className="rounded-xl">Revoke Sessions</Button>
+               </div>
+            </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
@@ -213,7 +181,7 @@ export default function SettingsPage() {
   );
 }
 
-function MarketplaceCard({ name, status, logo, lastSync, connected }: any) {
+function MarketplaceCard({ name, status, lastSync, connected }: any) {
   return (
     <Card className={`rounded-2xl border-white/5 bg-card overflow-hidden transition-all ${!connected ? 'grayscale opacity-60' : 'hover:border-primary/50'}`}>
       <CardContent className="p-6">

@@ -13,7 +13,8 @@ import {
   BrainCircuit,
   Zap,
   Ticket,
-  CreditCard
+  CreditCard,
+  Building2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,7 @@ const navItems = [
   { name: "Projects", href: "/dashboard/projects", icon: FolderKanban },
   { name: "Billing & Plans", href: "/dashboard/billing", icon: CreditCard },
   { name: "Support Tickets", href: "/dashboard/tickets", icon: Ticket },
+  { name: "Brand Profile", href: "/dashboard/profile", icon: Building2 },
   { name: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
@@ -40,7 +42,7 @@ export function Sidebar() {
         <span className="font-headline text-xl font-bold tracking-tight">MarketMind</span>
       </Link>
 
-      <nav className="flex-1 px-4 py-4 space-y-1">
+      <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           return (
