@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -13,7 +12,8 @@ import {
   ChevronRight,
   BrainCircuit,
   Zap,
-  Ticket
+  Ticket,
+  CreditCard
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,7 @@ const navItems = [
   { name: "AI Agents", href: "/dashboard/agents", icon: Sparkles },
   { name: "Growth Intel", href: "/dashboard/growth", icon: TrendingUp },
   { name: "Projects", href: "/dashboard/projects", icon: FolderKanban },
+  { name: "Billing & Plans", href: "/dashboard/billing", icon: CreditCard },
   { name: "Support Tickets", href: "/dashboard/tickets", icon: Ticket },
   { name: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
