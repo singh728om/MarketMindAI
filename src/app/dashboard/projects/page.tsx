@@ -1,6 +1,8 @@
+
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { 
   FolderKanban, 
   Plus, 
@@ -21,16 +23,13 @@ import {
   ListChecks,
   Info,
   Building2,
-  Headphones,
-  Loader2,
-  Send
+  Ticket
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Textarea } from "@/components/ui/textarea";
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -119,34 +118,8 @@ export default function ProjectsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isNewServiceOpen, setIsNewServiceOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<any>(null);
-  
-  // Support Ticket State
-  const [isSupportOpen, setIsSupportOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [supportName, setSupportName] = useState("");
-  const [supportQuery, setSupportQuery] = useState("");
-
+  const router = useRouter();
   const { toast } = useToast();
-
-  const handleSupportSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setIsSupportOpen(false);
-      setSupportQuery("");
-      toast({
-        title: "Ticket Received",
-        description: `Your query for ${selectedProject?.name || "Support"} has been logged. Our agents will contact you.`,
-      });
-    }, 1500);
-  };
-
-  const openSupport = (project?: any) => {
-    if (project) setSelectedProject(project);
-    setIsSupportOpen(true);
-  };
 
   const handleStartService = (service: typeof AVAILABLE_SERVICES[0]) => {
     const exists = projects.some(p => p.name === service.name);
@@ -337,8 +310,8 @@ export default function ProjectsPage() {
                     <DropdownMenuItem onClick={() => setSelectedProject(project)}>
                       <Edit2 size={14} className="mr-2" /> View Details
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); openSupport(project); }}>
-                      <Headphones size={14} className="mr-2" /> Contact Agent
+                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); router.push('/dashboard/tickets'); }}>
+                      <Ticket size={14} className="mr-2" /> Raise Support Ticket
                     </DropdownMenuItem>
                     <DropdownMenuItem className="text-destructive">
                       <Trash2 size={14} className="mr-2" /> Cancel Service
@@ -377,7 +350,7 @@ export default function ProjectsPage() {
       </div>
 
       {/* Project Details Dialog */}
-      <Dialog open={!!selectedProject && !isSupportOpen} onOpenChange={(open) => !open && setSelectedProject(null)}>
+      <Dialog open={!!selectedProject} onOpenChange={(open) => !open && setSelectedProject(null)}>
         <DialogContent className="max-w-3xl bg-card border-white/10 rounded-3xl overflow-hidden max-h-[90vh] flex flex-col p-0">
           {selectedProject && (
             <>
@@ -475,75 +448,13 @@ export default function ProjectsPage() {
                 <Button variant="outline" className="flex-1 h-12 rounded-xl" onClick={() => setSelectedProject(null)}>Close</Button>
                 <Button 
                   className="flex-1 h-12 rounded-xl shadow-lg shadow-primary/20" 
-                  onClick={() => openSupport(selectedProject)}
+                  onClick={() => router.push('/dashboard/tickets')}
                 >
-                  <Headphones size={16} className="mr-2" /> Contact Agent
+                  <Ticket size={16} className="mr-2" /> Support Ticket
                 </Button>
               </DialogFooter>
             </>
           )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Support Ticket Dialog (Unified) */}
-      <Dialog open={isSupportOpen} onOpenChange={setIsSupportOpen}>
-        <DialogContent className="sm:max-w-md rounded-3xl bg-card border-white/10">
-          <DialogHeader>
-            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary mb-4">
-              <Headphones size={24} />
-            </div>
-            <DialogTitle className="text-2xl font-headline font-bold">Submit Query</DialogTitle>
-            <DialogDescription>
-              {selectedProject 
-                ? `Need help with your ${selectedProject.name} project? Describe your question below.`
-                : "Describe your question below and an agent will get back to you shortly."}
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleSupportSubmit} className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="support-name">Full Name</Label>
-              <Input 
-                id="support-name" 
-                placeholder="Enter your name" 
-                value={supportName}
-                onChange={(e) => setSupportName(e.target.value)}
-                required 
-                className="rounded-xl h-12" 
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="support-query">Query / Request</Label>
-              <Textarea 
-                id="support-query" 
-                placeholder="Describe what you need help with..." 
-                value={supportQuery}
-                onChange={(e) => setSupportQuery(e.target.value)}
-                className="rounded-xl min-h-[120px]" 
-                required 
-              />
-            </div>
-            <DialogFooter className="pt-4 flex flex-col sm:flex-row gap-2">
-              <Button 
-                type="button" 
-                variant="ghost" 
-                className="flex-1 rounded-xl h-12" 
-                onClick={() => setIsSupportOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button 
-                type="submit" 
-                className="flex-1 rounded-xl h-12 shadow-lg shadow-primary/20" 
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? (
-                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Submitting...</>
-                ) : (
-                  <><Send className="mr-2 h-4 w-4" /> Submit Ticket</>
-                )}
-              </Button>
-            </DialogFooter>
-          </form>
         </DialogContent>
       </Dialog>
     </div>

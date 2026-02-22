@@ -16,9 +16,7 @@ import {
   Loader2,
   Send,
   LifeBuoy,
-  User,
-  Headphones,
-  ArrowLeft
+  Headphones
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -117,7 +115,7 @@ const SUPPORT_SERVICES = [
   "General Support"
 ];
 
-export default function TicketsPage() {
+export default function SupportTicketsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isNewTicketOpen, setIsNewTicketOpen] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<any>(null);
@@ -174,7 +172,7 @@ export default function TicketsPage() {
           className="rounded-xl h-12 px-6 shadow-lg shadow-primary/20" 
           onClick={() => setIsNewTicketOpen(true)}
         >
-          <Plus className="w-4 h-4 mr-2" /> New Ticket
+          <Plus className="w-4 h-4 mr-2" /> New Support Ticket
         </Button>
       </div>
 
