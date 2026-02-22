@@ -10,8 +10,10 @@ import {z} from 'genkit';
 const GeneratePhotoshootInputSchema = z.object({
   photoDataUri: z.string().optional(),
   productType: z.string(),
+  category: z.string().optional(),
   shotAngle: z.string().optional(),
   modelType: z.string().optional(),
+  kidAge: z.string().optional(),
   background: z.string().optional(),
   style: z.string().optional(),
   apiKey: z.string().optional(),
@@ -29,18 +31,27 @@ export async function generatePhotoshoot(input: GeneratePhotoshootInput): Promis
     plugins: [googleAI({ apiKey: input.apiKey })],
   });
 
-  const modelText = input.modelType === 'none' ? 'the product alone' : `a ${input.modelType} model wearing or holding the product`;
+  let modelText = "";
+  if (input.modelType === 'none') {
+    modelText = 'the product alone in a clean setting';
+  } else if (input.modelType === 'kids') {
+    modelText = `a ${input.kidAge || '5'}-year-old child model wearing or holding the product`;
+  } else {
+    modelText = `a professional ${input.modelType} model wearing or holding the product`;
+  }
   
   // Step 1: Creative Direction (Prompt Engineering)
   const promptEngineeringResponse = await ai.generate({
     model: 'googleai/gemini-2.5-flash',
-    prompt: `You are a world-class commercial fashion photographer. Write a highly detailed, professional photography prompt for an AI image generator.
+    prompt: `You are a world-class commercial fashion and product photographer. Write a highly detailed, professional photography prompt for an AI image generator.
     PRODUCT: ${input.productType}
+    CATEGORY: ${input.category || 'General'}
     MODEL: ${modelText}
     ANGLE: ${input.shotAngle || 'standard front view'}
     BACKGROUND: ${input.background || 'professional high-key studio'}
     STYLE: ${input.style || 'high-end commercial editorial'}
-    Output ONLY the final prompt text.`,
+    
+    The prompt should focus on realistic lighting, high-fidelity textures, and a professional brand aesthetic. Output ONLY the final prompt text.`,
   });
 
   const finalPromptText = promptEngineeringResponse.text;
@@ -55,7 +66,7 @@ export async function generatePhotoshoot(input: GeneratePhotoshootInput): Promis
       },
       prompt: [
         {media: {url: input.photoDataUri}},
-        {text: `Perform a professional studio reshoot. ${finalPromptText} CONSTRAINT: Keep the product identical to the original image in terms of design, color, and texture.`},
+        {text: `Perform a professional studio reshoot based on this creative direction: ${finalPromptText}. CONSTRAINT: Keep the product absolutely identical to the original image in terms of design, color, and texture. Do not hallucinate new logos or patterns.`},
       ],
     });
 

@@ -77,13 +77,14 @@ export default function AgentsPage() {
   
   const [formData, setFormData] = useState({
     productName: "",
-    category: "",
+    category: "Fashion",
     productDescription: "",
     marketplace: "Amazon",
     targetAudience: "DTC Shoppers",
     keyFeatures: "Premium Quality, Handcrafted",
     shotAngle: "front",
-    background: "pro-studio",
+    background: "professional-studio",
+    kidAge: "5",
     base64Image: null as string | null,
   });
 
@@ -138,7 +139,7 @@ export default function AgentsPage() {
 
     try {
       if (output.imageUrl) {
-        // Download Image
+        // Create link and download image
         const link = document.createElement("a");
         link.href = output.imageUrl;
         link.download = `marketmind-photoshoot-${Date.now()}.png`;
@@ -146,7 +147,6 @@ export default function AgentsPage() {
         link.click();
         document.body.removeChild(link);
       } else if (output.type === 'catalog' && output.templateContent) {
-        // Download CSV
         const blob = new Blob([output.templateContent], { type: 'text/csv' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
@@ -157,7 +157,6 @@ export default function AgentsPage() {
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
       } else {
-        // Download JSON as text
         const text = JSON.stringify(output, null, 2);
         const blob = new Blob([text], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
@@ -204,8 +203,10 @@ export default function AgentsPage() {
           result = await generatePhotoshoot({
             photoDataUri: formData.base64Image || undefined,
             productType: formData.productName,
+            category: formData.category,
             shotAngle: formData.shotAngle,
             modelType: modelType,
+            kidAge: modelType === 'kids' ? formData.kidAge : undefined,
             background: formData.background,
             style: "high-fashion commercial editorial, professional studio lighting, extremely detailed, 8k resolution",
             apiKey: activeKey
@@ -316,13 +317,14 @@ export default function AgentsPage() {
     setModelType("none");
     setFormData({ 
       productName: "", 
-      category: "", 
+      category: "Fashion", 
       productDescription: "",
       marketplace: "Amazon",
       targetAudience: "DTC Shoppers",
       keyFeatures: "Premium Quality, Handcrafted",
       shotAngle: "front",
-      background: "pro-studio",
+      background: "professional-studio",
+      kidAge: "5",
       base64Image: null
     });
   };
@@ -386,7 +388,7 @@ export default function AgentsPage() {
                     <form onSubmit={handleRunAgent} className="space-y-6 md:space-y-8">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                         <div className="space-y-2">
-                          <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Product / Niche Name</Label>
+                          <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Product Name</Label>
                           <Input 
                             placeholder="e.g. Silk Kurta" 
                             required 
@@ -397,72 +399,109 @@ export default function AgentsPage() {
                         </div>
                         <div className="space-y-2">
                           <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Category</Label>
-                          <Select onValueChange={(val) => handleInputChange("category", val)} required>
+                          <Select value={formData.category} onValueChange={(val) => handleInputChange("category", val)} required>
                             <SelectTrigger className="bg-slate-800 border-white/5 h-11 md:h-12 rounded-xl text-white text-sm">
                               <SelectValue placeholder="Select Segment" />
                             </SelectTrigger>
                             <SelectContent className="bg-slate-800 border-white/10 text-white">
                               <SelectItem value="Fashion">Fashion</SelectItem>
-                              <SelectItem value="Electronics">Electronics</SelectItem>
-                              <SelectItem value="Home">Home & Decor</SelectItem>
-                              <SelectItem value="Beauty">Beauty</SelectItem>
+                              <SelectItem value="Home Decor">Home Decor</SelectItem>
+                              <SelectItem value="Custom">Custom</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
-                        <div className="md:col-span-2 space-y-2">
-                          <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Description / Context</Label>
-                          <Input 
-                            placeholder="Brief details about the product or campaign..." 
-                            className="bg-slate-800 border-white/5 h-11 md:h-12 rounded-xl text-white text-sm"
-                            value={formData.productDescription}
-                            onChange={(e) => handleInputChange("productDescription", e.target.value)}
-                          />
-                        </div>
-                      </div>
+                        
+                        {selectedAgent.id === 'photoshoot' && (
+                          <div className="md:col-span-2 space-y-6">
+                            <div className="space-y-2">
+                              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Production Environment (Background)</Label>
+                              <Select value={formData.background} onValueChange={(val) => handleInputChange("background", val)} required>
+                                <SelectTrigger className="bg-slate-800 border-white/5 h-11 md:h-12 rounded-xl text-white text-sm">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="bg-slate-800 border-white/10 text-white">
+                                  <SelectItem value="professional-studio">Professional Studio</SelectItem>
+                                  <SelectItem value="outdoor-nature">Outdoor Nature</SelectItem>
+                                  <SelectItem value="casual-home">Casual Home</SelectItem>
+                                  <SelectItem value="sport-gym">Sport / Gym</SelectItem>
+                                  <SelectItem value="heritage-palace">Heritage Palace</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
 
-                      {selectedAgent.id === 'photoshoot' && (
-                        <div className="space-y-6 bg-slate-800/30 p-4 md:p-8 rounded-2xl border border-white/5 animate-in fade-in slide-in-from-top-2">
-                          <input type="file" className="hidden" ref={fileInputRef} onChange={handleFileChange} accept="image/*" />
-                          <div 
-                            onClick={() => fileInputRef.current?.click()}
-                            className={cn(
-                              "border-2 border-dashed rounded-2xl p-6 md:p-12 flex flex-col items-center justify-center gap-3 hover:bg-slate-800 transition-all cursor-pointer group overflow-hidden",
-                              formData.base64Image ? "border-primary/50 bg-primary/5" : "border-white/10"
-                            )}
-                          >
-                             {formData.base64Image ? (
-                               <img src={formData.base64Image} alt="Input" className="w-full max-w-[180px] aspect-square object-contain rounded-xl shadow-2xl" />
-                             ) : (
-                               <><Upload size={24} className="text-primary" /><p className="text-xs md:text-sm font-bold">Upload Product Photo</p></>
-                             )}
-                          </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
-                            <div className="space-y-2">
-                              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Target Model</Label>
-                              <Select onValueChange={(val) => setModelType(val)} defaultValue="none">
-                                <SelectTrigger className="bg-slate-800 border-white/5 h-11 rounded-xl text-white text-sm"><SelectValue /></SelectTrigger>
-                                <SelectContent className="bg-slate-800 border-white/10 text-white">
-                                  <SelectItem value="male">Male</SelectItem>
-                                  <SelectItem value="female">Female</SelectItem>
-                                  <SelectItem value="kids">Kids</SelectItem>
-                                  <SelectItem value="none">Product Only</SelectItem>
-                                </SelectContent>
-                              </Select>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+                              <div className="space-y-2">
+                                <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Model Selection</Label>
+                                <Select onValueChange={(val) => setModelType(val)} value={modelType}>
+                                  <SelectTrigger className="bg-slate-800 border-white/5 h-11 rounded-xl text-white text-sm"><SelectValue /></SelectTrigger>
+                                  <SelectContent className="bg-slate-800 border-white/10 text-white">
+                                    <SelectItem value="mens">Mens Model</SelectItem>
+                                    <SelectItem value="womens">Womens Model</SelectItem>
+                                    <SelectItem value="kids">Kids Model</SelectItem>
+                                    <SelectItem value="none">Product Only (No Model)</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+
+                              {modelType === 'kids' && (
+                                <div className="space-y-2 animate-in fade-in slide-in-from-left-2">
+                                  <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Model Age</Label>
+                                  <Select onValueChange={(val) => handleInputChange("kidAge", val)} value={formData.kidAge}>
+                                    <SelectTrigger className="bg-slate-800 border-white/5 h-11 rounded-xl text-white text-sm"><SelectValue /></SelectTrigger>
+                                    <SelectContent className="bg-slate-800 border-white/10 text-white">
+                                      {Array.from({ length: 12 }, (_, i) => i + 1).map(age => (
+                                        <SelectItem key={age} value={age.toString()}>{age} Year Old</SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              )}
+
+                              <div className="space-y-2">
+                                <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Lens / Shot Angle</Label>
+                                <Select onValueChange={(val) => handleInputChange("shotAngle", val)} value={formData.shotAngle}>
+                                  <SelectTrigger className="bg-slate-800 border-white/5 h-11 rounded-xl text-white text-sm"><SelectValue /></SelectTrigger>
+                                  <SelectContent className="bg-slate-800 border-white/10 text-white">
+                                    <SelectItem value="front">Eye Level (Front)</SelectItem>
+                                    <SelectItem value="back">Back View</SelectItem>
+                                    <SelectItem value="zoom">Macro / Detailed Close-up</SelectItem>
+                                    <SelectItem value="wide">Wide Angle Context</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
                             </div>
-                            <div className="space-y-2">
-                              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Lens / Angle</Label>
-                              <Select onValueChange={(val) => handleInputChange("shotAngle", val)} defaultValue="front">
-                                <SelectTrigger className="bg-slate-800 border-white/5 h-11 rounded-xl text-white text-sm"><SelectValue /></SelectTrigger>
-                                <SelectContent className="bg-slate-800 border-white/10 text-white">
-                                  <SelectItem value="front">Eye Level (Front)</SelectItem>
-                                  <SelectItem value="back">Back View</SelectItem>
-                                  <SelectItem value="zoom">Macro Close-up</SelectItem>
-                                </SelectContent>
-                              </Select>
+
+                            <div className="space-y-4 bg-slate-800/30 p-4 md:p-6 rounded-2xl border border-white/5">
+                              <input type="file" className="hidden" ref={fileInputRef} onChange={handleFileChange} accept="image/*" />
+                              <div 
+                                onClick={() => fileInputRef.current?.click()}
+                                className={cn(
+                                  "border-2 border-dashed rounded-2xl p-6 md:p-10 flex flex-col items-center justify-center gap-3 hover:bg-slate-800 transition-all cursor-pointer group overflow-hidden",
+                                  formData.base64Image ? "border-primary/50 bg-primary/5" : "border-white/10"
+                                )}
+                              >
+                                {formData.base64Image ? (
+                                  <img src={formData.base64Image} alt="Input" className="w-full max-w-[150px] aspect-square object-contain rounded-xl shadow-2xl" />
+                                ) : (
+                                  <><Upload size={24} className="text-primary" /><p className="text-xs md:text-sm font-bold">Upload Product Photo</p></>
+                                )}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      )}
+                        )}
+
+                        {selectedAgent.id !== 'photoshoot' && (
+                          <div className="md:col-span-2 space-y-2">
+                            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Description / Context</Label>
+                            <Input 
+                              placeholder="Brief details about the product or campaign..." 
+                              className="bg-slate-800 border-white/5 h-11 md:h-12 rounded-xl text-white text-sm"
+                              value={formData.productDescription}
+                              onChange={(e) => handleInputChange("productDescription", e.target.value)}
+                            />
+                          </div>
+                        )}
+                      </div>
 
                       <div className="pt-4">
                         <Button 
