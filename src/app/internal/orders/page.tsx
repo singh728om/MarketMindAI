@@ -22,7 +22,8 @@ import {
   FileText,
   AlertCircle,
   Save,
-  Loader2
+  Loader2,
+  Check
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -182,6 +183,19 @@ export default function InternalOrdersPage() {
     });
   };
 
+  const toggleSubServiceStatus = (index: number) => {
+    if (!selectedOrder) return;
+    
+    const updatedSubServices = [...selectedOrder.subServices];
+    const currentStatus = updatedSubServices[index].status;
+    updatedSubServices[index].status = currentStatus === 'Done' ? 'Pending' : 'Done';
+    
+    setSelectedOrder({
+      ...selectedOrder,
+      subServices: updatedSubServices
+    });
+  };
+
   const handleSaveProgress = () => {
     setIsSaving(true);
     // Simulate API delay
@@ -309,21 +323,28 @@ export default function InternalOrdersPage() {
                   {/* Specific Services Breakdown */}
                   <div className="space-y-4">
                     <h4 className="text-sm font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
-                      <Box size={16} /> Service Modules (Selection)
+                      <Box size={16} /> Service Modules (Edit Status)
                     </h4>
                     <div className="space-y-3">
                       {selectedOrder.subServices?.map((sub: any, i: number) => (
-                        <div key={i} className="p-4 rounded-xl bg-slate-800/30 border border-white/5 space-y-2 hover:border-accent/30 transition-colors cursor-default">
+                        <div 
+                          key={i} 
+                          onClick={() => toggleSubServiceStatus(i)}
+                          className="p-4 rounded-xl bg-slate-800/30 border border-white/5 space-y-2 hover:border-accent/30 transition-colors cursor-pointer group"
+                        >
                           <div className="flex justify-between items-center">
-                            <span className="text-sm font-bold text-slate-200">{sub.name}</span>
+                            <span className="text-sm font-bold text-slate-200 group-hover:text-accent transition-colors">{sub.name}</span>
                             <Badge variant="outline" className="text-[8px] h-4 border-accent/20 text-accent">{sub.type}</Badge>
                           </div>
                           <div className="flex justify-between items-center">
-                            <span className="text-[10px] text-slate-500">Status</span>
-                            <span className={cn(
-                              "text-[10px] font-bold",
-                              sub.status === 'Done' ? "text-emerald-500" : "text-amber-500"
-                            )}>{sub.status}</span>
+                            <span className="text-[10px] text-slate-500">Action Status</span>
+                            <div className="flex items-center gap-2">
+                              {sub.status === 'Done' && <Check size={12} className="text-emerald-500" />}
+                              <span className={cn(
+                                "text-[10px] font-bold uppercase",
+                                sub.status === 'Done' ? "text-emerald-500" : "text-amber-500"
+                              )}>{sub.status}</span>
+                            </div>
                           </div>
                         </div>
                       ))}

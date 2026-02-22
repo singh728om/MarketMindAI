@@ -113,10 +113,10 @@ export default function LandingPage() {
           </nav>
           <div className="flex items-center gap-4">
             <Link href="/login">
-              <Button variant="ghost" className="hidden sm:inline-flex">Login</Button>
+              <Button variant="ghost" className="inline-flex">Login</Button>
             </Link>
-            <Link href="/onboarding">
-              <Button className="rounded-full px-6">Start Free Trial</Button>
+            <Link href="/signup">
+              <Button className="rounded-full px-6">Sign Up</Button>
             </Link>
           </div>
         </div>
@@ -137,7 +137,7 @@ export default function LandingPage() {
               Automate your marketplace operations with expert-trained AI agents for photoshoots, listings, video ads, and growth intelligence.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link href="/onboarding">
+              <Link href="/signup">
                 <Button size="lg" className="rounded-full px-8 text-lg h-14 w-full sm:w-auto shadow-2xl shadow-primary/40">
                   Get Started Now <ArrowRight size={20} className="ml-2" />
                 </Button>
@@ -240,7 +240,7 @@ export default function LandingPage() {
                       </div>
                       <div>
                         <p className="font-bold mb-1">Email Support</p>
-                        <p className="text-muted-foreground text-sm">info@mastermindai.com</p>
+                        <p className="text-muted-foreground text-sm">info@marketmindai.com</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-4">
@@ -249,7 +249,7 @@ export default function LandingPage() {
                       </div>
                       <div>
                         <p className="font-bold mb-1">Mobile</p>
-                        <p className="text-muted-foreground text-sm">+918882130155</p>
+                        <p className="text-muted-foreground text-sm">+91 88821 30155</p>
                       </div>
                     </div>
                   </div>
@@ -363,8 +363,8 @@ export default function LandingPage() {
                 </div>
 
                 <div className="pt-4 flex gap-4">
-                  <Link href="/onboarding" className="flex-1">
-                    <Button className="w-full h-12 rounded-xl text-lg font-bold">Get Started for Free</Button>
+                  <Link href="/signup" className="flex-1">
+                    <Button className="w-full h-12 rounded-xl text-lg font-bold">Sign Up for Free</Button>
                   </Link>
                   <Button variant="outline" className="h-12 rounded-xl px-8" onClick={() => setServiceOpen(null)}>Close</Button>
                 </div>
@@ -405,11 +405,11 @@ export default function LandingPage() {
                 </li>
                 <li className="flex gap-2 items-center">
                   <Mail size={16} className="text-primary shrink-0" />
-                  <span>info@mastermindai.com</span>
+                  <span>info@marketmindai.com</span>
                 </li>
                 <li className="flex gap-2 items-center">
                   <Phone size={16} className="text-primary shrink-0" />
-                  <span>+918882130155</span>
+                  <span>+91 88821 30155</span>
                 </li>
               </ul>
             </div>
