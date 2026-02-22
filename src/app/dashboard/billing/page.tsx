@@ -11,12 +11,24 @@ import {
   Zap, 
   ArrowUpRight,
   ShieldCheck,
-  ReceiptText
+  ReceiptText,
+  FileText,
+  Printer,
+  Share2,
+  X
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription,
+  DialogFooter
+} from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 
@@ -36,8 +48,8 @@ const SERVICE_PRICES: Record<string, number> = {
 };
 
 const INITIAL_PROJECTS = [
-  { id: "proj-1", name: "Myntra Onboarding", type: "Onboarding", status: "In Progress" },
-  { id: "proj-listing-1", name: "Listing Creation", type: "SEO", status: "Drafting" }
+  { id: "proj-1", name: "Myntra Onboarding", type: "Onboarding", status: "In Progress", date: "Oct 10, 2023" },
+  { id: "proj-listing-1", name: "Listing Creation", type: "SEO", status: "Drafting", date: "Oct 12, 2023" }
 ];
 
 const MOCK_INVOICES = [
@@ -47,19 +59,24 @@ const MOCK_INVOICES = [
 ];
 
 export default function BillingPage() {
+  const [isInvoiceOpen, setIsInvoiceOpen] = useState(false);
   const { toast } = useToast();
   
   const billingSummary = useMemo(() => {
     return INITIAL_PROJECTS.map(p => ({
       name: p.name,
       price: SERVICE_PRICES[p.name] || 0,
-      type: p.type
+      type: p.type,
+      date: p.date
     }));
   }, []);
 
   const totalInvestment = useMemo(() => {
     return billingSummary.reduce((sum, s) => sum + s.price, 0);
   }, [billingSummary]);
+
+  const gst = Math.round(totalInvestment * 0.18);
+  const grandTotal = totalInvestment + gst;
 
   const handleDownloadInvoice = (id: string) => {
     toast({
@@ -150,7 +167,7 @@ export default function BillingPage() {
                        <td className="px-8 py-5">
                          <div className="flex flex-col">
                            <span className="font-bold text-sm">{service.name}</span>
-                           <span className="text-[10px] text-muted-foreground">Service Activated on Oct 10, 2023</span>
+                           <span className="text-[10px] text-muted-foreground">Service Activated on {service.date}</span>
                          </div>
                        </td>
                        <td className="px-8 py-5">
@@ -170,7 +187,7 @@ export default function BillingPage() {
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Total Active Investment</p>
               <h3 className="text-3xl font-headline font-bold text-primary">₹{totalInvestment.toLocaleString()}</h3>
             </div>
-            <Button variant="outline" className="rounded-xl h-12 px-6">
+            <Button variant="outline" className="rounded-xl h-12 px-6" onClick={() => setIsInvoiceOpen(true)}>
               View Detailed Invoice
             </Button>
           </CardFooter>
@@ -251,6 +268,98 @@ export default function BillingPage() {
           </div>
         </Card>
       </div>
+
+      {/* Detailed Invoice Dialog */}
+      <Dialog open={isInvoiceOpen} onOpenChange={setIsInvoiceOpen}>
+        <DialogContent className="max-w-2xl bg-card border-white/10 rounded-3xl overflow-hidden p-0">
+          <DialogHeader className="p-8 bg-primary text-primary-foreground">
+            <div className="flex justify-between items-start">
+              <div className="space-y-1">
+                <DialogTitle className="text-3xl font-headline font-bold flex items-center gap-2">
+                  <FileText size={28} /> Detailed Invoice
+                </DialogTitle>
+                <DialogDescription className="text-primary-foreground/70">
+                  Consolidated Statement for CHIC ELAN
+                </DialogDescription>
+              </div>
+              <Badge className="bg-white/20 text-white border-white/20 backdrop-blur-sm px-3 py-1">
+                Draft #MND-8821
+              </Badge>
+            </div>
+          </DialogHeader>
+
+          <div className="p-8 space-y-8">
+            <div className="grid grid-cols-2 gap-8 text-sm border-b border-white/5 pb-8">
+              <div className="space-y-2">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Billed To</p>
+                <p className="font-bold">CHIC ELAN PVT LTD</p>
+                <p className="text-muted-foreground">Udyog Vihar Phase-1, Gurgaon<br />Haryana, India 122016</p>
+              </div>
+              <div className="space-y-2 text-right">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">MarketMind Agency</p>
+                <p className="font-bold">Growth Intelligence Unit</p>
+                <p className="text-muted-foreground">support@marketmindai.com<br />GSTIN: 07AAHCM1234F1Z1</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-4 gap-4 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                <span className="col-span-2">Service Description</span>
+                <span className="text-center">Category</span>
+                <span className="text-right">Amount</span>
+              </div>
+              <div className="space-y-2">
+                {billingSummary.map((item, idx) => (
+                  <div key={idx} className="grid grid-cols-4 gap-4 p-4 rounded-xl bg-secondary/20 border border-white/5 text-sm items-center">
+                    <div className="col-span-2 flex flex-col">
+                      <span className="font-bold">{item.name}</span>
+                      <span className="text-[10px] text-muted-foreground">Activated {item.date}</span>
+                    </div>
+                    <div className="flex justify-center">
+                      <Badge variant="secondary" className="text-[9px] h-4">{item.type}</Badge>
+                    </div>
+                    <span className="text-right font-mono font-bold">₹{item.price.toLocaleString()}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-3 pt-4 border-t border-white/5">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Subtotal</span>
+                <span className="font-mono">₹{totalInvestment.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">GST (18%)</span>
+                <span className="font-mono">₹{gst.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between font-bold text-xl pt-4 border-t border-white/5">
+                <span className="text-primary font-headline">Grand Total</span>
+                <span className="text-primary font-mono">₹{grandTotal.toLocaleString()}</span>
+              </div>
+            </div>
+
+            <div className="bg-amber-500/5 border border-amber-500/20 p-4 rounded-2xl flex items-start gap-3">
+              <Clock size={20} className="text-amber-500 shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <p className="text-xs font-bold text-amber-500">Payment Status: Trial Offset</p>
+                <p className="text-[10px] text-muted-foreground leading-relaxed">
+                  These services are currently covered under your 7-day high-performance agency trial. No immediate charge will be made to your payment method.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="p-6 bg-muted/20 border-t flex gap-2">
+            <Button variant="outline" className="flex-1 rounded-xl" onClick={() => setIsInvoiceOpen(false)}>
+              Close
+            </Button>
+            <Button className="flex-1 rounded-xl shadow-lg shadow-primary/20" onClick={() => handleDownloadInvoice('MND-8821')}>
+              <Printer size={16} className="mr-2" /> Print Statement
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
