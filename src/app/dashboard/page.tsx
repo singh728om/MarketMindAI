@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -86,9 +85,6 @@ export default function Dashboard() {
           <p className="text-muted-foreground">Welcome back. Performance is up 12% this week.</p>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="outline" size="sm" className="hidden sm:inline-flex" onClick={() => router.push('/dashboard/tickets')}>
-            <Ticket className="w-4 h-4 mr-2" /> Support Tickets
-          </Button>
           <Link href="/dashboard/projects">
             <Button size="sm" className="bg-primary hover:bg-primary/90">
               <Plus className="w-4 h-4 mr-2" /> New Project
