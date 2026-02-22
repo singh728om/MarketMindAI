@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef } from "react";
@@ -17,7 +18,9 @@ import {
   CheckCircle2,
   MapPin,
   Mail,
-  Phone
+  Phone,
+  Menu,
+  X
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { 
@@ -28,6 +31,7 @@ import {
   DialogDescription,
   DialogFooter
 } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
@@ -35,6 +39,7 @@ import { useToast } from "@/hooks/use-toast";
 export default function LandingPage() {
   const [demoOpen, setDemoOpen] = useState(false);
   const [serviceOpen, setServiceOpen] = useState<string | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -105,19 +110,45 @@ export default function LandingPage() {
             <BrainCircuit className="text-primary w-8 h-8" />
             <span className="font-headline font-bold text-xl tracking-tight">MarketMind AI</span>
           </Link>
+          
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
             <a href="#services" className="hover:text-primary transition-colors">Services</a>
             <a href="#how-it-works" className="hover:text-primary transition-colors">How it works</a>
             <Link href="/pricing" className="hover:text-primary transition-colors">Pricing</Link>
             <a href="#about" className="hover:text-primary transition-colors">About</a>
           </nav>
+
           <div className="flex items-center gap-4">
-            <Link href="/login">
-              <Button variant="ghost" className="inline-flex">Login</Button>
+            <Link href="/login" className="hidden sm:inline-flex">
+              <Button variant="ghost">Login</Button>
             </Link>
-            <Link href="/signup">
+            <Link href="/signup" className="hidden sm:inline-flex">
               <Button className="rounded-full px-6">Sign Up</Button>
             </Link>
+            
+            {/* Mobile Menu Toggle */}
+            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="md:hidden">
+                  <Menu size={24} />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="bg-background border-white/5 pt-12">
+                <div className="flex flex-col gap-6 text-lg font-bold">
+                  <a href="#services" onClick={() => setIsMobileMenuOpen(false)}>Services</a>
+                  <a href="#how-it-works" onClick={() => setIsMobileMenuOpen(false)}>How it works</a>
+                  <Link href="/pricing" onClick={() => setIsMobileMenuOpen(false)}>Pricing</Link>
+                  <a href="#about" onClick={() => setIsMobileMenuOpen(false)}>About</a>
+                  <hr className="border-white/5" />
+                  <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Button variant="outline" className="w-full h-12 rounded-xl">Login</Button>
+                  </Link>
+                  <Link href="/signup" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Button className="w-full h-12 rounded-xl">Sign Up</Button>
+                  </Link>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </header>
@@ -126,19 +157,19 @@ export default function LandingPage() {
         {/* Hero Section */}
         <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 overflow-hidden hero-gradient">
           <div className="container mx-auto px-4 text-center relative z-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary border border-primary/20 text-xs font-bold mb-6 animate-fade-in">
-              <Sparkles size={14} />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary border border-primary/20 text-[10px] font-bold mb-6 animate-fade-in">
+              <Sparkles size={12} />
               <span>Next-Gen E-commerce Intelligence</span>
             </div>
-            <h1 className="font-headline text-5xl md:text-7xl font-bold mb-6 tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-white to-white/60">
+            <h1 className="font-headline text-4xl md:text-7xl font-bold mb-6 tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-white to-white/60 leading-[1.1]">
               Grow Faster on Amazon, <br className="hidden md:block" /> Flipkart & Myntra with AI
             </h1>
-            <p className="text-muted-foreground text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
+            <p className="text-muted-foreground text-base md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed px-4">
               Automate your marketplace operations with expert-trained AI agents for photoshoots, listings, video ads, and growth intelligence.
             </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link href="/signup">
-                <Button size="lg" className="rounded-full px-8 text-lg h-14 w-full sm:w-auto shadow-2xl shadow-primary/40">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 px-4">
+              <Link href="/signup" className="w-full sm:w-auto">
+                <Button size="lg" className="rounded-full px-8 text-lg h-14 w-full shadow-2xl shadow-primary/40">
                   Get Started Now <ArrowRight size={20} className="ml-2" />
                 </Button>
               </Link>
@@ -167,7 +198,7 @@ export default function LandingPage() {
               <p className="text-muted-foreground max-w-xl mx-auto">Five core agents designed to eliminate your operational bottlenecks.</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
               {services.map((service) => (
                 <div key={service.id} onClick={() => setServiceOpen(service.id)} className="cursor-pointer">
                   <ServiceCard 
@@ -182,8 +213,8 @@ export default function LandingPage() {
         </section>
 
         {/* How it Works */}
-        <section id="how-it-works" className="py-24">
-          <div className="container mx-auto px-4">
+        <section id="how-it-works" className="py-24 px-4">
+          <div className="container mx-auto">
              <div className="text-center mb-16">
               <h2 className="font-headline text-3xl md:text-4xl font-bold mb-4">How It Works</h2>
               <p className="text-muted-foreground max-w-xl mx-auto">Three simple steps to supercharge your marketplace growth.</p>
@@ -209,8 +240,8 @@ export default function LandingPage() {
         </section>
 
         {/* About & Contact Section */}
-        <section id="about" className="py-24 bg-secondary/10">
-          <div className="container mx-auto px-4">
+        <section id="about" className="py-24 bg-secondary/10 px-4">
+          <div className="container mx-auto">
             <div className="max-w-4xl mx-auto">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
                 <div>
@@ -222,7 +253,7 @@ export default function LandingPage() {
                     By combining expert marketplace knowledge with cutting-edge GenAI, we deliver results that were previously only accessible to enterprise brands with massive budgets.
                   </p>
                 </div>
-                <div className="space-y-8 bg-card border p-8 rounded-3xl shadow-xl">
+                <div className="space-y-8 bg-card border p-6 md:p-8 rounded-3xl shadow-xl">
                   <h3 className="text-2xl font-bold font-headline mb-4">Get In Touch</h3>
                   <div className="space-y-6">
                     <div className="flex items-start gap-4">
@@ -262,7 +293,7 @@ export default function LandingPage() {
 
       {/* Demo Modal */}
       <Dialog open={demoOpen} onOpenChange={setDemoOpen}>
-        <DialogContent className="sm:max-w-md rounded-3xl">
+        <DialogContent className="sm:max-w-md rounded-3xl p-6">
           <DialogHeader>
             <DialogTitle className="text-2xl font-headline font-bold">Book a Strategy Session</DialogTitle>
             <DialogDescription>
@@ -292,10 +323,10 @@ export default function LandingPage() {
 
       {/* Service Detail Modal */}
       <Dialog open={!!serviceOpen} onOpenChange={() => setServiceOpen(null)}>
-        <DialogContent className="max-w-2xl rounded-3xl overflow-hidden p-0">
+        <DialogContent className="max-w-2xl rounded-3xl overflow-hidden p-0 max-h-[90vh] flex flex-col">
           {serviceOpen && (
-            <div className="flex flex-col">
-              <div className="p-8 bg-card border-b">
+            <>
+              <div className="p-6 md:p-8 bg-card border-b shrink-0">
                 <div className="flex items-center gap-4 mb-4">
                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                       {(() => {
@@ -304,16 +335,16 @@ export default function LandingPage() {
                         return <Icon size={24} />;
                       })()}
                    </div>
-                   <DialogTitle className="text-3xl font-headline font-bold">
+                   <DialogTitle className="text-2xl md:text-3xl font-headline font-bold">
                     {services.find(s => s.id === serviceOpen)?.title}
                    </DialogTitle>
                 </div>
-                <DialogDescription className="text-lg leading-relaxed text-muted-foreground">
+                <DialogDescription className="text-base md:text-lg leading-relaxed text-muted-foreground">
                   {services.find(s => s.id === serviceOpen)?.details}
                 </DialogDescription>
               </div>
               
-              <div className="p-8 space-y-6">
+              <div className="p-6 md:p-8 space-y-6 overflow-y-auto">
                 {services.find(s => s.id === serviceOpen)?.hasUpload && (
                   <div className="space-y-4">
                     <Label className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Demo Preview</Label>
@@ -328,16 +359,16 @@ export default function LandingPage() {
                       onClick={() => {
                         if (fileInputRef.current) fileInputRef.current.click();
                       }}
-                      className="border-2 border-dashed border-white/10 rounded-2xl p-12 flex flex-col items-center justify-center gap-4 bg-secondary/20 hover:bg-secondary/30 transition-colors cursor-pointer group"
+                      className="border-2 border-dashed border-white/10 rounded-2xl p-8 md:p-12 flex flex-col items-center justify-center gap-4 bg-secondary/20 hover:bg-secondary/30 transition-colors cursor-pointer group"
                     >
-                      <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-                        <Upload size={32} />
+                      <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                        <Upload size={28} />
                       </div>
                       <div className="text-center">
                         <p className="font-bold text-lg">Upload Product Image</p>
-                        <p className="text-sm text-muted-foreground">Drag and drop or click to browse</p>
+                        <p className="text-xs text-muted-foreground">Drag and drop or click to browse</p>
                       </div>
-                      <Button variant="outline" className="rounded-full">Select File</Button>
+                      <Button variant="outline" className="rounded-full h-10">Select File</Button>
                     </div>
                   </div>
                 )}
@@ -362,23 +393,23 @@ export default function LandingPage() {
                   </ul>
                 </div>
 
-                <div className="pt-4 flex gap-4">
+                <div className="pt-4 flex flex-col sm:flex-row gap-4">
                   <Link href="/signup" className="flex-1">
                     <Button className="w-full h-12 rounded-xl text-lg font-bold">Sign Up for Free</Button>
                   </Link>
                   <Button variant="outline" className="h-12 rounded-xl px-8" onClick={() => setServiceOpen(null)}>Close</Button>
                 </div>
               </div>
-            </div>
+            </>
           )}
         </DialogContent>
       </Dialog>
 
       {/* Footer */}
-      <footer className="border-t py-16 bg-background">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
-            <div className="col-span-1 md:col-span-1">
+      <footer className="border-t py-16 bg-background px-4">
+        <div className="container mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-12 mb-12">
+            <div className="col-span-1">
               <Link href="/" className="flex items-center gap-2 mb-6 hover:opacity-80 transition-opacity">
                 <BrainCircuit className="text-primary w-6 h-6" />
                 <span className="font-headline font-bold text-lg">MarketMind AI</span>
@@ -444,12 +475,12 @@ export default function LandingPage() {
 function ServiceCard({ icon: Icon, title, desc }: { icon: any, title: string, desc: string }) {
   return (
     <Card className="group hover:border-primary/50 transition-all duration-300 border-white/5 bg-white/5 backdrop-blur-sm rounded-2xl overflow-hidden h-full">
-      <CardContent className="p-8">
+      <CardContent className="p-6 md:p-8">
         <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary mb-6 group-hover:scale-110 transition-transform">
           <Icon size={24} />
         </div>
-        <h3 className="font-headline text-xl font-bold mb-3">{title}</h3>
-        <p className="text-muted-foreground leading-relaxed">{desc}</p>
+        <h3 className="font-headline text-lg md:text-xl font-bold mb-3">{title}</h3>
+        <p className="text-muted-foreground text-sm md:text-base leading-relaxed">{desc}</p>
       </CardContent>
     </Card>
   );

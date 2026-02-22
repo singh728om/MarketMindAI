@@ -1,10 +1,13 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, Menu, BrainCircuit } from "lucide-react";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
 
 export default function DashboardLayout({
   children,
@@ -15,13 +18,12 @@ export default function DashboardLayout({
   const { toast } = useToast();
   const [isChecking, setIsChecking] = useState(true);
   const [isExpired, setIsExpired] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     // SIMULATION LOGIC:
-    // In a real application, this 'joinedDate' would be fetched from Firebase Auth/Firestore.
-    // Change the subtraction value to > 7 to test the restriction (e.g., -8).
     const joinedDate = new Date();
-    joinedDate.setDate(joinedDate.getDate() - 2); // Currently set to 2 days ago (Trial Active)
+    joinedDate.setDate(joinedDate.getDate() - 2); 
 
     const now = new Date();
     const diffTime = now.getTime() - joinedDate.getTime();
@@ -34,7 +36,6 @@ export default function DashboardLayout({
         title: "Trial Period Expired",
         description: "Your 7-day access has ended. Please upgrade to a premium plan to regain access to your dashboard.",
       });
-      // Redirect back to landing page after a small delay to allow toast to show
       const timer = setTimeout(() => {
         router.push("/");
       }, 2000);
@@ -52,7 +53,7 @@ export default function DashboardLayout({
           <h2 className="text-xl font-headline font-bold">
             {isExpired ? "Access Restricted" : "Verifying Trial Status..."}
           </h2>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground px-4">
             {isExpired 
               ? "Redirecting to landing page..." 
               : "Checking your 7-day high-performance trial duration."}
@@ -63,10 +64,33 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="flex min-h-screen">
-      <Sidebar />
-      <main className="flex-1 ml-64 p-8 bg-background/50">
-        <div className="max-w-7xl mx-auto">
+    <div className="flex min-h-screen flex-col md:flex-row">
+      {/* Desktop Sidebar */}
+      <aside className="hidden md:flex w-64 h-screen fixed left-0 top-0 z-40 border-r">
+        <Sidebar />
+      </aside>
+
+      {/* Mobile Header */}
+      <header className="md:hidden flex items-center justify-between px-4 h-16 border-b bg-card sticky top-0 z-50">
+        <div className="flex items-center gap-2">
+          <BrainCircuit className="text-primary w-6 h-6" />
+          <span className="font-headline font-bold text-lg">MarketMind AI</span>
+        </div>
+        <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <Menu size={24} />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="p-0 w-72">
+            <Sidebar onClose={() => setIsMobileMenuOpen(false)} />
+          </SheetContent>
+        </Sheet>
+      </header>
+
+      {/* Main Content */}
+      <main className="flex-1 md:ml-64 bg-background/50 min-h-screen">
+        <div className="max-w-7xl mx-auto p-4 md:p-8">
           {children}
         </div>
       </main>

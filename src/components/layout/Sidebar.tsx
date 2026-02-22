@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -14,7 +15,8 @@ import {
   Zap,
   Ticket,
   CreditCard,
-  Building2
+  Building2,
+  X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -31,7 +33,11 @@ const navItems = [
   { name: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  onClose?: () => void;
+}
+
+export function Sidebar({ onClose }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { toast } = useToast();
@@ -44,20 +50,31 @@ export function Sidebar() {
     router.push("/");
   };
 
+  const handleLinkClick = () => {
+    if (onClose) onClose();
+  };
+
   return (
-    <div className="w-64 h-screen bg-card border-r flex flex-col fixed left-0 top-0 z-40">
-      <Link href="/" className="p-6 flex items-center gap-3 hover:opacity-80 transition-opacity">
-        <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-primary-foreground">
-          <BrainCircuit size={24} />
-        </div>
-        <span className="font-headline text-xl font-bold tracking-tight">MarketMind AI</span>
-      </Link>
+    <div className="w-full h-full bg-card flex flex-col">
+      <div className="p-6 flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity" onClick={handleLinkClick}>
+          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-primary-foreground">
+            <BrainCircuit size={24} />
+          </div>
+          <span className="font-headline text-xl font-bold tracking-tight">MarketMind AI</span>
+        </Link>
+        {onClose && (
+          <Button variant="ghost" size="icon" className="md:hidden" onClick={onClose}>
+            <X size={20} />
+          </Button>
+        )}
+      </div>
 
       <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           return (
-            <Link key={item.name} href={item.href}>
+            <Link key={item.name} href={item.href} onClick={handleLinkClick}>
               <div className={cn(
                 "flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-200 group",
                 isActive 
@@ -82,7 +99,7 @@ export function Sidebar() {
             <p className="text-sm font-bold text-foreground flex items-center gap-2 mb-3">
               7-Day Free Trial <Zap size={10} className="text-primary" />
             </p>
-            <Link href="/pricing">
+            <Link href="/pricing" onClick={handleLinkClick}>
               <Button size="sm" className="w-full h-8 text-[10px] font-bold uppercase tracking-wider rounded-lg shadow-lg shadow-primary/20">
                 Upgrade Plan
               </Button>

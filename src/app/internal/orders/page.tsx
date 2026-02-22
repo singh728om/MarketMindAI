@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -198,7 +199,6 @@ export default function InternalOrdersPage() {
 
   const handleSaveProgress = () => {
     setIsSaving(true);
-    // Simulate API delay
     setTimeout(() => {
       setOrders(prev => prev.map(o => o.id === selectedOrder.id ? selectedOrder : o));
       setIsSaving(false);
@@ -213,22 +213,21 @@ export default function InternalOrdersPage() {
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-headline font-bold mb-1 text-white">Master Service Orders</h1>
-          <p className="text-slate-400">View and fulfill all customer marketplace service requests.</p>
+          <h1 className="text-2xl md:text-3xl font-headline font-bold mb-1 text-white">Master Service Orders</h1>
+          <p className="text-slate-400 text-sm md:text-base">View and fulfill all customer marketplace service requests.</p>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="outline" className="bg-slate-900 border-white/5 text-white h-12 rounded-xl">
+          <Button variant="outline" className="bg-slate-900 border-white/5 text-white h-11 md:h-12 rounded-xl text-sm px-4">
             <Filter className="w-4 h-4 mr-2" /> Filter Queue
           </Button>
         </div>
       </div>
 
-      {/* Search Bar */}
       <div className="relative">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5" />
         <Input 
-          placeholder="Search by Order ID, Client Name or Assigned Staff..." 
-          className="pl-12 h-14 rounded-2xl bg-slate-900 border-white/5 text-white text-lg"
+          placeholder="Search by Order ID or Client..." 
+          className="pl-12 h-14 rounded-2xl bg-slate-900 border-white/5 text-white md:text-lg"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -244,49 +243,56 @@ export default function InternalOrdersPage() {
             )}
             onClick={() => setSelectedOrder(order)}
           >
-            <div className="flex flex-col lg:flex-row lg:items-center p-6 gap-6">
-              <div className={cn(
-                "w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-lg",
-                order.status === 'Completed' ? "bg-emerald-500/10 text-emerald-500" : 
-                order.status === 'In Progress' ? "bg-accent/10 text-accent" : "bg-slate-800 text-slate-400"
-              )}>
-                <order.icon size={28} />
+            <div className="flex flex-col lg:flex-row lg:items-center p-5 md:p-6 gap-4 md:gap-6">
+              <div className="flex items-center gap-4 flex-1">
+                <div className={cn(
+                  "w-12 h-12 md:w-14 md:h-14 rounded-xl flex items-center justify-center shrink-0 shadow-lg",
+                  order.status === 'Completed' ? "bg-emerald-500/10 text-emerald-500" : 
+                  order.status === 'In Progress' ? "bg-accent/10 text-accent" : "bg-slate-800 text-slate-400"
+                )}>
+                  <order.icon size={24} className="md:size-7" />
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2 mb-1">
+                    <span className="text-[10px] md:text-xs font-mono font-bold text-accent uppercase tracking-widest">{order.id}</span>
+                    <Badge variant="outline" className="text-[8px] md:text-[9px] h-4 border-white/10 uppercase text-slate-400">{order.category}</Badge>
+                    {order.urgency === 'High' && <Badge className="bg-rose-500/10 text-rose-500 border-none text-[8px] md:text-[9px]">URGENT</Badge>}
+                  </div>
+                  <h3 className="text-base md:text-xl font-headline font-bold text-white mb-1 truncate group-hover:text-accent transition-colors">{order.service}</h3>
+                  <div className="flex items-center gap-3 text-[10px] md:text-xs text-slate-500">
+                    <span className="flex items-center gap-1 shrink-0"><User size={10} /> {order.client}</span>
+                    <span className="flex items-center gap-1 shrink-0"><Clock size={10} /> {order.orderedAt}</span>
+                  </div>
+                </div>
               </div>
 
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-3 mb-1">
-                  <span className="text-xs font-mono font-bold text-accent uppercase tracking-widest">{order.id}</span>
-                  <Badge variant="outline" className="text-[9px] h-4 border-white/10 uppercase tracking-tighter text-slate-400">{order.category}</Badge>
-                  {order.urgency === 'High' && <Badge className="bg-rose-500/10 text-rose-500 border-none text-[9px]">URGENT</Badge>}
+              <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 w-full lg:w-auto">
+                <div className="flex flex-col gap-1.5 w-full md:min-w-[120px]">
+                  <div className="flex justify-between text-[10px] font-bold uppercase text-slate-500">
+                    <span>Progress</span>
+                    <span>{order.progress}%</span>
+                  </div>
+                  <Progress value={order.progress} className="h-1 bg-slate-800" />
                 </div>
-                <h3 className="text-xl font-headline font-bold text-white mb-1 group-hover:text-accent transition-colors">{order.service}</h3>
-                <div className="flex items-center gap-4 text-xs text-slate-500">
-                  <span className="flex items-center gap-1"><User size={12} /> {order.client}</span>
-                  <span className="flex items-center gap-1"><Clock size={12} /> Ordered {order.orderedAt}</span>
-                </div>
-              </div>
 
-              <div className="flex flex-col gap-2 min-w-[180px]">
-                <div className="flex justify-between text-[10px] font-bold uppercase text-slate-500">
-                  <span>Fulfillment</span>
-                  <span>{order.progress}%</span>
+                <div className="flex items-center justify-between md:justify-end gap-4 w-full md:w-auto md:border-l border-white/5 md:pl-6">
+                  <div className="text-left md:text-right">
+                    <p className="text-[9px] font-bold text-slate-500 uppercase">Assigned</p>
+                    <p className={cn("text-[11px] font-bold truncate max-w-[80px]", order.assignedTo === 'Unassigned' ? "text-rose-400" : "text-slate-200")}>
+                      {order.assignedTo}
+                    </p>
+                  </div>
+                  <Button 
+                    className="rounded-lg h-9 px-3 bg-accent hover:bg-accent/90 text-accent-foreground font-bold text-[10px] uppercase"
+                    onClick={(e) => { e.stopPropagation(); handleStartWork(order); }}
+                  >
+                    {order.assignedTo === 'Unassigned' ? "Claim" : "Work"}
+                  </Button>
+                  <div className="md:hidden">
+                    <ChevronRight size={16} className="text-slate-600" />
+                  </div>
                 </div>
-                <Progress value={order.progress} className="h-1.5 bg-slate-800" />
-              </div>
-
-              <div className="flex items-center gap-6 shrink-0 lg:border-l border-white/5 lg:pl-6">
-                <div className="text-right">
-                  <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">Assigned To</p>
-                  <p className={cn("text-xs font-bold", order.assignedTo === 'Unassigned' ? "text-rose-400" : "text-slate-200")}>
-                    {order.assignedTo}
-                  </p>
-                </div>
-                <Button 
-                  className="rounded-xl h-10 px-4 bg-accent hover:bg-accent/90 text-accent-foreground font-bold text-xs"
-                  onClick={(e) => { e.stopPropagation(); handleStartWork(order); }}
-                >
-                  {order.assignedTo === 'Unassigned' ? "Claim Order" : "Work Order"}
-                </Button>
               </div>
             </div>
           </Card>
@@ -295,22 +301,22 @@ export default function InternalOrdersPage() {
 
       {/* Fulfillment Dialog */}
       <Dialog open={!!selectedOrder} onOpenChange={(open) => !open && setSelectedOrder(null)}>
-        <DialogContent className="max-w-4xl bg-slate-900 border-white/10 rounded-3xl overflow-hidden p-0 text-white max-h-[90vh] flex flex-col">
+        <DialogContent className="max-w-4xl bg-slate-900 border-white/10 rounded-3xl overflow-hidden p-0 text-white max-h-[95vh] md:max-h-[90vh] flex flex-col">
           {selectedOrder && (
             <>
-              <DialogHeader className="p-8 pb-6 bg-accent/5 border-b border-white/5 shrink-0">
-                <div className="flex items-center justify-between mb-4">
+              <DialogHeader className="p-6 md:p-8 pb-4 md:pb-6 bg-accent/5 border-b border-white/5 shrink-0">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-accent text-accent-foreground flex items-center justify-center">
-                      <selectedOrder.icon size={24} />
+                    <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-accent text-accent-foreground flex items-center justify-center">
+                      <selectedOrder.icon size={20} className="md:size-6" />
                     </div>
                     <div>
-                      <DialogTitle className="text-2xl font-headline font-bold">{selectedOrder.service}</DialogTitle>
-                      <DialogDescription className="text-slate-400">Order ID: {selectedOrder.id} • Client: {selectedOrder.client}</DialogDescription>
+                      <DialogTitle className="text-lg md:text-2xl font-headline font-bold">{selectedOrder.service}</DialogTitle>
+                      <DialogDescription className="text-slate-400 text-xs md:text-sm">Order ID: {selectedOrder.id} • Client: {selectedOrder.client}</DialogDescription>
                     </div>
                   </div>
                   <Badge className={cn(
-                    "px-3 py-1",
+                    "px-3 py-1 self-start md:self-center",
                     selectedOrder.status === 'Completed' ? "bg-emerald-500/20 text-emerald-500" : "bg-accent/20 text-accent"
                   )}>
                     {selectedOrder.status}
@@ -318,12 +324,11 @@ export default function InternalOrdersPage() {
                 </div>
               </DialogHeader>
 
-              <div className="flex-1 overflow-y-auto p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="flex-1 overflow-y-auto p-6 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-8">
-                  {/* Specific Services Breakdown */}
                   <div className="space-y-4">
-                    <h4 className="text-sm font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
-                      <Box size={16} /> Service Modules (Edit Status)
+                    <h4 className="text-xs md:text-sm font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
+                      <Box size={16} /> Service Modules
                     </h4>
                     <div className="space-y-3">
                       {selectedOrder.subServices?.map((sub: any, i: number) => (
@@ -334,10 +339,10 @@ export default function InternalOrdersPage() {
                         >
                           <div className="flex justify-between items-center">
                             <span className="text-sm font-bold text-slate-200 group-hover:text-accent transition-colors">{sub.name}</span>
-                            <Badge variant="outline" className="text-[8px] h-4 border-accent/20 text-accent">{sub.type}</Badge>
+                            <Badge variant="outline" className="text-[8px] h-4 border-accent/20 text-accent uppercase">{sub.type}</Badge>
                           </div>
                           <div className="flex justify-between items-center">
-                            <span className="text-[10px] text-slate-500">Action Status</span>
+                            <span className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter">Status</span>
                             <div className="flex items-center gap-2">
                               {sub.status === 'Done' && <Check size={12} className="text-emerald-500" />}
                               <span className={cn(
@@ -353,24 +358,24 @@ export default function InternalOrdersPage() {
 
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
-                      <h4 className="text-sm font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
+                      <h4 className="text-xs md:text-sm font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
                         <ListChecks size={16} /> Fulfillment Checklist
                       </h4>
-                      <span className="text-xs font-bold text-accent">{selectedOrder.progress}% Complete</span>
+                      <span className="text-[10px] md:text-xs font-bold text-accent">{selectedOrder.progress}% Complete</span>
                     </div>
                     <div className="space-y-2">
-                      {selectedOrder.milestones.map((m: any, i: number) => (
+                      {selectedOrder.milestones.map((m: any) => (
                         <div 
                           key={m.id} 
                           onClick={() => toggleMilestone(m.id)}
                           className="flex items-center justify-between p-3 rounded-xl bg-slate-800/50 border border-white/5 hover:bg-slate-800 transition-colors cursor-pointer group"
                         >
                           <div className="flex items-center gap-3">
-                            {m.status === 'Done' ? <CheckCircle2 size={18} className="text-emerald-500" /> : <div className="w-4 h-4 rounded border border-slate-600 group-hover:border-accent transition-colors" />}
-                            <span className={cn("text-sm font-medium", m.status === 'Done' ? "text-slate-200" : "text-slate-500")}>{m.name}</span>
+                            {m.status === 'Done' ? <CheckCircle2 size={18} className="text-emerald-500 shrink-0" /> : <div className="w-4 h-4 rounded border border-slate-600 group-hover:border-accent transition-colors shrink-0" />}
+                            <span className={cn("text-xs md:text-sm font-medium", m.status === 'Done' ? "text-slate-200" : "text-slate-500")}>{m.name}</span>
                           </div>
-                          <Badge variant="secondary" className={cn("text-[8px] h-4", m.status === 'Done' ? "bg-emerald-500/10 text-emerald-500" : "bg-slate-700 text-slate-400")}>
-                            {m.status.toUpperCase()}
+                          <Badge variant="secondary" className={cn("text-[8px] h-4 uppercase shrink-0", m.status === 'Done' ? "bg-emerald-500/10 text-emerald-500" : "bg-slate-700 text-slate-400")}>
+                            {m.status}
                           </Badge>
                         </div>
                       ))}
@@ -379,55 +384,55 @@ export default function InternalOrdersPage() {
                 </div>
 
                 <div className="space-y-8">
-                  <div className="p-6 rounded-2xl bg-slate-800/50 border border-white/5 space-y-4">
+                  <div className="p-5 md:p-6 rounded-2xl bg-slate-800/50 border border-white/5 space-y-4">
                     <div className="flex items-center gap-2 text-rose-400">
                       <AlertCircle size={16} />
-                      <h4 className="text-sm font-bold">Critical Client Instructions</h4>
+                      <h4 className="text-xs md:text-sm font-bold uppercase tracking-wider">Client Instructions</h4>
                     </div>
                     <p className="text-xs text-slate-400 italic leading-relaxed">
-                      "Please prioritize the brand registry approval first. We need to be live by next Friday for our Diwali collection launch. Ensure high-resolution keywords for ethnic categories."
+                      "Please prioritize the brand registry approval first. We need to be live by next Friday for our Diwali collection launch."
                     </p>
-                    <div className="pt-4 border-t border-white/5 flex justify-between items-center">
-                      <Button variant="outline" size="sm" className="h-8 text-xs border-white/5 bg-slate-900">
-                        <MessageSquare size={12} className="mr-2" /> Message Client
+                    <div className="pt-4 border-t border-white/5 flex flex-wrap gap-2 justify-between items-center">
+                      <Button variant="outline" size="sm" className="h-8 text-[10px] uppercase font-bold border-white/5 bg-slate-900 px-3">
+                        <MessageSquare size={12} className="mr-2" /> Message
                       </Button>
-                      <Button variant="ghost" size="sm" className="h-8 text-xs text-slate-500">View Client Assets</Button>
+                      <Button variant="ghost" size="sm" className="h-8 text-[10px] uppercase font-bold text-slate-500 px-3">Client Assets</Button>
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                      <FileText size={16} /> Staff Internal Notes
+                  <div className="space-y-3">
+                    <h4 className="text-xs md:text-sm font-bold text-white flex items-center gap-2 uppercase tracking-wider">
+                      <FileText size={16} /> Internal Notes
                     </h4>
                     <textarea 
-                      className="w-full bg-slate-800 border border-white/5 rounded-xl p-4 text-xs min-h-[120px] focus:ring-1 focus:ring-accent outline-none text-slate-300 leading-relaxed"
-                      placeholder="Add a private note for other staff members regarding progress, blockers, or AI model performance..."
+                      className="w-full bg-slate-800 border border-white/5 rounded-xl p-4 text-xs min-h-[120px] focus:ring-1 focus:ring-accent outline-none text-slate-300 leading-relaxed placeholder:text-slate-600"
+                      placeholder="Add private fulfillment notes here..."
                     />
                   </div>
 
                   <div className="p-4 rounded-xl bg-accent/5 border border-accent/10 flex items-start gap-3">
                     <Zap size={18} className="text-accent shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-xs font-bold text-accent">AI Assistance Available</p>
-                      <p className="text-[10px] text-slate-500 mt-1">
-                        Use the built-in Catalog Template Generator or Photoshoot Agent to expedite this order.
+                    <div className="space-y-1">
+                      <p className="text-xs font-bold text-accent uppercase tracking-tighter">AI Node active</p>
+                      <p className="text-[10px] text-slate-500 leading-snug">
+                        Use Catalog Automation agents to expedite this order.
                       </p>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <DialogFooter className="p-6 bg-slate-800/50 border-t border-white/5 flex gap-3 shrink-0">
-                <Button variant="outline" className="flex-1 rounded-xl border-white/5 text-white" onClick={() => setSelectedOrder(null)}>Close Workspace</Button>
+              <DialogFooter className="p-6 md:p-8 bg-slate-800/50 border-t border-white/5 flex flex-col md:flex-row gap-3 shrink-0">
+                <Button variant="outline" className="w-full md:flex-1 rounded-xl border-white/5 text-white h-12" onClick={() => setSelectedOrder(null)}>Close</Button>
                 <Button 
-                  className="flex-1 rounded-xl bg-accent text-accent-foreground font-bold shadow-lg shadow-accent/20"
+                  className="w-full md:flex-1 rounded-xl bg-accent text-accent-foreground font-bold shadow-lg shadow-accent/20 h-12"
                   onClick={handleSaveProgress}
                   disabled={isSaving}
                 >
                   {isSaving ? (
                     <><Loader2 size={16} className="mr-2 animate-spin" /> Saving...</>
                   ) : (
-                    <><Save size={16} className="mr-2" /> Save Fulfillment Progress</>
+                    <><Save size={16} className="mr-2" /> Save Progress</>
                   )}
                 </Button>
               </DialogFooter>
