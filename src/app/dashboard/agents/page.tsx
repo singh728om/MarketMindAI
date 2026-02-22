@@ -45,6 +45,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { generatePhotoshoot } from "@/ai/flows/generate-photoshoot-prompts";
+import { cn } from "@/lib/utils";
 
 const AGENTS = [
   { id: "listing", title: "Listing Optimizer", icon: FileText, desc: "SEO-friendly titles, bullets, and descriptions based on product details.", color: "text-blue-500" },
@@ -73,7 +74,7 @@ export default function AgentsPage() {
     websiteUrl: "",
     shotAngle: "front",
     background: "pro-studio",
-    base64Image: "" as string | null,
+    base64Image: null as string | null,
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
