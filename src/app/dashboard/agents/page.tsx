@@ -32,7 +32,8 @@ import {
   Link as LinkIcon,
   Phone,
   Building2,
-  Palette
+  Palette,
+  PlayCircle
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -72,7 +73,7 @@ const AGENTS = [
   { id: "photoshoot", title: "AI Photoshoot Studio", icon: Camera, desc: "Professional studio reshoots with model and environment control.", color: "text-purple-500" },
   { id: "listing", title: "Listing Optimizer", icon: FileText, desc: "SEO-friendly titles, bullets, and descriptions.", color: "text-blue-500" },
   { id: "catalog", title: "Catalog Automation", icon: LayoutGrid, desc: "Template generation + marketplace rule validation.", color: "text-emerald-500" },
-  { id: "video", title: "Video Ad Agent", icon: Video, desc: "Storyboard + text-to-video prompt generation.", color: "text-rose-500" },
+  { id: "video", title: "Product to AI Video Ads", icon: Video, desc: "Transform product images into 5s cinematic UGC video ads.", color: "text-rose-500" },
   { id: "ugc", title: "UGC Script Studio", icon: Users, desc: "Creative hooks + detailed scripts.", color: "text-orange-500" },
   { id: "report", title: "Client Report Narrator", icon: FileSearch, desc: "Weekly performance analysis into narrative.", color: "text-indigo-500" },
   { id: "ranking", title: "Ranking Keyword Finder", icon: Search, desc: "Discover 10 high-intent keywords to boost visibility.", color: "text-amber-500" },
@@ -115,7 +116,6 @@ function AgentsContent() {
   const db = useFirestore();
   const { user } = useUser();
 
-  // Handle initial agent selection via query params
   useEffect(() => {
     if (initialAgentId) {
       const agent = AGENTS.find(a => a.id === initialAgentId);
@@ -158,8 +158,8 @@ function AgentsContent() {
       reader.onloadend = () => {
         setFormData(prev => ({ ...prev, base64Image: reader.result as string }));
         toast({
-          title: "Product Ingested",
-          description: "Photo ready for professional reshoot.",
+          title: "Asset Ingested",
+          description: "Photo ready for AI processing.",
         });
       };
       reader.readAsDataURL(file);
@@ -213,6 +213,13 @@ function AgentsContent() {
         const link = document.createElement("a");
         link.href = output.imageUrl;
         link.download = `marketmind-photoshoot-${Date.now()}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else if (output.videoUrl) {
+        const link = document.createElement("a");
+        link.href = output.videoUrl;
+        link.download = `marketmind-video-ad-${Date.now()}.mp4`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -295,6 +302,23 @@ function AgentsContent() {
           setOutput({ imageUrl: result.generatedImageDataUri, type: 'creative' });
           break;
 
+        case 'video':
+          if (!formData.base64Image) {
+            toast({ variant: "destructive", title: "Missing Asset", description: "Please upload a product photo for video generation." });
+            setIsRunning(false);
+            return;
+          }
+          result = await generateVideoAdContent({
+            productName: formData.productName,
+            productCategory: formData.category,
+            background: formData.background,
+            marketingText: formData.productDescription,
+            photoDataUri: formData.base64Image,
+            apiKey: activeKey
+          });
+          setOutput({ videoUrl: result.videoDataUri, type: 'video' });
+          break;
+
         case 'webbuilder':
           result = await generateWebsite({
             brandName: formData.productName,
@@ -326,18 +350,6 @@ function AgentsContent() {
             apiKey: activeKey
           });
           setOutput({ ...result, type: 'catalog' });
-          break;
-
-        case 'video':
-          result = await generateVideoAdContent({
-            productName: formData.productName,
-            productDescription: formData.productDescription,
-            targetAudience: formData.targetAudience,
-            adGoal: "Increase Sales",
-            callToAction: "Shop Now",
-            apiKey: activeKey
-          });
-          setOutput({ ...result, type: 'video' });
           break;
 
         case 'ugc':
@@ -591,10 +603,10 @@ function AgentsContent() {
                           </>
                         )}
 
-                        {selectedAgent.id === 'photoshoot' && (
+                        {(selectedAgent.id === 'photoshoot' || selectedAgent.id === 'video') && (
                           <div className="md:col-span-2 space-y-6">
                             <div className="space-y-2">
-                              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Production Environment (Background)</Label>
+                              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Environment (Background)</Label>
                               <Select value={formData.background} onValueChange={(val) => handleInputChange("background", val)} required>
                                 <SelectTrigger className="bg-slate-800 border-white/5 h-11 md:h-12 rounded-xl text-white text-sm">
                                   <SelectValue />
@@ -609,61 +621,63 @@ function AgentsContent() {
                               </Select>
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                              <div className="space-y-2">
-                                <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Model Selection</Label>
-                                <Select onValueChange={(val) => setModelType(val)} value={modelType}>
-                                  <SelectTrigger className="bg-slate-800 border-white/5 h-11 rounded-xl text-white text-sm"><SelectValue /></SelectTrigger>
-                                  <SelectContent className="bg-slate-800 border-white/10 text-white">
-                                    <SelectItem value="mens">Mens Model</SelectItem>
-                                    <SelectItem value="womens">Womens Model</SelectItem>
-                                    <SelectItem value="kids">Kids Model</SelectItem>
-                                    <SelectItem value="none">Product Only (No Model)</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
+                            {selectedAgent.id === 'photoshoot' && (
+                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                                <div className="space-y-2">
+                                  <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Model Selection</Label>
+                                  <Select onValueChange={(val) => setModelType(val)} value={modelType}>
+                                    <SelectTrigger className="bg-slate-800 border-white/5 h-11 rounded-xl text-white text-sm"><SelectValue /></SelectTrigger>
+                                    <SelectContent className="bg-slate-800 border-white/10 text-white">
+                                      <SelectItem value="mens">Mens Model</SelectItem>
+                                      <SelectItem value="womens">Womens Model</SelectItem>
+                                      <SelectItem value="kids">Kids Model</SelectItem>
+                                      <SelectItem value="none">Product Only (No Model)</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
 
-                              {modelType === 'kids' && (
-                                <>
-                                  <div className="space-y-2 animate-in fade-in slide-in-from-left-2">
-                                    <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Model Gender</Label>
-                                    <Select onValueChange={(val) => handleInputChange("kidGender", val)} value={formData.kidGender}>
-                                      <SelectTrigger className="bg-slate-800 border-white/5 h-11 rounded-xl text-white text-sm"><SelectValue /></SelectTrigger>
-                                      <SelectContent className="bg-slate-800 border-white/10 text-white">
-                                        <SelectItem value="boy">Baby Boy</SelectItem>
-                                        <SelectItem value="girl">Baby Girl</SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                  </div>
-                                  <div className="space-y-2 animate-in fade-in slide-in-from-left-2">
-                                    <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Model Age</Label>
-                                    <Select onValueChange={(val) => handleInputChange("kidAge", val)} value={formData.kidAge}>
-                                      <SelectTrigger className="bg-slate-800 border-white/5 h-11 rounded-xl text-white text-sm"><SelectValue /></SelectTrigger>
-                                      <SelectContent className="bg-slate-800 border-white/10 text-white">
-                                        {Array.from({ length: 12 }, (_, i) => i + 1).map(age => (
-                                          <SelectItem key={age} value={age.toString()}>{age} Year Old</SelectItem>
-                                        ))}
-                                      </SelectContent>
-                                    </Select>
-                                  </div>
-                                </>
-                              )}
+                                {modelType === 'kids' && (
+                                  <>
+                                    <div className="space-y-2 animate-in fade-in slide-in-from-left-2">
+                                      <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Model Gender</Label>
+                                      <Select onValueChange={(val) => handleInputChange("kidGender", val)} value={formData.kidGender}>
+                                        <SelectTrigger className="bg-slate-800 border-white/5 h-11 rounded-xl text-white text-sm"><SelectValue /></SelectTrigger>
+                                        <SelectContent className="bg-slate-800 border-white/10 text-white">
+                                          <SelectItem value="boy">Baby Boy</SelectItem>
+                                          <SelectItem value="girl">Baby Girl</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+                                    <div className="space-y-2 animate-in fade-in slide-in-from-left-2">
+                                      <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Model Age</Label>
+                                      <Select onValueChange={(val) => handleInputChange("kidAge", val)} value={formData.kidAge}>
+                                        <SelectTrigger className="bg-slate-800 border-white/5 h-11 rounded-xl text-white text-sm"><SelectValue /></SelectTrigger>
+                                        <SelectContent className="bg-slate-800 border-white/10 text-white">
+                                          {Array.from({ length: 12 }, (_, i) => i + 1).map(age => (
+                                            <SelectItem key={age} value={age.toString()}>{age} Year Old</SelectItem>
+                                          ))}
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+                                  </>
+                                )}
 
-                              <div className="space-y-2">
-                                <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Lens / Shot Angle</Label>
-                                <Select onValueChange={(val) => handleInputChange("shotAngle", val)} value={formData.shotAngle}>
-                                  <SelectTrigger className="bg-slate-800 border-white/5 h-11 rounded-xl text-white text-sm"><SelectValue /></SelectTrigger>
-                                  <SelectContent className="bg-slate-800 border-white/10 text-white">
-                                    <SelectItem value="front">Eye Level (Front View)</SelectItem>
-                                    <SelectItem value="back">Back View</SelectItem>
-                                    <SelectItem value="left-side">Left Side View</SelectItem>
-                                    <SelectItem value="right-side">Right Side View</SelectItem>
-                                    <SelectItem value="zoom">Macro / Detailed Close-up</SelectItem>
-                                    <SelectItem value="wide">Wide Angle Context</SelectItem>
-                                  </SelectContent>
-                                </Select>
+                                <div className="space-y-2">
+                                  <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Lens / Shot Angle</Label>
+                                  <Select onValueChange={(val) => handleInputChange("shotAngle", val)} value={formData.shotAngle}>
+                                    <SelectTrigger className="bg-slate-800 border-white/5 h-11 rounded-xl text-white text-sm"><SelectValue /></SelectTrigger>
+                                    <SelectContent className="bg-slate-800 border-white/10 text-white">
+                                      <SelectItem value="front">Eye Level (Front View)</SelectItem>
+                                      <SelectItem value="back">Back View</SelectItem>
+                                      <SelectItem value="left-side">Left Side View</SelectItem>
+                                      <SelectItem value="right-side">Right Side View</SelectItem>
+                                      <SelectItem value="zoom">Macro / Detailed Close-up</SelectItem>
+                                      <SelectItem value="wide">Wide Angle Context</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
                               </div>
-                            </div>
+                            )}
 
                             <div className="space-y-4 bg-slate-800/30 p-4 md:p-6 rounded-2xl border border-white/5">
                               <input type="file" className="hidden" ref={fileInputRef} onChange={handleFileChange} accept="image/*" />
@@ -677,20 +691,22 @@ function AgentsContent() {
                                 {formData.base64Image ? (
                                   <img src={formData.base64Image} alt="Input" className="w-full max-w-[150px] aspect-square object-contain rounded-xl shadow-2xl" />
                                 ) : (
-                                  <><Upload size={24} className="text-primary" /><p className="text-xs md:text-sm font-bold">Upload Product Photo</p></>
+                                  <><Upload size={24} className="text-primary" /><p className="text-xs md:text-sm font-bold">Upload Product Asset</p></>
                                 )}
                               </div>
                             </div>
                           </div>
                         )}
 
-                        {selectedAgent.id !== 'photoshoot' && selectedAgent.id !== 'leads' && (
+                        {selectedAgent.id !== 'leads' && (
                           <div className="md:col-span-2 space-y-2">
                             <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                              {selectedAgent.id === 'webbuilder' ? 'Specific Website Requirements' : 'Description / Context'}
+                              {selectedAgent.id === 'webbuilder' ? 'Specific Website Requirements' : 
+                               selectedAgent.id === 'video' ? 'Ad Messaging (Video Text)' : 'Description / Context'}
                             </Label>
                             <Input 
-                              placeholder={selectedAgent.id === 'webbuilder' ? "Include testimonials, a pricing table, and blue/gold theme..." : "Brief details about the product or campaign..."}
+                              placeholder={selectedAgent.id === 'webbuilder' ? "Include testimonials, a pricing table, and blue/gold theme..." : 
+                                           selectedAgent.id === 'video' ? "e.g. 50% Off Today! Limited Edition Silk Kurta" : "Brief details about the product or campaign..."}
                               className="bg-slate-800 border-white/5 h-11 md:h-12 rounded-xl text-white text-sm"
                               value={formData.productDescription}
                               onChange={(e) => handleInputChange("productDescription", e.target.value)}
@@ -705,7 +721,7 @@ function AgentsContent() {
                           className="w-full h-12 md:h-14 rounded-xl text-sm md:text-lg font-bold bg-primary hover:bg-primary/90 shadow-xl shadow-primary/20" 
                           disabled={isRunning}
                         >
-                          {isRunning ? <><RefreshCw className="mr-2 h-5 w-5 animate-spin" /> Orchestrating AI...</> : <><Zap className="mr-2 h-5 w-5" /> Start Production</>}
+                          {isRunning ? <><RefreshCw className="mr-2 h-5 w-5 animate-spin" /> {selectedAgent.id === 'video' ? 'Generating Cinematic Video...' : 'Orchestrating AI...'}</> : <><Zap className="mr-2 h-5 w-5" /> Start Production</>}
                         </Button>
                       </div>
                     </form>
@@ -720,6 +736,24 @@ function AgentsContent() {
                         {output.imageUrl && (
                           <div className="w-full max-w-lg mx-auto aspect-square rounded-2xl md:rounded-[2rem] overflow-hidden border-4 border-white/5 shadow-2xl bg-slate-900">
                             <img src={output.imageUrl} alt="AI Result" className="w-full h-full object-cover" />
+                          </div>
+                        )}
+
+                        {output.videoUrl && (
+                          <div className="w-full max-w-lg mx-auto aspect-[9/16] rounded-2xl md:rounded-[2rem] overflow-hidden border-4 border-white/5 shadow-2xl bg-slate-900 group relative">
+                            <video 
+                              src={output.videoUrl} 
+                              className="w-full h-full object-cover" 
+                              autoPlay 
+                              loop 
+                              muted 
+                              controls
+                            />
+                            <div className="absolute top-4 left-4">
+                              <Badge className="bg-black/60 backdrop-blur-md border-white/10 flex items-center gap-1">
+                                <PlayCircle size={12} className="text-rose-500" /> UGC Ad Preview
+                              </Badge>
+                            </div>
                           </div>
                         )}
 
@@ -767,24 +801,6 @@ function AgentsContent() {
                               {output.templateContent}
                             </div>
                             <p className="text-[10px] md:text-xs text-slate-400 italic leading-relaxed">{output.notes}</p>
-                          </div>
-                        )}
-
-                        {output.type === 'video' && (
-                          <div className="space-y-4 md:space-y-6">
-                            <div className="grid grid-cols-1 gap-3">
-                              {output.storyboard.map((s: any) => (
-                                <div key={s.sceneNumber} className="p-4 bg-slate-900 rounded-xl border border-white/5">
-                                  <p className="text-[10px] font-bold text-rose-400 mb-1 uppercase">Scene {s.sceneNumber}</p>
-                                  <p className="text-xs md:text-sm font-medium leading-relaxed text-white">{s.description}</p>
-                                  <p className="text-[10px] text-slate-500 mt-2 italic">{s.visualElements}</p>
-                                </div>
-                              ))}
-                            </div>
-                            <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-xl">
-                              <Label className="text-[10px] font-bold uppercase text-rose-400">Generation Prompt</Label>
-                              <p className="text-[10px] md:text-xs italic mt-1 leading-relaxed text-slate-300">{output.videoGenerationPrompt}</p>
-                            </div>
                           </div>
                         )}
 

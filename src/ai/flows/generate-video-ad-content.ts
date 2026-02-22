@@ -1,142 +1,80 @@
 'use server';
 /**
- * @fileOverview A Genkit flow for generating video ad content, including storyboards and prompts, based on product information.
- *
- * - generateVideoAdContent - A function that handles the video ad content generation process.
- * - GenerateVideoAdContentInput - The input type for the generateVideoAdContent function.
- * - GenerateVideoAdContentOutput - The return type for the generateVideoAdContent function.
+ * @fileOverview Product to AI Video Ads Agent.
+ * Generates cinematic 5s commercial video content using Google Veo.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { genkit } from 'genkit';
+import { googleAI } from '@genkit-ai/google-genai';
+import { z } from 'genkit';
 
-const GenerateVideoAdContentInputSchema = z.object({
-  productName: z.string().describe('The name of the product.'),
-  productDescription: z
-    .string()
-    .describe('A detailed description of the product.'),
-  targetAudience: z
-    .string()
-    .optional()
-    .describe('The target audience for the video ad.'),
-  keyFeatures: z
-    .array(z.string())
-    .optional()
-    .describe('Key features or selling points of the product.'),
-  callToAction: z
-    .string()
-    .optional()
-    .describe('The desired call to action for the ad (e.g., "Shop Now", "Learn More").'),
-  adGoal: z
-    .string()
-    .optional()
-    .describe('The primary goal of the ad (e.g., "increase sales", "build brand awareness").'),
+const GenerateVideoAdInputSchema = z.object({
+  productName: z.string(),
+  productCategory: z.string(),
+  background: z.string(),
+  marketingText: z.string().optional(),
+  photoDataUri: z.string().describe("Base64 data URI of the product image."),
+  apiKey: z.string().optional(),
 });
-export type GenerateVideoAdContentInput = z.infer<
-  typeof GenerateVideoAdContentInputSchema
->;
+export type GenerateVideoAdInput = z.infer<typeof GenerateVideoAdInputSchema>;
 
-const GenerateVideoAdContentOutputSchema = z.object({
-  storyboard: z
-    .array(
-      z.object({
-        sceneNumber: z.number().describe('The sequential number of the scene.'),
-        description: z.string().describe('A brief description of the scene.'),
-        visualElements: z
-          .string()
-          .optional()
-          .describe('Key visual components and setting for the scene.'),
-        audioElements: z
-          .string()
-          .optional()
-          .describe('Suggested audio elements like music, sound effects, or narration.'),
-      })
-    )
-    .describe('A step-by-step storyboard for the video advertisement.'),
-  videoGenerationPrompt: z
-    .string()
-    .describe(
-      'A detailed prompt suitable for a text-to-video AI model to generate the advertisement.'
-    ),
-  creativeIdeas: z
-    .array(z.string())
-    .optional()
-    .describe('Additional creative suggestions for the video ad.'),
+const GenerateVideoAdOutputSchema = z.object({
+  videoDataUri: z.string().describe("The generated video as a base64 data URI (video/mp4)."),
+  description: z.string().optional(),
 });
-export type GenerateVideoAdContentOutput = z.infer<
-  typeof GenerateVideoAdContentOutputSchema
->;
+export type GenerateVideoAdOutput = z.infer<typeof GenerateVideoAdOutputSchema>;
 
-export async function generateVideoAdContent(
-  input: GenerateVideoAdContentInput
-): Promise<GenerateVideoAdContentOutput> {
-  return generateVideoAdContentFlow(input);
-}
+export async function generateVideoAdContent(input: GenerateVideoAdInput): Promise<GenerateVideoAdOutput> {
+  const ai = genkit({
+    plugins: [googleAI({ apiKey: input.apiKey })],
+  });
 
-const generateVideoAdContentPrompt = ai.definePrompt({
-  name: 'generateVideoAdContentPrompt',
-  input: {schema: GenerateVideoAdContentInputSchema},
-  output: {schema: GenerateVideoAdContentOutputSchema},
-  prompt: `You are an expert video ad creative director for e-commerce, specializing in generating compelling storyboards and prompts for AI video generation models.
+  const prompt = `Create a high-end, 5-second cinematic UGC product commercial for "${input.productName}" in the "${input.productCategory}" category.
+  The product should be showcased in a ${input.background} environment with professional studio lighting and smooth camera movement.
+  MARKETING CONTEXT: ${input.marketingText || 'Premium quality, lifestyle appeal.'}
+  
+  Keep the video focused on the product. The style should be vibrant, clean, and optimized for social media engagement.`;
 
-Based on the following product information, create a detailed storyboard for a short video advertisement (15-30 seconds) and a comprehensive prompt for an AI video generation tool (like Google's Veo or similar).
+  try {
+    let { operation } = await ai.generate({
+      model: 'googleai/veo-2.0-generate-001',
+      prompt: [
+        { text: prompt },
+        { media: { url: input.photoDataUri, contentType: 'image/jpeg' } }
+      ],
+      config: {
+        durationSeconds: 5,
+        aspectRatio: '9:16',
+      },
+    });
 
-The video should be engaging, highlight key product features, and align with the specified ad goal and target audience.
+    if (!operation) throw new Error('Video production engine failed to initiate.');
 
-Product Name: {{{productName}}}
-Product Description: {{{productDescription}}}
-{{#if targetAudience}}Target Audience: {{{targetAudience}}}{{/if}}
-{{#if keyFeatures}}Key Features: {{#each keyFeatures}}- {{{this}}}{{/each}}{{/if}}
-{{#if callToAction}}Call to Action: {{{callToAction}}}{{/if}}
-{{#if adGoal}}Ad Goal: {{{adGoal}}}{{/if}}
-
-
-Guidelines for Storyboard:
-- Break the video into 3-5 distinct scenes.
-- For each scene, provide a 'sceneNumber', 'description', 'visualElements', and 'audioElements'.
-- The 'visualElements' should describe the camera angle, setting, and on-screen actions.
-- The 'audioElements' should suggest background music, sound effects, or voice-over.
-- Ensure a clear narrative flow that leads to the call to action.
-
-Guidelines for Video Generation Prompt:
-- Write a single, concise, and highly descriptive text prompt that an AI video model can use to generate the entire video.
-- Include details about the overall style, mood, lighting, and transitions.
-- Reference key elements from the storyboard.
-
-Guidelines for Creative Ideas:
-- Provide 2-3 additional, short creative ideas or alternative angles for the video ad.
-
-
-Example Output Format:
-{
-  "storyboard": [
-    {
-      "sceneNumber": 1,
-      "description": "Opening shot of product in an attractive setting.",
-      "visualElements": "Close-up, slow pan over product on a minimalist table with soft natural light.",
-      "audioElements": "Uplifting, modern background music starts."
+    // Wait for production to complete (polling)
+    while (!operation.done) {
+      operation = await ai.checkOperation(operation);
+      if (!operation.done) await new Promise((resolve) => setTimeout(resolve, 5000));
     }
-    // ... more scenes
-  ],
-  "videoGenerationPrompt": "Generate a 20-second commercial. A stylish, modern product is showcased on a minimalist white table with soft, warm natural light. Dynamic camera movements, smooth transitions between scenes. Upbeat electronic music throughout. Final scene displays product with 'Shop Now' text overlay.",
-  "creativeIdeas": [
-    "Idea 1", "Idea 2"
-  ]
-}
-`,
-});
 
-const generateVideoAdContentFlow = ai.defineFlow(
-  {
-    name: 'generateVideoAdContentFlow',
-    inputSchema: GenerateVideoAdContentInputSchema,
-    outputSchema: GenerateVideoAdContentOutputSchema,
-  },
-  async (input) => {
-    const {output} = await generateVideoAdContentPrompt(input);
-    if (!output) {
-      throw new Error('Failed to generate video ad content.');
-    }
-    return output;
+    if (operation.error) throw new Error('Video production error: ' + operation.error.message);
+
+    const videoPart = operation.output?.message?.content.find((p) => !!p.media);
+    if (!videoPart || !videoPart.media) throw new Error('Failed to retrieve generated video asset.');
+
+    // Fetch the video and convert to base64 for direct client delivery
+    const videoUrl = `${videoPart.media.url}&key=${input.apiKey || process.env.GEMINI_API_KEY}`;
+    const response = await fetch(videoUrl);
+    if (!response.ok) throw new Error('Failed to fetch video data from production node.');
+    
+    const buffer = await response.arrayBuffer();
+    const base64Video = Buffer.from(buffer).toString('base64');
+
+    return {
+      videoDataUri: `data:video/mp4;base64,${base64Video}`,
+      description: `Professional UGC ad for ${input.productName} generated successfully.`
+    };
+  } catch (error: any) {
+    console.error("Veo Generation Error:", error);
+    throw new Error(error.message || "The AI Video node is currently busy. Please try again in a few moments.");
   }
-);
+}
