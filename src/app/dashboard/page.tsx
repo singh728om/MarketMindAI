@@ -67,7 +67,7 @@ export default function Dashboard() {
             <div className="flex items-center gap-3 shrink-0">
               <Link href="/pricing">
                 <Button size="lg" className="rounded-xl px-8 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25 font-bold">
-                  <Sparkles size={18} className="mr-2" /> Upgrade to Premium
+                  <Sparkles size={14} className="mr-2" /> Upgrade to Premium
                 </Button>
               </Link>
             </div>
@@ -82,7 +82,7 @@ export default function Dashboard() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-headline font-bold mb-1">Brand Overview</h1>
-          <p className="text-muted-foreground">Welcome back. Performance is up 12% this week.</p>
+          <p className="text-muted-foreground">Welcome back to MarketMind AI. Performance is up 12% this week.</p>
         </div>
         <div className="flex items-center gap-3">
           <Link href="/dashboard/projects">

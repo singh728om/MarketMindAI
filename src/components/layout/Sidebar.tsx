@@ -80,7 +80,7 @@ export function Sidebar() {
           <div className="relative z-10">
             <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-1">Current Plan</p>
             <p className="text-sm font-bold text-foreground flex items-center gap-2 mb-3">
-              7-Day Free Trial <Zap size={12} className="text-primary" />
+              7-Day Free Trial <Zap size={10} className="text-primary" />
             </p>
             <Link href="/pricing">
               <Button size="sm" className="w-full h-8 text-[10px] font-bold uppercase tracking-wider rounded-lg shadow-lg shadow-primary/20">
