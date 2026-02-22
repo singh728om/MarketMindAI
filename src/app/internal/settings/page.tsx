@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -38,6 +39,9 @@ export default function InternalSettingsPage() {
     const savedKeys = localStorage.getItem("marketmind_api_keys");
     if (savedKeys) {
       setKeys(JSON.parse(savedKeys));
+    } else {
+      // Auto-provision default working key on first access
+      localStorage.setItem("marketmind_api_keys", JSON.stringify(keys));
     }
   }, []);
 
@@ -46,6 +50,8 @@ export default function InternalSettingsPage() {
     setTimeout(() => {
       localStorage.setItem("marketmind_api_keys", JSON.stringify(keys));
       setIsSaving(false);
+      // Trigger event for local listeners
+      window.dispatchEvent(new Event('storage'));
       toast({
         title: "System Config Updated",
         description: "API keys and global constraints have been synced across all nodes.",
@@ -99,7 +105,7 @@ export default function InternalSettingsPage() {
                     </button>
                   </div>
                 </div>
-                <p className="text-[10px] text-slate-500 italic">Core engine for: Listing Optimizer, Keyword Finder, and Growth Engine.</p>
+                <p className="text-[10px] text-slate-500 italic">Core engine for: Photoshoot, Listing Optimizer, and Growth Engine.</p>
               </div>
 
               {/* OpenAI Slot */}
@@ -117,21 +123,7 @@ export default function InternalSettingsPage() {
                     className="h-12 rounded-xl bg-slate-800 border-white/5 text-white font-mono text-sm"
                   />
                 </div>
-                <p className="text-[10px] text-slate-500 italic">Fallback engine for: Lead Generation and UGC Scripting.</p>
-              </div>
-
-              <div className="space-y-4 pt-6 border-t border-white/5">
-                <Label className="text-slate-300 font-bold uppercase tracking-widest text-[10px]">Image Model Endpoint (Imagen 3)</Label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-xs text-slate-500">Processing Node</Label>
-                    <Input defaultValue="asia-south1-ai" className="h-10 rounded-lg bg-slate-800 border-white/5" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-xs text-slate-500">Concurrent Limit</Label>
-                    <Input type="number" defaultValue="50" className="h-10 rounded-lg bg-slate-800 border-white/5" />
-                  </div>
-                </div>
+                <p className="text-[10px] text-slate-500 italic">Used for Lead Generation and legacy UGC scripting.</p>
               </div>
             </CardContent>
             <CardFooter className="bg-slate-800/30 p-6 flex justify-end">
@@ -168,52 +160,19 @@ export default function InternalSettingsPage() {
         </div>
 
         <div className="space-y-8">
-          {/* Infrastructure Health */}
           <Card className="bg-slate-900 border-white/5">
-            <CardHeader>
-              <CardTitle className="text-lg font-headline font-bold text-white">Infra Health</CardTitle>
-            </CardHeader>
+            <CardHeader><CardTitle className="text-lg font-headline font-bold text-white">Infra Health</CardTitle></CardHeader>
             <CardContent className="space-y-6">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
-                  <Server size={20} />
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs font-bold text-white">Edge Handlers</p>
-                  <p className="text-[10px] text-slate-500">Operational • 12ms Latency</p>
-                </div>
+                <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500"><Server size={20} /></div>
+                <div className="flex-1"><p className="text-xs font-bold text-white">Edge Handlers</p><p className="text-[10px] text-slate-500">Operational • 12ms</p></div>
               </div>
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
-                  <Database size={20} />
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs font-bold text-white">Firestore Storage</p>
-                  <p className="text-[10px] text-slate-500">Operational • Regional-AS</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-500">
-                  <Activity size={20} />
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs font-bold text-white">Token Burn Rate</p>
-                  <p className="text-[10px] text-slate-500">High • Check active agents</p>
-                </div>
+                <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500"><Database size={20} /></div>
+                <div className="flex-1"><p className="text-xs font-bold text-white">Firestore Storage</p><p className="text-[10px] text-slate-500">Operational • Regional-AS</p></div>
               </div>
             </CardContent>
           </Card>
-
-          {/* Admin Tip */}
-          <div className="p-6 rounded-3xl bg-accent/10 border border-accent/20 space-y-3 shadow-2xl shadow-accent/10">
-            <div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center text-accent-foreground mb-2">
-              <ShieldCheck size={20} />
-            </div>
-            <h4 className="font-bold text-white text-sm">Security Advisory</h4>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              API Keys are stored in an encrypted vault. Rotation is recommended every 90 days to maintain secure operational integrity across the agency platform.
-            </p>
-          </div>
         </div>
       </div>
     </div>
