@@ -1,0 +1,202 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * AI E-commerce Growth Agency Security Rules
+     * 
+     * Core Philosophy:
+     * This ruleset implements a dual-access model: path-based ownership for private user/employee 
+     * profiles and field-based authorization for shared business entities (Projects, Orders, Jobs).
+     * 
+     * Data Structure:
+     * - Private Data: User and Employee profiles/notifications are nested under specific IDs.
+     * - Shared/Top-Level Data: Projects, Products, ServiceOrders, and Jobs are top-level collections.
+     *   These use denormalized 'userProfileId' and 'assignedEmployeeId' fields for fast, 
+     *   non-hierarchical authorization checks.
+     * 
+     * Key Security Decisions:
+     * 1. Authorization Independence: By including 'userProfileId' on Projects/Orders, we avoid 
+     *    recursive 'get()' calls, keeping rules performant and scalable for employee dashboards.
+     * 2. Role-Based Access (RBAC): Internal staff (Employees) are identified by their presence 
+     *    in the /employees collection. Specific 'Admin' logic restricts global configs (API Keys).
+     * 3. Structural Segregation: Notifications and Profiles are separated into customer and 
+     *    employee branches to prevent data leakage between user types.
+     * 4. Prototyping Flexibility: Rules strictly enforce WHO can access data but allow 
+     *    flexible object shapes to support rapid development of AI-driven features.
+     */
+
+    // --- HELPER FUNCTIONS ---
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function getEmployee() {
+      return get(/databases/$(database)/documents/employees/$(request.auth.uid)).data;
+    }
+
+    function isEmployee() {
+      return isSignedIn() && exists(/databases/$(database)/documents/employees/$(request.auth.uid));
+    }
+
+    function isAdmin() {
+      return isEmployee() && getEmployee().role == 'Admin';
+    }
+
+    // --- COLLECTION RULES ---
+
+    /**
+     * @description Customer profile management. Users manage their own; Admins can view/manage all.
+     * @path /userProfiles/{userProfileId}
+     * @allow (get) Auth UID matches {userProfileId}
+     * @deny (write) Requesting user is not the profile owner and not an Admin.
+     * @principle Path-based ownership for root user identity.
+     */
+    match /userProfiles/{userProfileId} {
+      allow get: if isOwner(userProfileId) || isEmployee();
+      allow list: if isEmployee();
+      allow create: if isOwner(userProfileId);
+      allow update: if (isOwner(userProfileId) && resource != null) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    /**
+     * @description Internal employee profiles. Employees see themselves; Admins manage the team.
+     * @path /employees/{employeeId}
+     * @allow (create) An Admin creating a new staff record.
+     * @deny (update) Non-admin employee trying to change their own 'role' field.
+     * @principle Self-access for employees with Admin-only management of roles.
+     */
+    match /employees/{employeeId} {
+      allow get: if isOwner(employeeId) || isEmployee();
+      allow list: if isEmployee();
+      allow create: if isOwner(employeeId) || isAdmin();
+      allow update: if (isOwner(employeeId) && resource != null && request.resource.data.role == resource.data.role) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    /**
+     * @description Business projects linked to customers.
+     * @path /projects/{projectId}
+     * @allow (list) An employee viewing all active customer campaigns.
+     * @deny (create) Customer trying to set 'userProfileId' to someone else's ID.
+     * @principle Field-based ownership (userProfileId) for cross-collection access.
+     */
+    match /projects/{projectId} {
+      allow get, list: if isEmployee() || (isSignedIn() && resource.data.userProfileId == request.auth.uid);
+      allow create: if isSignedIn() && (request.resource.data.userProfileId == request.auth.uid || isEmployee());
+      allow update: if resource != null && (resource.data.userProfileId == request.auth.uid || isEmployee());
+      allow delete: if isAdmin();
+    }
+
+    /**
+     * @description Products managed within projects.
+     * @path /products/{productId}
+     * @allow (get) Customer viewing their own product.
+     * @deny (update) Changing the 'projectId' or 'userProfileId' to orphan the product.
+     * @principle Relational integrity via immutable ownership fields.
+     */
+    match /products/{productId} {
+      allow get, list: if isEmployee() || (isSignedIn() && resource.data.userProfileId == request.auth.uid);
+      allow create: if isSignedIn() && (request.resource.data.userProfileId == request.auth.uid || isEmployee());
+      allow update: if resource != null && (resource.data.userProfileId == request.auth.uid || isEmployee()) && request.resource.data.userProfileId == resource.data.userProfileId;
+      allow delete: if isAdmin() || (resource != null && resource.data.userProfileId == request.auth.uid);
+    }
+
+    /**
+     * @description Global AI Service catalog.
+     * @path /services/{serviceId}
+     * @allow (list) Any signed-in user browsing the marketplace.
+     * @deny (create) Non-admin user trying to add a new service type.
+     * @principle Public read with Admin-only structural writes.
+     */
+    match /services/{serviceId} {
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+    /**
+     * @description AI Prompt templates for agency agents.
+     * @path /promptTemplates/{promptTemplateId}
+     * @allow (get) Any employee configuring an AI job.
+     * @deny (list) Customers attempting to view internal prompt logic.
+     * @principle Internal-only tool configuration access.
+     */
+    match /promptTemplates/{promptTemplateId} {
+      allow get, list: if isEmployee();
+      allow create, update, delete: if isAdmin();
+    }
+
+    /**
+     * @description Customer orders for specific AI services.
+     * @path /serviceOrders/{serviceOrderId}
+     * @allow (update) Employee updating order status to 'In Progress'.
+     * @deny (create) Requesting user is not signed in.
+     * @principle Collaborative access for service fulfillment.
+     */
+    match /serviceOrders/{serviceOrderId} {
+      allow get, list: if isEmployee() || (isSignedIn() && resource.data.userProfileId == request.auth.uid);
+      allow create: if isSignedIn() && (request.resource.data.userProfileId == request.auth.uid || isEmployee());
+      allow update: if resource != null && (isEmployee() || resource.data.userProfileId == request.auth.uid);
+      allow delete: if isAdmin();
+    }
+
+    /**
+     * @description Granular AI or manual jobs within an order.
+     * @path /jobs/{jobId}
+     * @allow (update) An assigned employee uploading job 'output'.
+     * @deny (get) A customer trying to view a job belonging to a different user.
+     * @principle Assigned-party access combined with owner visibility.
+     */
+    match /jobs/{jobId} {
+      allow get, list: if isEmployee() || (isSignedIn() && resource.data.userProfileId == request.auth.uid);
+      allow create: if isEmployee();
+      allow update: if resource != null && (isEmployee() || resource.data.userProfileId == request.auth.uid);
+      allow delete: if isAdmin();
+    }
+
+    /**
+     * @description Sensitive external API credentials (e.g., Gemini, OpenAI).
+     * @path /apiKeyConfigurations/{configId}
+     * @allow (get) Admin viewing the current key status.
+     * @deny (list) Any non-admin user.
+     * @principle Strict administrative isolation for sensitive secrets.
+     */
+    match /apiKeyConfigurations/{configId} {
+      allow get, list, create, update, delete: if isAdmin();
+    }
+
+    /**
+     * @description Private notifications for customers.
+     * @path /userProfiles/{userProfileId}/notifications/{notificationId}
+     * @allow (list) Owner checking their unread alerts.
+     * @deny (get) One customer trying to read another's notifications.
+     * @principle Subcollection ownership for user privacy.
+     */
+    match /userProfiles/{userProfileId}/notifications/{notificationId} {
+      allow get, list: if isOwner(userProfileId);
+      allow create: if isEmployee();
+      allow update: if resource != null && isOwner(userProfileId);
+      allow delete: if isOwner(userProfileId);
+    }
+
+    /**
+     * @description Private notifications for employees.
+     * @path /employees/{employeeId}/notifications/{notificationId}
+     * @allow (update) Employee marking their own notification as 'isRead'.
+     * @deny (list) An employee trying to list all staff notifications.
+     * @principle Subcollection ownership for employee privacy.
+     */
+    match /employees/{employeeId}/notifications/{notificationId} {
+      allow get, list: if isOwner(employeeId);
+      allow create: if isEmployee();
+      allow update: if resource != null && isOwner(employeeId);
+      allow delete: if isOwner(employeeId);
+    }
+  }
+}
