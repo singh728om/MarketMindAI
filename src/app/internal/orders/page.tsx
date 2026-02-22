@@ -20,7 +20,9 @@ import {
   MessageSquare,
   Box,
   FileText,
-  AlertCircle
+  AlertCircle,
+  Save,
+  Loader2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -44,7 +46,7 @@ import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
-const MASTER_ORDERS = [
+const INITIAL_MASTER_ORDERS = [
   {
     id: "ORD-8821",
     client: "CHIC ELAN",
@@ -63,10 +65,10 @@ const MASTER_ORDERS = [
       { name: "Catalog Template Selection", type: "System", status: "Pending" }
     ],
     milestones: [
-      { name: "Doc Submission", status: "Done" },
-      { name: "Brand Registry", status: "Done" },
-      { name: "Catalog Selection", status: "Pending" },
-      { name: "Final QC", status: "Pending" },
+      { id: "m1", name: "Doc Submission", status: "Done" },
+      { id: "m2", name: "Brand Registry", status: "Done" },
+      { id: "m3", name: "Catalog Selection", status: "Pending" },
+      { id: "m4", name: "Final QC", status: "Pending" },
     ]
   },
   {
@@ -87,10 +89,10 @@ const MASTER_ORDERS = [
       { name: "Prompt Tuning", type: "AI", status: "Pending" }
     ],
     milestones: [
-      { name: "Asset Ingestion", status: "Pending" },
-      { name: "Prompt Selection", status: "Pending" },
-      { name: "Generation", status: "Pending" },
-      { name: "Review", status: "Pending" },
+      { id: "ph1", name: "Asset Ingestion", status: "Pending" },
+      { id: "ph2", name: "Prompt Selection", status: "Pending" },
+      { id: "ph3", name: "Generation", status: "Pending" },
+      { id: "ph4", name: "Review", status: "Pending" },
     ]
   },
   {
@@ -111,39 +113,86 @@ const MASTER_ORDERS = [
       { name: "A+ Content Strategy", type: "Manual", status: "Done" }
     ],
     milestones: [
-      { name: "Audit", status: "Done" },
-      { name: "AI Drafting", status: "Done" },
-      { name: "Approval", status: "Done" },
-      { name: "Marketplace Push", status: "Done" },
+      { id: "lo1", name: "Audit", status: "Done" },
+      { id: "lo2", name: "AI Drafting", status: "Done" },
+      { id: "lo3", name: "Approval", status: "Done" },
+      { id: "lo4", name: "Marketplace Push", status: "Done" },
     ]
   }
 ];
 
 export default function InternalOrdersPage() {
+  const [orders, setOrders] = useState(INITIAL_MASTER_ORDERS);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [search, setSearch] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
   const searchParams = useSearchParams();
   const orderIdParam = searchParams.get("id");
   const { toast } = useToast();
 
   useEffect(() => {
     if (orderIdParam) {
-      const order = MASTER_ORDERS.find(o => o.id === orderIdParam);
+      const order = orders.find(o => o.id === orderIdParam);
       if (order) setSelectedOrder(order);
     }
-  }, [orderIdParam]);
+  }, [orderIdParam, orders]);
 
-  const filteredOrders = MASTER_ORDERS.filter(o => 
+  const filteredOrders = orders.filter(o => 
     o.client.toLowerCase().includes(search.toLowerCase()) || 
     o.id.toLowerCase().includes(search.toLowerCase())
   );
 
   const handleStartWork = (order: any) => {
-    toast({
-      title: "Work Session Initiated",
-      description: `You are now processing ${order.service} for ${order.client}.`,
+    if (order.assignedTo === 'Unassigned') {
+      const updatedOrders = orders.map(o => 
+        o.id === order.id ? { ...o, assignedTo: "Me (Staff)", status: "In Progress" } : o
+      );
+      setOrders(updatedOrders);
+      toast({
+        title: "Order Claimed",
+        description: `You have successfully claimed order ${order.id}.`,
+      });
+    } else {
+      toast({
+        title: "Work Session Initiated",
+        description: `You are now processing ${order.service} for ${order.client}.`,
+      });
+    }
+    setSelectedOrder(orders.find(o => o.id === order.id) || order);
+  };
+
+  const toggleMilestone = (milestoneId: string) => {
+    if (!selectedOrder) return;
+
+    const updatedMilestones = selectedOrder.milestones.map((m: any) => {
+      if (m.id === milestoneId) {
+        return { ...m, status: m.status === 'Done' ? 'Pending' : 'Done' };
+      }
+      return m;
     });
-    setSelectedOrder(order);
+
+    const doneCount = updatedMilestones.filter((m: any) => m.status === 'Done').length;
+    const newProgress = Math.round((doneCount / updatedMilestones.length) * 100);
+
+    setSelectedOrder({
+      ...selectedOrder,
+      milestones: updatedMilestones,
+      progress: newProgress,
+      status: newProgress === 100 ? "Completed" : "In Progress"
+    });
+  };
+
+  const handleSaveProgress = () => {
+    setIsSaving(true);
+    // Simulate API delay
+    setTimeout(() => {
+      setOrders(prev => prev.map(o => o.id === selectedOrder.id ? selectedOrder : o));
+      setIsSaving(false);
+      toast({
+        title: "Progress Saved",
+        description: `Fulfillment status for ${selectedOrder.id} has been updated.`,
+      });
+    }, 1000);
   };
 
   return (
@@ -260,11 +309,11 @@ export default function InternalOrdersPage() {
                   {/* Specific Services Breakdown */}
                   <div className="space-y-4">
                     <h4 className="text-sm font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
-                      <Box size={16} /> Service Modules
+                      <Box size={16} /> Service Modules (Selection)
                     </h4>
                     <div className="space-y-3">
                       {selectedOrder.subServices?.map((sub: any, i: number) => (
-                        <div key={i} className="p-4 rounded-xl bg-slate-800/30 border border-white/5 space-y-2">
+                        <div key={i} className="p-4 rounded-xl bg-slate-800/30 border border-white/5 space-y-2 hover:border-accent/30 transition-colors cursor-default">
                           <div className="flex justify-between items-center">
                             <span className="text-sm font-bold text-slate-200">{sub.name}</span>
                             <Badge variant="outline" className="text-[8px] h-4 border-accent/20 text-accent">{sub.type}</Badge>
@@ -282,17 +331,26 @@ export default function InternalOrdersPage() {
                   </div>
 
                   <div className="space-y-4">
-                    <h4 className="text-sm font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
-                      <ListChecks size={16} /> Fulfillment Checklist
-                    </h4>
+                    <div className="flex justify-between items-center">
+                      <h4 className="text-sm font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
+                        <ListChecks size={16} /> Fulfillment Checklist
+                      </h4>
+                      <span className="text-xs font-bold text-accent">{selectedOrder.progress}% Complete</span>
+                    </div>
                     <div className="space-y-2">
                       {selectedOrder.milestones.map((m: any, i: number) => (
-                        <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-slate-800/50 border border-white/5">
+                        <div 
+                          key={m.id} 
+                          onClick={() => toggleMilestone(m.id)}
+                          className="flex items-center justify-between p-3 rounded-xl bg-slate-800/50 border border-white/5 hover:bg-slate-800 transition-colors cursor-pointer group"
+                        >
                           <div className="flex items-center gap-3">
-                            {m.status === 'Done' ? <CheckCircle2 size={18} className="text-emerald-500" /> : <Clock size={18} className="text-slate-600" />}
+                            {m.status === 'Done' ? <CheckCircle2 size={18} className="text-emerald-500" /> : <div className="w-4 h-4 rounded border border-slate-600 group-hover:border-accent transition-colors" />}
                             <span className={cn("text-sm font-medium", m.status === 'Done' ? "text-slate-200" : "text-slate-500")}>{m.name}</span>
                           </div>
-                          <Button variant="ghost" size="sm" className="h-7 text-[10px] font-bold text-accent">UPDATE</Button>
+                          <Badge variant="secondary" className={cn("text-[8px] h-4", m.status === 'Done' ? "bg-emerald-500/10 text-emerald-500" : "bg-slate-700 text-slate-400")}>
+                            {m.status.toUpperCase()}
+                          </Badge>
                         </div>
                       ))}
                     </div>
@@ -340,8 +398,16 @@ export default function InternalOrdersPage() {
 
               <DialogFooter className="p-6 bg-slate-800/50 border-t border-white/5 flex gap-3 shrink-0">
                 <Button variant="outline" className="flex-1 rounded-xl border-white/5 text-white" onClick={() => setSelectedOrder(null)}>Close Workspace</Button>
-                <Button className="flex-1 rounded-xl bg-accent text-accent-foreground font-bold shadow-lg shadow-accent/20">
-                  Save Fulfillment Progress
+                <Button 
+                  className="flex-1 rounded-xl bg-accent text-accent-foreground font-bold shadow-lg shadow-accent/20"
+                  onClick={handleSaveProgress}
+                  disabled={isSaving}
+                >
+                  {isSaving ? (
+                    <><Loader2 size={16} className="mr-2 animate-spin" /> Saving...</>
+                  ) : (
+                    <><Save size={16} className="mr-2" /> Save Fulfillment Progress</>
+                  )}
                 </Button>
               </DialogFooter>
             </>
