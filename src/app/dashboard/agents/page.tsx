@@ -51,7 +51,7 @@ const AGENTS = [
   { id: "listing", title: "Listing Optimizer", icon: FileText, desc: "SEO-friendly titles, bullets, and descriptions based on product details.", color: "text-blue-500" },
   { id: "ranking", title: "Ranking Keyword Finder", icon: Search, desc: "Discover high-intent keywords to boost your search visibility.", color: "text-amber-500" },
   { id: "leads", title: "Lead Generation Agent", icon: Globe, desc: "Extract potential B2B leads via location or direct website analysis.", color: "text-cyan-500" },
-  { id: "photoshoot", title: "Photoshoot Agent", icon: Camera, desc: "Prompt builder + style presets for high-end photography.", color: "text-purple-500" },
+  { id: "photoshoot", title: "Photoshoot Agent", icon: Camera, desc: "Professional studio photoshoot with model selection and background control.", color: "text-purple-500" },
   { id: "video", title: "Video Ad Agent", icon: Video, desc: "Storyboard + text-to-video prompt generation.", color: "text-rose-500" },
   { id: "catalog", title: "Catalog Automation", icon: LayoutGrid, desc: "Template generation + marketplace rule validation.", color: "text-emerald-500" },
   { id: "ugc", title: "UGC Script Studio", icon: Users, desc: "10 hooks + detailed creator briefs & scripts.", color: "text-orange-500" },
@@ -62,7 +62,7 @@ export default function AgentsPage() {
   const [selectedAgent, setSelectedAgent] = useState<any>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [output, setOutput] = useState<any>(null);
-  const [modelType, setModelType] = useState<string>("");
+  const [modelType, setModelType] = useState<string>("none");
   const [isApiActive, setIsApiActive] = useState(false);
   
   // Controlled form state
@@ -100,12 +100,25 @@ export default function AgentsPage() {
       reader.onloadend = () => {
         setFormData(prev => ({ ...prev, base64Image: reader.result as string }));
         toast({
-          title: "File Ready",
-          description: `Successfully prepared ${file.name} for AI analysis.`,
+          title: "Product Image Ready",
+          description: `Successfully loaded ${file.name} for photoshoot analysis.`,
         });
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const downloadImage = (url: string, filename: string) => {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast({
+      title: "Download Started",
+      description: "Your professional photoshoot image is being saved.",
+    });
   };
 
   const handleRunAgent = async (e: React.FormEvent) => {
@@ -121,11 +134,11 @@ export default function AgentsPage() {
           shotAngle: formData.shotAngle,
           modelType: modelType,
           background: formData.background,
-          style: "high-fashion editorial, 8k, photorealistic"
+          style: "high-fashion commercial editorial, 8k, photorealistic, sharp focus"
         });
 
         setOutput({
-          title: `AI Photoshoot Result: ${formData.productName}`,
+          title: `Professional Photoshoot: ${formData.productName}`,
           prompt: result.description,
           imageUrl: result.generatedImageDataUri,
           type: 'creative'
@@ -163,8 +176,8 @@ export default function AgentsPage() {
         } else {
           const angleText = shotAngle === 'zoom' ? 'detailed zoom-in' : `${shotAngle} view`;
           setOutput({
-            title: `AI Generation: ${productName}`,
-            prompt: `A professional shot showing the ${angleText} of a ${color || ""} ${productName} in a ${formData.background} setting.`,
+            title: `AI Studio Result: ${productName}`,
+            prompt: `A professional commercial shot showing the ${angleText} of a ${color || ""} ${productName} in a ${formData.background} setting.`,
             imageUrl: "https://picsum.photos/seed/agency/600/400",
             type: 'creative'
           });
@@ -172,15 +185,15 @@ export default function AgentsPage() {
       }
 
       toast({
-        title: isApiActive ? "Agent Analysis Success" : "Demo Execution Complete",
-        description: "The AI has finished generating your custom content.",
+        title: isApiActive ? "Production Output Ready" : "Demo Execution Complete",
+        description: "The AI node has finished generating your professional studio content.",
       });
     } catch (err: any) {
       console.error(err);
       toast({
         variant: "destructive",
-        title: "Agent Execution Failed",
-        description: "There was an error communicating with the AI node. Please check your API keys.",
+        title: "AI Node Communication Failure",
+        description: "The agent could not connect to the processing hub. Verify your API keys in the staff portal.",
       });
     } finally {
       setIsRunning(false);
@@ -198,7 +211,7 @@ export default function AgentsPage() {
   const resetForm = () => {
     setSelectedAgent(null);
     setOutput(null);
-    setModelType("");
+    setModelType("none");
     setFormData({ 
       productName: "", 
       category: "", 
@@ -359,7 +372,7 @@ export default function AgentsPage() {
                           )}
                         >
                            {formData.base64Image ? (
-                             <div className="relative group/img w-full max-w-[200px] aspect-square rounded-lg overflow-hidden border">
+                             <div className="relative group/img w-full max-w-[200px] aspect-square rounded-lg overflow-hidden border bg-white">
                                <img src={formData.base64Image} alt="Product Preview" className="w-full h-full object-contain" />
                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 flex items-center justify-center transition-opacity">
                                  <span className="text-white text-xs font-bold uppercase">Change Photo</span>
@@ -368,7 +381,7 @@ export default function AgentsPage() {
                            ) : (
                              <>
                                <Upload size={24} className="text-muted-foreground group-hover:text-primary transition-colors" />
-                               <p className="text-sm font-medium">Upload product photo</p>
+                               <p className="text-sm font-medium">Upload raw product photo</p>
                                <Button type="button" variant="outline" size="sm">Select File</Button>
                              </>
                            )}
@@ -377,8 +390,8 @@ export default function AgentsPage() {
                         {(selectedAgent.id === 'photoshoot' || selectedAgent.id === 'video') && (
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                             <div className="space-y-2">
-                              <Label>Model Type</Label>
-                              <Select onValueChange={(val) => setModelType(val)} required>
+                              <Label>Model Target</Label>
+                              <Select onValueChange={(val) => setModelType(val)} defaultValue="none" required>
                                 <SelectTrigger>
                                   <SelectValue placeholder="Select model style" />
                                 </SelectTrigger>
@@ -401,24 +414,24 @@ export default function AgentsPage() {
                                   <SelectContent>
                                     <SelectItem value="front">Front View</SelectItem>
                                     <SelectItem value="back">Back View</SelectItem>
-                                    <SelectItem value="zoom">Zoom View</SelectItem>
+                                    <SelectItem value="zoom">Detailed Zoom</SelectItem>
                                   </SelectContent>
                                 </Select>
                               </div>
                             )}
 
-                            <div className="space-y-2">
+                            <div className="space-y-2 md:col-span-2">
                               <Label>Background Setting</Label>
                               <Select onValueChange={(val) => handleInputChange("background", val)} required>
                                 <SelectTrigger>
                                   <SelectValue placeholder="Select environment" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="pro-studio">Professional Studio</SelectItem>
-                                  <SelectItem value="casual-outdoor">Casual Outdoor</SelectItem>
-                                  <SelectItem value="heritage">Heritage Palace</SelectItem>
-                                  <SelectItem value="modern-minimalist">Modern Minimalist</SelectItem>
-                                  <SelectItem value="nature-garden">Nature/Garden</SelectItem>
+                                  <SelectItem value="pro-studio">Professional High-Key Studio</SelectItem>
+                                  <SelectItem value="casual-outdoor">Casual Lifestyle Outdoor</SelectItem>
+                                  <SelectItem value="heritage">Heritage / Palace Interior</SelectItem>
+                                  <SelectItem value="modern-minimalist">Modern Minimalist Interior</SelectItem>
+                                  <SelectItem value="nature-garden">Nature / Lush Garden</SelectItem>
                                 </SelectContent>
                               </Select>
                             </div>
@@ -433,9 +446,9 @@ export default function AgentsPage() {
                       disabled={isRunning || (selectedAgent.id === 'photoshoot' && !formData.base64Image)}
                     >
                       {isRunning ? (
-                        <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Agent is processing...</>
+                        <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> AI Studio is generating...</>
                       ) : (
-                        <><Zap className="mr-2 h-5 w-5" /> Execute Agent</>
+                        <><Zap className="mr-2 h-5 w-5" /> Generate Photoshoot</>
                       )}
                     </Button>
                   </form>
@@ -445,22 +458,28 @@ export default function AgentsPage() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                            <Sparkles className="text-primary" size={20} />
-                           <h4 className="font-bold font-headline text-xl text-primary">Intelligence Output</h4>
+                           <h4 className="font-bold font-headline text-xl text-primary">Production Output</h4>
                         </div>
                         <div className="flex gap-2">
-                          <Button variant="ghost" size="icon" onClick={() => copyToClipboard(JSON.stringify(output))}><Download size={16} /></Button>
+                          {output.imageUrl ? (
+                            <Button variant="outline" size="icon" className="rounded-xl" onClick={() => downloadImage(output.imageUrl, `marketmind-photoshoot-${Date.now()}.png`)}>
+                              <Download size={16} className="text-primary" />
+                            </Button>
+                          ) : (
+                            <Button variant="ghost" size="icon" onClick={() => copyToClipboard(JSON.stringify(output))}><Download size={16} /></Button>
+                          )}
                         </div>
                       </div>
                       
                       <div className="grid grid-cols-1 gap-6 text-sm">
                         {output.imageUrl && (
                           <div className="space-y-2">
-                            <Label className="text-muted-foreground">Generated Photoshoot</Label>
+                            <Label className="text-muted-foreground uppercase tracking-widest text-[10px] font-bold">Generated Professional Asset</Label>
                             <div className="aspect-[4/3] w-full max-w-2xl mx-auto bg-muted rounded-2xl flex items-center justify-center overflow-hidden border-2 border-primary/20 shadow-2xl relative group">
                               <img src={output.imageUrl} alt="Result" className="w-full h-full object-cover" />
-                              <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Button size="sm" className="rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-md" onClick={() => copyToClipboard(output.imageUrl)}>
-                                  <Copy size={14} className="mr-2" /> Copy Image URL
+                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                <Button size="lg" className="rounded-xl bg-primary text-white shadow-xl" onClick={() => downloadImage(output.imageUrl, `photoshoot-${Date.now()}.png`)}>
+                                  <Download size={20} className="mr-2" /> Download High-Res
                                 </Button>
                               </div>
                             </div>
@@ -469,14 +488,14 @@ export default function AgentsPage() {
 
                         {output.title && (
                           <div className="space-y-2">
-                            <Label className="text-muted-foreground">AI Description</Label>
+                            <Label className="text-muted-foreground uppercase tracking-widest text-[10px] font-bold">Studio Description</Label>
                             <div className="p-4 bg-background rounded-xl border font-bold text-foreground">{output.title}</div>
                           </div>
                         )}
                         
                         {output.prompt && (
                           <div className="space-y-2">
-                            <Label className="text-muted-foreground">Scene Context</Label>
+                            <Label className="text-muted-foreground uppercase tracking-widest text-[10px] font-bold">Scene Context</Label>
                             <div className="p-4 bg-background rounded-xl border italic text-muted-foreground text-xs leading-relaxed">
                               "{output.prompt}"
                             </div>
@@ -485,7 +504,7 @@ export default function AgentsPage() {
 
                         {output.bullets && (
                           <div className="space-y-2">
-                            <Label className="text-muted-foreground">Key Features</Label>
+                            <Label className="text-muted-foreground uppercase tracking-widest text-[10px] font-bold">AI Intelligence Insights</Label>
                             <div className="p-4 bg-background rounded-xl border space-y-2">
                               {output.bullets.map((bullet: string, i: number) => (
                                 <div key={i} className="flex gap-2 items-start">
@@ -519,7 +538,7 @@ export default function AgentsPage() {
                         )}
                       </div>
                     </div>
-                    <Button variant="outline" className="w-full h-12 rounded-xl" onClick={() => setOutput(null)}>Start New Task</Button>
+                    <Button variant="outline" className="w-full h-12 rounded-xl" onClick={() => setOutput(null)}>Start New Session</Button>
                   </div>
                 )}
               </div>
@@ -527,7 +546,7 @@ export default function AgentsPage() {
               <div className="p-3 bg-muted/30 border-t flex items-center justify-center gap-2">
                 <div className={`w-2 h-2 rounded-full ${isApiActive ? 'bg-emerald-500 animate-pulse' : 'bg-slate-500'}`} />
                 <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">
-                  {isApiActive ? 'Authenticated AI Instance active' : 'Internal Demo Node active'}
+                  {isApiActive ? 'Authenticated AI Studio active' : 'Internal Demo Node active'}
                 </span>
               </div>
             </>

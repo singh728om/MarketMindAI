@@ -16,7 +16,7 @@ const GeneratePhotoshootInputSchema = z.object({
     .describe(
       "A photo of a product, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
     ),
-  productType: z.string().describe('The type of product being photographed (e.g., dress, jewelry).'),
+  productType: z.string().describe('The name or type of product (e.g., T-shirt, Saree).'),
   shotAngle: z.string().describe('The camera angle (e.g., front, back, zoom).').optional(),
   modelType: z.string().describe('The type of model to feature (e.g., male, female, kids).').optional(),
   background: z.string().describe('The desired background environment.').optional(),
@@ -45,16 +45,23 @@ const generatePhotoshootFlow = ai.defineFlow(
     outputSchema: GeneratePhotoshootOutputSchema,
   },
   async input => {
-    const prompt = `You are a professional product photographer. 
-Take the product from the provided image and place it in a high-end commercial photoshoot.
-Product: ${input.productType}
-Shot Angle: ${input.shotAngle || 'front view'}
-Model: ${input.modelType || 'no model'}
-Background: ${input.background || 'minimalist studio'}
-Style: ${input.style || 'high-fashion editorial, 8k, photorealistic'}
+    const modelText = input.modelType === 'none' ? 'the product alone' : `a ${input.modelType} model wearing or holding the product`;
+    const prompt = `Act as a world-class commercial product photographer and digital artist. 
+Your task is to take the product from the attached image and realistically integrate it into a professional photoshoot.
 
-Ensure the product details are preserved while the environment and lighting are perfectly integrated. 
-The output must be a single professional image.`;
+PRODUCT DETAILS:
+- Product Type: ${input.productType}
+- Model: ${modelText}
+- Shot Angle: ${input.shotAngle || 'standard front view'}
+- Environment: ${input.background || 'professional studio with soft-box lighting'}
+- Aesthetic Style: ${input.style || 'high-end editorial, extremely detailed, 8k resolution, photorealistic, sharp focus'}
+
+CONSTRAINTS:
+1. PRESERVE THE PRODUCT: The product in the output must look exactly like the product in the provided image (colors, textures, patterns). Do not change the fundamental design of the product.
+2. REALISTIC INTEGRATION: Place the product naturally in the specified environment with correct lighting, shadows, and reflections that match the background.
+3. PROFESSIONAL COMPOSITION: Ensure the framing and angle (${input.shotAngle}) are professional and suitable for a high-end marketplace listing like Amazon or Myntra.
+
+OUTPUT: Generate a single, high-fidelity professional commercial image.`;
 
     const response = await ai.generate({
       model: 'googleai/gemini-2.5-flash-image',
@@ -70,12 +77,12 @@ The output must be a single professional image.`;
     const mediaPart = response.message?.content.find(p => !!p.media);
     
     if (!mediaPart || !mediaPart.media) {
-      throw new Error('Failed to generate image from Gemini.');
+      throw new Error('AI failed to generate the photoshoot image. Please try again with a clearer product photo.');
     }
 
     return {
       generatedImageDataUri: mediaPart.media.url,
-      description: `A professional ${input.shotAngle || ''} ${input.productType} photoshoot in a ${input.background || 'studio'} setting.`,
+      description: `A professional ${input.shotAngle || ''} photoshoot of ${input.productType} featuring ${input.modelType || 'no model'} in a ${input.background || 'studio'} setting.`,
     };
   }
 );
