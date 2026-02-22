@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -161,7 +160,7 @@ export default function AgentsPage() {
       });
       toast({ title: "Website Saved", description: "You can find this in your Brand Profile assets." });
     } catch (err) {
-      toast({ variant: "destructive", title: "Save Failed", description: "Failed to connect to Firestudio." });
+      toast({ variant: "destructive", title: "Save Failed", description: "Failed to connect to Firestore." });
     } finally {
       setIsSavingWeb(false);
     }
@@ -437,7 +436,7 @@ export default function AgentsPage() {
               </DialogHeader>
 
               <ScrollArea className="flex-1 overflow-y-auto">
-                <div className="p-5 md:p-8 pt-4 pb-20">
+                <div className="p-5 md:p-8 pt-4 pb-24">
                   {!output ? (
                     <form onSubmit={handleRunAgent} className="space-y-6 md:space-y-8">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
@@ -738,7 +737,7 @@ export default function AgentsPage() {
                         )}
                       </div>
                       
-                      <div className="flex flex-col sm:flex-row gap-3 pb-8">
+                      <div className="flex flex-col sm:flex-row gap-3 pb-12">
                         <Button variant="outline" className="flex-1 h-11 md:h-12 rounded-xl border-white/10 text-white" onClick={() => setOutput(null)}>New Session</Button>
                         
                         {output.type === 'webbuilder' && (
