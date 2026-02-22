@@ -19,7 +19,8 @@ import {
   Search,
   Globe,
   MapPin,
-  Link as LinkIcon
+  Link as LinkIcon,
+  Briefcase
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -254,6 +255,19 @@ export default function AgentsPage() {
                       ) : (
                         <>
                           <div className="space-y-2">
+                            <Label className="flex items-center gap-2"><Briefcase size={14} /> Business Category</Label>
+                            <Select onValueChange={(val) => handleInputChange("category", val)} required>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select Business Category" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Fashion">Fashion</SelectItem>
+                                <SelectItem value="Apparels">Apparels</SelectItem>
+                                <SelectItem value="Other">Other</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
                             <Label className="flex items-center gap-2"><MapPin size={14} /> Location</Label>
                             <Input 
                               placeholder="e.g. New Delhi, India" 
@@ -261,8 +275,8 @@ export default function AgentsPage() {
                               onChange={(e) => handleInputChange("location", e.target.value)}
                             />
                           </div>
-                          <div className="space-y-2">
-                            <Label className="flex items-center gap-2"><LinkIcon size={14} /> Website URL</Label>
+                          <div className="space-y-2 md:col-span-2">
+                            <Label className="flex items-center gap-2"><LinkIcon size={14} /> Website URL (Optional)</Label>
                             <Input 
                               placeholder="e.g. https://competitor.com" 
                               value={formData.websiteUrl}
