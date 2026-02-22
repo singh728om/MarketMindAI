@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -23,7 +24,10 @@ import {
   BarChart3,
   Mail,
   ExternalLink,
-  X
+  X,
+  Layout,
+  Save,
+  Eye
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -53,8 +57,11 @@ import { generateUgcCampaignAssets } from "@/ai/flows/generate-ugc-campaign-asse
 import { generateClientReportNarrative } from "@/ai/flows/generate-client-report-narrative";
 import { findRankingKeywords } from "@/ai/flows/find-ranking-keywords";
 import { generateB2BLeads } from "@/ai/flows/generate-b2b-leads";
+import { generateWebsite } from "@/ai/flows/generate-website-flow";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { doc, collection, setDoc } from "firebase/firestore";
+import { useFirestore, useUser } from "@/firebase";
 
 const AGENTS = [
   { id: "photoshoot", title: "AI Photoshoot Studio", icon: Camera, desc: "Professional studio reshoots with model and environment control.", color: "text-purple-500" },
@@ -65,11 +72,13 @@ const AGENTS = [
   { id: "report", title: "Client Report Narrator", icon: FileSearch, desc: "Weekly performance analysis into narrative.", color: "text-indigo-500" },
   { id: "ranking", title: "Ranking Keyword Finder", icon: Search, desc: "Discover high-intent keywords to boost visibility.", color: "text-amber-500" },
   { id: "leads", title: "Lead Generation Agent", icon: Globe, desc: "Extract B2B leads via location or website analysis.", color: "text-cyan-500" },
+  { id: "webbuilder", title: "AI Website Builder", icon: Layout, desc: "Generate a fully responsive, optimized brand landing page.", color: "text-indigo-400" },
 ];
 
 export default function AgentsPage() {
   const [selectedAgent, setSelectedAgent] = useState<any>(null);
   const [isRunning, setIsRunning] = useState(false);
+  const [isSavingWeb, setIsSavingWeb] = useState(false);
   const [output, setOutput] = useState<any>(null);
   const [modelType, setModelType] = useState<string>("none");
   const [isApiActive, setIsApiActive] = useState(false);
@@ -91,6 +100,8 @@ export default function AgentsPage() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const db = useFirestore();
+  const { user } = useUser();
 
   useEffect(() => {
     const checkKeys = () => {
@@ -135,6 +146,27 @@ export default function AgentsPage() {
     }
   };
 
+  const handleSaveWebsite = async () => {
+    if (!output?.html || !user || !db) return;
+    setIsSavingWeb(true);
+    try {
+      const websiteId = `web-${Date.now()}`;
+      const webRef = doc(db, "websites", websiteId);
+      await setDoc(webRef, {
+        id: websiteId,
+        userProfileId: user.uid,
+        brandName: formData.productName || "Untitled Brand",
+        htmlContent: output.html,
+        createdAt: new Date().toISOString()
+      });
+      toast({ title: "Website Saved", description: "You can find this in your Brand Profile assets." });
+    } catch (err) {
+      toast({ variant: "destructive", title: "Save Failed", description: "Failed to connect to Firestudio." });
+    } finally {
+      setIsSavingWeb(false);
+    }
+  };
+
   const handleDownload = () => {
     if (!output) return;
 
@@ -152,6 +184,16 @@ export default function AgentsPage() {
         const link = document.createElement("a");
         link.href = url;
         link.download = `marketmind-catalog-${Date.now()}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      } else if (output.type === 'webbuilder' && output.html) {
+        const blob = new Blob([output.html], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `marketmind-website-${Date.now()}.html`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -213,6 +255,16 @@ export default function AgentsPage() {
             apiKey: activeKey
           });
           setOutput({ imageUrl: result.generatedImageDataUri, type: 'creative' });
+          break;
+
+        case 'webbuilder':
+          result = await generateWebsite({
+            brandName: formData.productName,
+            niche: formData.category,
+            requirements: formData.productDescription,
+            apiKey: activeKey
+          });
+          setOutput({ ...result, type: 'webbuilder' });
           break;
 
         case 'listing':
@@ -390,9 +442,11 @@ export default function AgentsPage() {
                     <form onSubmit={handleRunAgent} className="space-y-6 md:space-y-8">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                         <div className="space-y-2">
-                          <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Product Name</Label>
+                          <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                            {selectedAgent.id === 'webbuilder' ? 'Brand Name' : 'Product Name'}
+                          </Label>
                           <Input 
-                            placeholder="e.g. Silk Kurta" 
+                            placeholder={selectedAgent.id === 'webbuilder' ? "e.g. Silk Elegance" : "e.g. Silk Kurta"}
                             required 
                             className="bg-slate-800 border-white/5 h-11 md:h-12 rounded-xl text-white text-sm"
                             value={formData.productName}
@@ -400,7 +454,7 @@ export default function AgentsPage() {
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Category</Label>
+                          <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Category / Niche</Label>
                           <Select value={formData.category} onValueChange={(val) => handleInputChange("category", val)} required>
                             <SelectTrigger className="bg-slate-800 border-white/5 h-11 md:h-12 rounded-xl text-white text-sm">
                               <SelectValue placeholder="Select Segment" />
@@ -408,6 +462,8 @@ export default function AgentsPage() {
                             <SelectContent className="bg-slate-800 border-white/10 text-white">
                               <SelectItem value="Fashion">Fashion</SelectItem>
                               <SelectItem value="Home Decor">Home Decor</SelectItem>
+                              <SelectItem value="Electronics">Electronics</SelectItem>
+                              <SelectItem value="Health & Beauty">Health & Beauty</SelectItem>
                               <SelectItem value="Custom">Custom</SelectItem>
                             </SelectContent>
                           </Select>
@@ -508,9 +564,11 @@ export default function AgentsPage() {
 
                         {selectedAgent.id !== 'photoshoot' && (
                           <div className="md:col-span-2 space-y-2">
-                            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Description / Context</Label>
+                            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                              {selectedAgent.id === 'webbuilder' ? 'Specific Website Requirements' : 'Description / Context'}
+                            </Label>
                             <Input 
-                              placeholder="Brief details about the product or campaign..." 
+                              placeholder={selectedAgent.id === 'webbuilder' ? "Include testimonials, a pricing table, and blue/gold theme..." : "Brief details about the product or campaign..."}
                               className="bg-slate-800 border-white/5 h-11 md:h-12 rounded-xl text-white text-sm"
                               value={formData.productDescription}
                               onChange={(e) => handleInputChange("productDescription", e.target.value)}
@@ -540,6 +598,28 @@ export default function AgentsPage() {
                         {output.imageUrl && (
                           <div className="w-full max-w-lg mx-auto aspect-square rounded-2xl md:rounded-[2rem] overflow-hidden border-4 border-white/5 shadow-2xl bg-slate-900">
                             <img src={output.imageUrl} alt="AI Result" className="w-full h-full object-cover" />
+                          </div>
+                        )}
+
+                        {output.type === 'webbuilder' && (
+                          <div className="space-y-6">
+                            <div className="w-full aspect-video rounded-2xl overflow-hidden border border-white/10 bg-white">
+                              <iframe 
+                                srcDoc={output.html} 
+                                title="Website Preview" 
+                                className="w-full h-full"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-[10px] font-bold uppercase text-indigo-400">AI Recommendations</Label>
+                              <div className="grid grid-cols-1 gap-2">
+                                {output.recommendations.map((r: string, i: number) => (
+                                  <div key={i} className="flex gap-3 p-3 bg-slate-900 rounded-xl text-xs border border-white/5">
+                                    <Sparkles className="text-indigo-400 size-4 shrink-0" /> {r}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
                           </div>
                         )}
 
@@ -660,6 +740,18 @@ export default function AgentsPage() {
                       
                       <div className="flex flex-col sm:flex-row gap-3 pb-8">
                         <Button variant="outline" className="flex-1 h-11 md:h-12 rounded-xl border-white/10" onClick={() => setOutput(null)}>New Session</Button>
+                        
+                        {output.type === 'webbuilder' && (
+                          <Button 
+                            className="flex-1 h-11 md:h-12 rounded-xl bg-emerald-600 hover:bg-emerald-700 shadow-lg font-bold"
+                            onClick={handleSaveWebsite}
+                            disabled={isSavingWeb}
+                          >
+                            {isSavingWeb ? <Loader2 className="animate-spin mr-2" /> : <Save size={18} className="mr-2" />} 
+                            Save to Firestudio
+                          </Button>
+                        )}
+
                         <Button 
                           className="flex-1 h-11 md:h-12 rounded-xl bg-primary shadow-lg shadow-primary/20 font-bold"
                           onClick={handleDownload}
