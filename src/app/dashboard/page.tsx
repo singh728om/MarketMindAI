@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { 
   BarChart, 
   Bar, 
@@ -65,9 +66,11 @@ export default function Dashboard() {
             </div>
             
             <div className="flex items-center gap-3 shrink-0">
-              <Button size="lg" className="rounded-xl px-8 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25 font-bold">
-                <Sparkles size={18} className="mr-2" /> Upgrade to Premium
-              </Button>
+              <Link href="/pricing">
+                <Button size="lg" className="rounded-xl px-8 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25 font-bold">
+                  <Sparkles size={18} className="mr-2" /> Upgrade to Premium
+                </Button>
+              </Link>
             </div>
           </div>
           
