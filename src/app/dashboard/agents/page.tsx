@@ -79,8 +79,14 @@ export default function AgentsPage() {
   useEffect(() => {
     const keys = localStorage.getItem("marketmind_api_keys");
     if (keys) {
-      const parsed = JSON.parse(keys);
-      if (parsed.gemini) setIsApiActive(true);
+      try {
+        const parsed = JSON.parse(keys);
+        if (parsed.gemini && parsed.gemini.trim() !== "") {
+          setIsApiActive(true);
+        }
+      } catch (e) {
+        console.error("Failed to check API keys", e);
+      }
     }
   }, []);
 
@@ -121,9 +127,10 @@ export default function AgentsPage() {
     setIsRunning(true);
     
     try {
-      if (selectedAgent.id === 'photoshoot' && isApiActive && formData.base64Image) {
+      if (selectedAgent.id === 'photoshoot' && isApiActive) {
+        // PRODUCTION MODE: Direct call to GenAI
         const result = await generatePhotoshoot({
-          photoDataUri: formData.base64Image,
+          photoDataUri: formData.base64Image || undefined,
           productType: formData.productName,
           shotAngle: formData.shotAngle,
           modelType: modelType,
@@ -135,10 +142,16 @@ export default function AgentsPage() {
           imageUrl: result.generatedImageDataUri,
           type: 'creative'
         });
+
+        toast({
+          title: "AI Generation Complete",
+          description: "Your professional photoshoot is ready.",
+        });
       } else {
+        // DEMO MODE or OTHER AGENTS
         await new Promise(r => setTimeout(r, 2000));
         
-        const { productName, category, color, location, websiteUrl, shotAngle } = formData;
+        const { productName, category, color } = formData;
         
         if (selectedAgent.id === 'listing') {
           setOutput({
@@ -165,35 +178,27 @@ export default function AgentsPage() {
             type: 'leads'
           });
         } else {
+          // Fallback if not authenticated
           setOutput({
             imageUrl: "https://picsum.photos/seed/agency/600/400",
             type: 'creative'
           });
+          toast({
+            title: "Demo Mode Output",
+            description: "Showing placeholder. Add your Gemini key in Staff Portal for real generation.",
+          });
         }
       }
-
-      toast({
-        title: isApiActive ? "Production Output Ready" : "Demo Execution Complete",
-        description: "The AI node has finished generating your content.",
-      });
     } catch (err: any) {
       console.error(err);
       toast({
         variant: "destructive",
         title: "AI Node Communication Failure",
-        description: "The agent could not connect. Verify your API keys in the staff portal.",
+        description: err.message || "The agent could not connect. Verify your Gemini key in the staff portal.",
       });
     } finally {
       setIsRunning(false);
     }
-  };
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    toast({
-      title: "Copied!",
-      description: "Content copied to clipboard.",
-    });
   };
 
   const resetForm = () => {
@@ -290,6 +295,7 @@ export default function AgentsPage() {
                                 <SelectItem value="Fashion">Fashion</SelectItem>
                                 <SelectItem value="Apparels">Apparels</SelectItem>
                                 <SelectItem value="Ethnic">Ethnic</SelectItem>
+                                <SelectItem value="Electronics">Electronics</SelectItem>
                                 <SelectItem value="Other">Other</SelectItem>
                               </SelectContent>
                             </Select>
@@ -324,7 +330,7 @@ export default function AgentsPage() {
 
                     {(selectedAgent.id === 'photoshoot') && (
                       <div className="space-y-6 bg-secondary/20 p-6 rounded-2xl border border-white/5">
-                        <Label className="text-sm font-bold uppercase tracking-widest text-primary">Media Assets</Label>
+                        <Label className="text-sm font-bold uppercase tracking-widest text-primary">Visual Controls</Label>
                         <input 
                           type="file" 
                           className="hidden" 
@@ -349,7 +355,10 @@ export default function AgentsPage() {
                            ) : (
                              <>
                                <Upload size={24} className="text-muted-foreground group-hover:text-primary transition-colors" />
-                               <p className="text-sm font-medium">Upload raw product photo</p>
+                               <div className="text-center">
+                                 <p className="text-sm font-medium">Upload raw product photo</p>
+                                 <p className="text-[10px] text-muted-foreground uppercase mt-1">Optional: Leave empty for Text-to-Image</p>
+                               </div>
                                <Button type="button" variant="outline" size="sm">Select File</Button>
                              </>
                            )}
@@ -407,18 +416,18 @@ export default function AgentsPage() {
                     <Button 
                       type="submit" 
                       className="w-full h-14 rounded-xl text-lg font-bold shadow-xl shadow-primary/20" 
-                      disabled={isRunning || (selectedAgent.id === 'photoshoot' && !formData.base64Image)}
+                      disabled={isRunning}
                     >
                       {isRunning ? (
-                        <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Generating Professional Studio Asset...</>
+                        <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> {isApiActive ? 'AI Model Generating...' : 'Loading Demo Mode...'}</>
                       ) : (
-                        <><Zap className="mr-2 h-5 w-5" /> Execute AI Agent</>
+                        <><Zap className="mr-2 h-5 w-5" /> Execute Agent</>
                       )}
                     </Button>
                   </form>
                 ) : (
                   <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
-                    <div className="p-8 rounded-2xl bg-secondary/30 border border-white/5 space-y-6">
+                    <div className="p-8 rounded-3xl bg-secondary/30 border border-white/5 space-y-6">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                            <Sparkles className="text-primary" size={20} />
@@ -426,51 +435,48 @@ export default function AgentsPage() {
                         </div>
                         <div className="flex gap-2">
                           {output.imageUrl && (
-                            <Button variant="outline" size="icon" className="rounded-xl" onClick={() => downloadImage(output.imageUrl, `marketmind-photoshoot-${Date.now()}.png`)}>
-                              <Download size={16} className="text-primary" />
+                            <Button variant="outline" size="icon" className="rounded-xl h-10 w-10" onClick={() => downloadImage(output.imageUrl, `marketmind-shoot-${Date.now()}.png`)}>
+                              <Download size={18} className="text-primary" />
                             </Button>
                           )}
                         </div>
                       </div>
                       
-                      <div className="grid grid-cols-1 gap-6 text-sm">
+                      <div className="flex flex-col items-center gap-6">
                         {output.imageUrl && (
-                          <div className="space-y-2">
-                            <div className="aspect-[4/3] w-full max-w-2xl mx-auto bg-muted rounded-2xl flex items-center justify-center overflow-hidden border-2 border-primary/20 shadow-2xl relative group">
-                              <img src={output.imageUrl} alt="Result" className="w-full h-full object-cover" />
-                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                                <Button size="lg" className="rounded-xl bg-primary text-white shadow-xl" onClick={() => downloadImage(output.imageUrl, `photoshoot-${Date.now()}.png`)}>
-                                  <Download size={20} className="mr-2" /> Download High-Res
-                                </Button>
+                          <div className="w-full max-w-2xl mx-auto aspect-[4/3] bg-muted rounded-3xl overflow-hidden border-2 border-primary/20 shadow-2xl relative group">
+                            <img src={output.imageUrl} alt="AI Result" className="w-full h-full object-cover" />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                              <Button size="lg" className="rounded-2xl bg-primary text-white font-bold px-8 shadow-xl" onClick={() => downloadImage(output.imageUrl, `shoot-${Date.now()}.png`)}>
+                                <Download size={20} className="mr-2" /> Download High-Res
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+
+                        {output.type === 'listing' && (
+                          <div className="w-full space-y-4 text-sm">
+                            <div className="space-y-2">
+                              <Label className="text-muted-foreground uppercase tracking-widest text-[10px] font-bold">Generated Title</Label>
+                              <div className="p-4 bg-background rounded-xl border font-bold text-foreground">{output.title}</div>
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-muted-foreground uppercase tracking-widest text-[10px] font-bold">AI Insights</Label>
+                              <div className="p-4 bg-background rounded-xl border space-y-2">
+                                {output.bullets.map((bullet: string, i: number) => (
+                                  <div key={i} className="flex gap-2 items-start">
+                                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                                    <span className="text-foreground">{bullet}</span>
+                                  </div>
+                                ))}
                               </div>
                             </div>
                           </div>
                         )}
 
-                        {output.title && output.type !== 'creative' && (
-                          <div className="space-y-2">
-                            <Label className="text-muted-foreground uppercase tracking-widest text-[10px] font-bold">Generated Title</Label>
-                            <div className="p-4 bg-background rounded-xl border font-bold text-foreground">{output.title}</div>
-                          </div>
-                        )}
-
-                        {output.bullets && (
-                          <div className="space-y-2">
-                            <Label className="text-muted-foreground uppercase tracking-widest text-[10px] font-bold">AI Insights</Label>
-                            <div className="p-4 bg-background rounded-xl border space-y-2">
-                              {output.bullets.map((bullet: string, i: number) => (
-                                <div key={i} className="flex gap-2 items-start">
-                                  <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                                  <span className="text-foreground">{bullet}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
                         {output.leads && (
-                          <div className="border rounded-xl overflow-hidden bg-background">
-                            <div className="grid grid-cols-4 gap-4 p-3 border-b bg-muted/50 text-[10px] font-bold uppercase tracking-wider">
+                          <div className="w-full border rounded-2xl overflow-hidden bg-background">
+                            <div className="grid grid-cols-4 gap-4 p-4 border-b bg-muted/50 text-[10px] font-bold uppercase tracking-wider">
                               <span>Name</span>
                               <span>Email</span>
                               <span>Mobile</span>
@@ -478,11 +484,11 @@ export default function AgentsPage() {
                             </div>
                             <div className="divide-y">
                               {output.leads.map((lead: any, i: number) => (
-                                <div key={i} className="grid grid-cols-4 gap-4 p-3 text-xs items-center hover:bg-primary/5 transition-colors group">
+                                <div key={i} className="grid grid-cols-4 gap-4 p-4 text-xs items-center hover:bg-primary/5 transition-colors">
                                   <span className="font-bold">{lead.name}</span>
                                   <span className="text-muted-foreground truncate">{lead.email}</span>
                                   <span className="text-muted-foreground">{lead.mobile}</span>
-                                  <span className="px-2 py-0.5 rounded bg-muted text-[10px] whitespace-nowrap inline-block text-center">{lead.role}</span>
+                                  <span className="px-2 py-1 rounded bg-muted text-[10px] whitespace-nowrap text-center">{lead.role}</span>
                                 </div>
                               ))}
                             </div>
@@ -490,7 +496,7 @@ export default function AgentsPage() {
                         )}
                       </div>
                     </div>
-                    <Button variant="outline" className="w-full h-12 rounded-xl" onClick={() => setOutput(null)}>Start New Session</Button>
+                    <Button variant="outline" className="w-full h-12 rounded-xl font-bold" onClick={() => setOutput(null)}>Start New Session</Button>
                   </div>
                 )}
               </div>

@@ -1,10 +1,9 @@
 'use server';
 /**
- * @fileOverview A Genkit flow for generating professional AI photoshoots from product images.
+ * @fileOverview A robust Genkit flow for professional AI photoshoots.
+ * Supports both Image-to-Image (Gemini 2.5) and Text-to-Image (Imagen 4).
  *
- * - generatePhotoshoot - A function that handles the image-to-image photoshoot process.
- * - GeneratePhotoshootInput - The input type for the photoshoot function.
- * - GeneratePhotoshootOutput - The return type for the photoshoot function.
+ * - generatePhotoshoot - Primary function for generating commercial visual assets.
  */
 
 import {ai} from '@/ai/genkit';
@@ -13,8 +12,9 @@ import {z} from 'genkit';
 const GeneratePhotoshootInputSchema = z.object({
   photoDataUri: z
     .string()
+    .optional()
     .describe(
-      "A photo of a product, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
+      "Optional raw product photo as a data URI. If provided, image-to-image transformation is performed."
     ),
   productType: z.string().describe('The name or type of product (e.g., T-shirt, Saree).'),
   shotAngle: z.string().describe('The camera angle (e.g., front, back, zoom).').optional(),
@@ -25,14 +25,10 @@ const GeneratePhotoshootInputSchema = z.object({
 export type GeneratePhotoshootInput = z.infer<typeof GeneratePhotoshootInputSchema>;
 
 const GeneratePhotoshootOutputSchema = z.object({
-  generatedImageDataUri: z.string().describe('The generated photoshoot image as a data URI.'),
+  generatedImageDataUri: z.string().describe('The final photoshoot image as a data URI.'),
 });
 export type GeneratePhotoshootOutput = z.infer<typeof GeneratePhotoshootOutputSchema>;
 
-/**
- * Executes an AI-powered photoshoot using Gemini 2.5 Flash Image.
- * It takes a product photo and places it in a new generated context based on user inputs.
- */
 export async function generatePhotoshoot(input: GeneratePhotoshootInput): Promise<GeneratePhotoshootOutput> {
   return generatePhotoshootFlow(input);
 }
@@ -45,42 +41,42 @@ const generatePhotoshootFlow = ai.defineFlow(
   },
   async input => {
     const modelText = input.modelType === 'none' ? 'the product alone' : `a ${input.modelType} model wearing or holding the product`;
-    const promptText = `Act as a world-class commercial product photographer. 
-Your task is to take the product from the attached image and realistically integrate it into a professional photoshoot.
+    const promptText = `A world-class commercial product photoshoot of a ${input.productType}. 
+Setting: ${input.background || 'professional high-key studio'}. 
+Model: ${modelText}. 
+Angle: ${input.shotAngle || 'standard front view'}. 
+Style: ${input.style || 'high-end commercial editorial, extremely detailed, 8k resolution, photorealistic, sharp focus, magazine quality'}.
+Ensure perfect lighting, natural shadows, and a premium marketplace aesthetic suitable for Amazon or Myntra.`;
 
-INPUT PARAMETERS:
-- Product Type: ${input.productType}
-- Model: ${modelText}
-- Shot Angle: ${input.shotAngle || 'standard front view'}
-- Environment: ${input.background || 'professional high-key studio'}
-- Aesthetic Style: ${input.style || 'high-end editorial, extremely detailed, 8k resolution, photorealistic, sharp focus, magazine quality'}
+    if (input.photoDataUri) {
+      // IMAGE-TO-IMAGE: Transform uploaded product
+      const response = await ai.generate({
+        model: 'googleai/gemini-2.5-flash-image',
+        prompt: [
+          {media: {url: input.photoDataUri}},
+          {text: `Transform this product into a professional photoshoot. ${promptText} CONSTRAINT: Keep the product's colors, patterns, and design identical to the original image.`},
+        ],
+        config: {
+          responseModalities: ['TEXT', 'IMAGE'],
+        },
+      });
 
-CONSTRAINTS:
-1. PRODUCT PRESERVATION: The product in the output MUST look identical to the product in the provided image (colors, textures, branding, and patterns).
-2. REALISTIC COMPOSITION: Place the product naturally in the ${input.background} with perfect shadows, reflections, and lighting that matches the chosen environment.
-3. PROFESSIONAL FRAMING: Ensure the framing and ${input.shotAngle} are suitable for a premium marketplace listing like Amazon or Myntra.
+      const mediaPart = response.message?.content.find(p => !!p.media);
+      if (!mediaPart || !mediaPart.media) {
+        throw new Error('AI failed to generate image-to-image asset.');
+      }
+      return { generatedImageDataUri: mediaPart.media.url };
+    } else {
+      // TEXT-TO-IMAGE: Generate from description
+      const { media } = await ai.generate({
+        model: 'googleai/imagen-4.0-fast-generate-001',
+        prompt: promptText,
+      });
 
-OUTPUT: Generate a single, high-fidelity professional commercial image.`;
-
-    const response = await ai.generate({
-      model: 'googleai/gemini-2.5-flash-image',
-      prompt: [
-        {media: {url: input.photoDataUri}},
-        {text: promptText},
-      ],
-      config: {
-        responseModalities: ['TEXT', 'IMAGE'],
-      },
-    });
-
-    const mediaPart = response.message?.content.find(p => !!p.media);
-    
-    if (!mediaPart || !mediaPart.media) {
-      throw new Error('AI failed to generate the photoshoot image. Please verify your API key and ensure the product photo is clear.');
+      if (!media || !media.url) {
+        throw new Error('AI failed to generate text-to-image asset.');
+      }
+      return { generatedImageDataUri: media.url };
     }
-
-    return {
-      generatedImageDataUri: mediaPart.media.url,
-    };
   }
 );
