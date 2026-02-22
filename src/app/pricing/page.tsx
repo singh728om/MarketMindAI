@@ -54,6 +54,8 @@ const PRICING_CATEGORIES: Category[] = [
       { id: "photoshoot", name: "AI Photoshoot", price: 999, priceDisplay: "₹999", period: "per style" },
       { id: "video", name: "AI Video Ad (15s)", price: 1499, priceDisplay: "₹1,499", period: "per video" },
       { id: "flyer", name: "AI Flyer", price: 499, priceDisplay: "₹499", period: "per design" },
+      { id: "website-builder", name: "Website Store Builder", price: 11999, priceDisplay: "₹11,999", period: "one-time" },
+      { id: "shopify-store", name: "Shopify Store", price: 14999, priceDisplay: "₹14,999", period: "one-time" },
     ]
   }
 ];
