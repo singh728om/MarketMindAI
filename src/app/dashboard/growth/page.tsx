@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { 
   TrendingUp, 
   BarChart4, 
@@ -12,7 +12,9 @@ import {
   ArrowUpRight,
   Filter,
   MapPin,
-  ShoppingBag
+  ShoppingBag,
+  Loader2,
+  RefreshCw
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,12 +27,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 
 const INTELLIGENCE_MODULES = [
-  { id: 1, title: "Keyword Research", icon: Search, value: "High Intent", score: 88 },
-  { id: 2, title: "Listing SEO Score", icon: ShieldCheck, value: "Optimization Needed", score: 62 },
-  { id: 3, title: "Brand Health", icon: Zap, value: "Excellent", score: 94 },
-  { id: 4, title: "Competitor Intel", icon: Target, value: "Market Leader", score: 75 }
+  { id: 1, title: "Keyword Research", icon: Search, value: "High Intent", baseScore: 88 },
+  { id: 2, title: "Listing SEO Score", icon: ShieldCheck, value: "Optimization Needed", baseScore: 62 },
+  { id: 3, title: "Brand Health", icon: Zap, value: "Excellent", baseScore: 94 },
+  { id: 4, title: "Competitor Intel", icon: Target, value: "Market Leader", baseScore: 75 }
 ];
 
 const MOCK_BENCHMARK = [
@@ -54,10 +57,33 @@ export default function GrowthPage() {
   const [selectedBusiness, setSelectedBusiness] = useState("fashion");
   const [filterCategory, setFilterCategory] = useState("all");
   const [filterLocation, setFilterLocation] = useState("all");
+  const [isCalculating, setIsCalculating] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState("42m ago");
+  const [recalcSeed, setRecalcSeed] = useState(1);
+  const { toast } = useToast();
 
   const handleBusinessChange = (val: string) => {
     setSelectedBusiness(val);
-    setFilterCategory("all"); // Reset category when business changes
+    setFilterCategory("all");
+  };
+
+  const handleReCalculate = () => {
+    setIsCalculating(true);
+    toast({
+      title: "AI Analysis Started",
+      description: `Analyzing ${filterLocation === 'all' ? 'National' : filterLocation.toUpperCase()} trends for ${filterCategory === 'all' ? selectedBusiness : filterCategory}...`,
+    });
+
+    // Simulate AI Processing
+    setTimeout(() => {
+      setIsCalculating(false);
+      setRecalcSeed(prev => prev + 1);
+      setLastUpdated("Just now");
+      toast({
+        title: "Calculation Complete",
+        description: "Market share and growth recommendations have been updated.",
+      });
+    }, 2500);
   };
 
   const filteredData = useMemo(() => {
@@ -65,8 +91,12 @@ export default function GrowthPage() {
       if (item.business !== selectedBusiness) return false;
       if (filterCategory !== "all" && item.category !== filterCategory) return false;
       return true;
-    });
-  }, [selectedBusiness, filterCategory]);
+    }).map(item => ({
+      ...item,
+      // Slightly vary orders based on seed to show "recalculation"
+      orders: Math.round(item.orders * (1 + (Math.sin(recalcSeed + item.orders) * 0.05)))
+    }));
+  }, [selectedBusiness, filterCategory, recalcSeed]);
 
   const categories = BUSINESS_CATEGORIES[selectedBusiness] || [];
 
@@ -79,7 +109,17 @@ export default function GrowthPage() {
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline"><History className="w-4 h-4 mr-2" /> History</Button>
-          <Button><Zap className="w-4 h-4 mr-2" /> AI Re-calculate</Button>
+          <Button 
+            onClick={handleReCalculate} 
+            disabled={isCalculating}
+            className="shadow-lg shadow-primary/20"
+          >
+            {isCalculating ? (
+              <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Calculating...</>
+            ) : (
+              <><Zap className="w-4 h-4 mr-2" /> AI Re-calculate</>
+            )}
+          </Button>
         </div>
       </div>
 
@@ -132,28 +172,32 @@ export default function GrowthPage() {
             </Select>
           </div>
 
-          <Badge variant="outline" className="ml-auto bg-primary/5 text-primary border-primary/20 px-3 py-1">
-            Data updated 42m ago
+          <Badge variant="outline" className="ml-auto bg-primary/5 text-primary border-primary/20 px-3 py-1 flex items-center gap-1">
+            <RefreshCw size={10} className={isCalculating ? "animate-spin" : ""} />
+            Data updated {lastUpdated}
           </Badge>
         </div>
       </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-        {INTELLIGENCE_MODULES.map((module) => (
-          <Card key={module.id} className="rounded-2xl border-white/5 bg-card overflow-hidden">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-                  <module.icon size={20} />
+        {INTELLIGENCE_MODULES.map((module) => {
+          const score = Math.min(100, Math.max(0, module.baseScore + (recalcSeed % 5) - 2));
+          return (
+            <Card key={module.id} className="rounded-2xl border-white/5 bg-card overflow-hidden">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                    <module.icon size={20} />
+                  </div>
+                  <Badge variant={score > 80 ? "default" : "secondary"}>{score}%</Badge>
                 </div>
-                <Badge variant={module.score > 80 ? "default" : "secondary"}>{module.score}%</Badge>
-              </div>
-              <p className="text-sm text-muted-foreground mb-1 font-medium">{module.title}</p>
-              <h3 className="text-lg font-bold font-headline mb-4">{module.value}</h3>
-              <Progress value={module.score} className="h-1.5" />
-            </CardContent>
-          </Card>
-        ))}
+                <p className="text-sm text-muted-foreground mb-1 font-medium">{module.title}</p>
+                <h3 className="text-lg font-bold font-headline mb-4">{module.value}</h3>
+                <Progress value={score} className="h-1.5" />
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -169,7 +213,7 @@ export default function GrowthPage() {
             </div>
             <div className="flex flex-col items-end">
                <span className="text-xs font-bold text-muted-foreground uppercase">Top Market Potential</span>
-               <span className="text-sm font-bold text-primary">₹4.2 Cr / Month</span>
+               <span className="text-sm font-bold text-primary">₹{(4.2 + (recalcSeed * 0.1)).toFixed(1)} Cr / Month</span>
             </div>
           </CardHeader>
           <CardContent className="p-0">
@@ -250,8 +294,8 @@ export default function GrowthPage() {
               </div>
               <p className="text-sm font-medium leading-snug">
                 {selectedBusiness === 'fashion' 
-                  ? "Competitors in Delhi are pricing Ethnic Wear at ₹1,999. Adjusting your price could increase conversion by 18%."
-                  : "Based on current volume, a price drop of ₹2,000 on your electronics flagship could capture 15% more market share."}
+                  ? `Competitors in ${filterLocation === 'all' ? 'India' : filterLocation} are pricing ${filterCategory === 'all' ? 'Ethnic Wear' : filterCategory} at ₹${1999 + (recalcSeed * 5)}. Adjusting your price could increase conversion by ${15 + (recalcSeed % 5)}%.`
+                  : `Based on current volume, a price drop of ₹${2000 - (recalcSeed * 10)} on your electronics flagship could capture ${12 + (recalcSeed % 8)}% more market share.`}
               </p>
             </div>
             
@@ -260,7 +304,7 @@ export default function GrowthPage() {
                 <span className="text-xs font-bold text-primary uppercase">Inventory Alert</span>
                 <ArrowUpRight size={14} className="text-primary/50 group-hover:text-primary transition-colors" />
               </div>
-              <p className="text-sm font-medium leading-snug">High search intent for "Handcrafted {filterCategory === 'all' ? (selectedBusiness === 'fashion' ? 'Fashion' : 'Tech') : filterCategory}" detected in Mumbai. Stock up for the upcoming weekend spike.</p>
+              <p className="text-sm font-medium leading-snug">High search intent for "Handcrafted {filterCategory === 'all' ? (selectedBusiness === 'fashion' ? 'Fashion' : 'Tech') : filterCategory}" detected in {filterLocation === 'all' ? 'Tier-1 Cities' : filterLocation}. Stock up for the upcoming spike.</p>
             </div>
 
             <div className="p-4 rounded-xl bg-background/50 border border-primary/10 group cursor-pointer hover:border-primary/50 transition-colors">
@@ -268,12 +312,12 @@ export default function GrowthPage() {
                 <span className="text-xs font-bold text-primary uppercase">Ad Targeting</span>
                 <ArrowUpRight size={14} className="text-primary/50 group-hover:text-primary transition-colors" />
               </div>
-              <p className="text-sm font-medium leading-snug">Increase ad spend on Instagram Reels for the {filterCategory === 'all' ? 'Premium' : filterCategory} collection in South Delhi.</p>
+              <p className="text-sm font-medium leading-snug">Increase ad spend on Instagram Reels for the {filterCategory === 'all' ? 'New Arrival' : filterCategory} collection in {filterLocation === 'all' ? 'Top Metros' : filterLocation}.</p>
             </div>
           </CardContent>
           <div className="p-6 pt-0">
-            <Button className="w-full rounded-xl bg-primary shadow-xl shadow-primary/20 h-12 font-bold">
-              Execute Growth Plan
+            <Button className="w-full rounded-xl bg-primary shadow-xl shadow-primary/20 h-12 font-bold" disabled={isCalculating}>
+              {isCalculating ? <Loader2 className="animate-spin" /> : "Execute Growth Plan"}
             </Button>
           </div>
         </Card>
