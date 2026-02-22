@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -25,14 +24,24 @@ import {
   FileText,
   Clock,
   Sparkles,
-  X
+  X,
+  Headphones
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { KPI_DATA, PERFORMANCE_CHART, ACTIVITY_FEED } from "@/lib/mock-data";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Dashboard() {
   const [showTrialBanner, setShowTrialBanner] = useState(true);
+  const { toast } = useToast();
+
+  const handleContactSupport = () => {
+    toast({
+      title: "Connecting to Agent",
+      description: "An expert account manager will be with you shortly.",
+    });
+  };
 
   return (
     <div className="space-y-8">
@@ -86,12 +95,14 @@ export default function Dashboard() {
           <p className="text-muted-foreground">Welcome back. Performance is up 12% this week.</p>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="outline" size="sm" className="hidden sm:inline-flex">
-            <ExternalLink className="w-4 h-4 mr-2" /> Marketplace Views
+          <Button variant="outline" size="sm" className="hidden sm:inline-flex" onClick={handleContactSupport}>
+            <Headphones className="w-4 h-4 mr-2" /> Contact Support
           </Button>
-          <Button size="sm" className="bg-primary hover:bg-primary/90">
-            <Plus className="w-4 h-4 mr-2" /> New Project
-          </Button>
+          <Link href="/dashboard/projects">
+            <Button size="sm" className="bg-primary hover:bg-primary/90">
+              <Plus className="w-4 h-4 mr-2" /> New Project
+            </Button>
+          </Link>
         </div>
       </div>
 
@@ -153,14 +164,18 @@ export default function Dashboard() {
               <CardTitle className="text-lg font-headline">Quick Actions</CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-1 gap-2">
-              <Button variant="secondary" className="justify-start h-12 rounded-xl group">
-                <FileText className="w-5 h-5 mr-3 text-primary" /> Generate Listing
-              </Button>
-              <Button variant="secondary" className="justify-start h-12 rounded-xl">
-                <Zap className="w-5 h-5 mr-3 text-accent" /> Create Ad Video
-              </Button>
-              <Button variant="secondary" className="justify-start h-12 rounded-xl">
-                <Package className="w-5 h-5 mr-3 text-emerald-500" /> Catalog Sheet
+              <Link href="/dashboard/agents">
+                <Button variant="secondary" className="w-full justify-start h-12 rounded-xl group">
+                  <FileText className="w-5 h-5 mr-3 text-primary" /> Generate Listing
+                </Button>
+              </Link>
+              <Link href="/dashboard/agents">
+                <Button variant="secondary" className="w-full justify-start h-12 rounded-xl">
+                  <Zap className="w-5 h-5 mr-3 text-accent" /> Create Ad Video
+                </Button>
+              </Link>
+              <Button variant="secondary" className="justify-start h-12 rounded-xl" onClick={handleContactSupport}>
+                <Headphones className="w-5 h-5 mr-3 text-emerald-500" /> Contact Support
               </Button>
             </CardContent>
           </Card>

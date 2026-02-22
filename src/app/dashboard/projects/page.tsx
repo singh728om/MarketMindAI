@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -24,7 +23,8 @@ import {
   Check,
   ListChecks,
   Info,
-  Building2
+  Building2,
+  Headphones
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -82,10 +82,10 @@ const INITIAL_PROJECTS = [
       listingsInProgress: 8,
       brandOnboarded: false,
       milestones: [
-        { name: "Documentation Submission", completed: true },
-        { name: "Brand Registry Approval", completed: true },
-        { name: "Catalog Template Selection", completed: false },
-        { name: "Final QC & Live", completed: false },
+        { id: "m1", name: "Documentation Submission", completed: true },
+        { id: "m2", name: "Brand Registry Approval", completed: true },
+        { id: "m3", name: "Catalog Template Selection", completed: false },
+        { id: "m4", name: "Final QC & Live", completed: false },
       ]
     }
   },
@@ -105,10 +105,10 @@ const INITIAL_PROJECTS = [
       listingsInProgress: 25,
       brandOnboarded: true,
       milestones: [
-        { name: "Product Data Ingestion", completed: true },
-        { name: "AI Copy Generation", completed: false },
-        { name: "Image Attachment", completed: false },
-        { name: "Bulk Marketplace Push", completed: false },
+        { id: "l1", name: "Product Data Ingestion", completed: true },
+        { id: "l2", name: "AI Copy Generation", completed: false },
+        { id: "l3", name: "Image Attachment", completed: false },
+        { id: "l4", name: "Bulk Marketplace Push", completed: false },
       ]
     }
   },
@@ -128,10 +128,10 @@ const INITIAL_PROJECTS = [
       listingsInProgress: 5,
       brandOnboarded: true,
       milestones: [
-        { name: "Account Setup", completed: true },
-        { name: "Brand Authorization", completed: true },
-        { name: "Inventory Syncing", completed: true },
-        { name: "Final Marketplace Sync", completed: false },
+        { id: "a1", name: "Account Setup", completed: true },
+        { id: "a2", name: "Brand Authorization", completed: true },
+        { id: "a3", name: "Inventory Syncing", completed: true },
+        { id: "a4", name: "Final Marketplace Sync", completed: false },
       ]
     }
   },
@@ -151,10 +151,10 @@ const INITIAL_PROJECTS = [
       listingsInProgress: 0,
       brandOnboarded: true,
       milestones: [
-        { name: "Keyword Analysis", completed: true },
-        { name: "Copywriting Optimization", completed: true },
-        { name: "Bulk Upload Prep", completed: true },
-        { name: "Listing Audit", completed: true },
+        { id: "f1", name: "Keyword Analysis", completed: true },
+        { id: "f2", name: "Copywriting Optimization", completed: true },
+        { id: "f3", name: "Bulk Upload Prep", completed: true },
+        { id: "f4", name: "Listing Audit", completed: true },
       ]
     }
   }
@@ -170,7 +170,7 @@ export default function ProjectsPage() {
   const handleAction = (action: string, projectName: string) => {
     toast({
       title: `${action} Successful`,
-      description: `Action applied to ${projectName}.`,
+      description: `Action applied to ${projectName}. Our team will contact you shortly.`,
     });
   };
 
@@ -202,10 +202,10 @@ export default function ProjectsPage() {
         listingsInProgress: 1,
         brandOnboarded: false,
         milestones: [
-          { name: "Account Activation", completed: false },
-          { name: "Milestone Documentation", completed: false },
-          { name: "Brand Verification", completed: false },
-          { name: "Initial Listing Creation", completed: false },
+          { id: "new1", name: "Account Activation", completed: false },
+          { id: "new2", name: "Milestone Documentation", completed: false },
+          { id: "new3", name: "Brand Verification", completed: false },
+          { id: "new4", name: "Initial Listing Creation", completed: false },
         ]
       }
     };
@@ -216,6 +216,30 @@ export default function ProjectsPage() {
       title: "Service Started!",
       description: `${service.name} has been added to your opted projects.`,
     });
+  };
+
+  const toggleMilestone = (projectId: string, milestoneId: string) => {
+    setProjects(prev => prev.map(p => {
+      if (p.id !== projectId) return p;
+      const updatedMilestones = p.details.milestones.map((m: any) => 
+        m.id === milestoneId ? { ...m, completed: !m.completed } : m
+      );
+      const completedCount = updatedMilestones.filter((m: any) => m.completed).length;
+      const newProgress = Math.round((completedCount / updatedMilestones.length) * 100);
+      
+      return {
+        ...p,
+        progress: newProgress,
+        status: newProgress === 100 ? "Completed" : "In Progress",
+        details: { ...p.details, milestones: updatedMilestones }
+      };
+    }));
+    
+    // Update local selectedProject state if open
+    if (selectedProject?.id === projectId) {
+      const updatedProj = projects.find(p => p.id === projectId);
+      if (updatedProj) setSelectedProject({ ...updatedProj });
+    }
   };
 
   const filteredProjects = projects.filter(p => 
@@ -336,11 +360,11 @@ export default function ProjectsPage() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="rounded-xl border-white/10">
-                    <DropdownMenuItem onClick={() => handleAction("Edit", project.name)}>
+                    <DropdownMenuItem onClick={() => setSelectedProject(project)}>
                       <Edit2 size={14} className="mr-2" /> View Details
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => handleAction("Support", project.name)}>
-                      <ExternalLink size={14} className="mr-2" /> Contact Agent
+                      <Headphones size={14} className="mr-2" /> Contact Agent
                     </DropdownMenuItem>
                     <DropdownMenuItem className="text-destructive" onClick={() => handleAction("Cancel", project.name)}>
                       <Trash2 size={14} className="mr-2" /> Cancel Service
@@ -443,18 +467,22 @@ export default function ProjectsPage() {
 
                 {/* Milestones Tracker */}
                 <div className="space-y-4">
-                  <Label className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Marketplace Milestones</Label>
+                  <Label className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Marketplace Milestones (Click to toggle completion)</Label>
                   <div className="grid grid-cols-1 gap-3">
-                    {selectedProject.details.milestones.map((milestone: any, idx: number) => (
-                      <div key={idx} className={cn(
-                        "flex items-center justify-between p-4 rounded-xl border transition-colors",
-                        milestone.completed ? "bg-emerald-500/5 border-emerald-500/20" : "bg-muted/20 border-white/5"
-                      )}>
+                    {selectedProject.details.milestones.map((milestone: any) => (
+                      <div 
+                        key={milestone.id} 
+                        onClick={() => toggleMilestone(selectedProject.id, milestone.id)}
+                        className={cn(
+                          "flex items-center justify-between p-4 rounded-xl border transition-all cursor-pointer group",
+                          milestone.completed ? "bg-emerald-500/5 border-emerald-500/20" : "bg-muted/20 border-white/5 hover:bg-muted/30"
+                        )}
+                      >
                         <div className="flex items-center gap-3">
                           {milestone.completed ? (
                             <CheckCircle2 className="text-emerald-500" size={20} />
                           ) : (
-                            <div className="w-5 h-5 rounded-full border-2 border-muted" />
+                            <div className="w-5 h-5 rounded-full border-2 border-muted group-hover:border-primary transition-colors" />
                           )}
                           <span className={cn(
                             "font-medium",
@@ -485,8 +513,11 @@ export default function ProjectsPage() {
               
               <DialogFooter className="p-6 bg-muted/20 border-t flex gap-2">
                 <Button variant="outline" className="flex-1 h-12 rounded-xl" onClick={() => setSelectedProject(null)}>Close</Button>
-                <Button className="flex-1 h-12 rounded-xl shadow-lg shadow-primary/20" onClick={() => handleAction("Support", selectedProject.name)}>
-                  <ExternalLink size={16} className="mr-2" /> Contact Agent
+                <Button 
+                  className="flex-1 h-12 rounded-xl shadow-lg shadow-primary/20" 
+                  onClick={() => handleAction("Support", selectedProject.name)}
+                >
+                  <Headphones size={16} className="mr-2" /> Contact Agent
                 </Button>
               </DialogFooter>
             </>
