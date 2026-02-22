@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const STATS = [
   { title: "Active Projects", value: "24", sub: "+3 today", icon: ClipboardList, color: "text-blue-500" },

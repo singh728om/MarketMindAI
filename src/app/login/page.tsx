@@ -68,6 +68,8 @@ export default function LoginPage() {
                       placeholder="name@company.com" 
                       required 
                       className="rounded-xl h-12 bg-background/50 border-white/10"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                     />
                   </div>
                   <div className="space-y-2">
@@ -84,6 +86,8 @@ export default function LoginPage() {
                         placeholder="••••••••" 
                         required 
                         className="rounded-xl h-12 bg-background/50 pr-10 border-white/10"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
                       />
                       <button
                         type="button"
@@ -127,17 +131,30 @@ export default function LoginPage() {
                       placeholder="admin@marketmindai.com" 
                       required 
                       className="rounded-xl h-12 bg-slate-900 border-white/5 text-white"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="staff-password" title="Password" className="text-slate-300">Security Key</Label>
-                    <Input 
-                      id="staff-password" 
-                      type="password" 
-                      placeholder="••••••••" 
-                      required 
-                      className="rounded-xl h-12 bg-slate-900 border-white/5 text-white"
-                    />
+                    <div className="relative">
+                      <Input 
+                        id="staff-password" 
+                        type={showPassword ? "text" : "password"} 
+                        placeholder="••••••••" 
+                        required 
+                        className="rounded-xl h-12 bg-slate-900 border-white/5 text-white pr-10"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
+                      >
+                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
                   </div>
                   <Button type="submit" className="w-full h-12 rounded-xl font-bold shadow-xl shadow-accent/20 mt-4 bg-accent hover:bg-accent/90 text-accent-foreground" disabled={isLoading}>
                     {isLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Verifying...</> : "Access Admin Console"}
