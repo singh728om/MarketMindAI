@@ -1,5 +1,7 @@
+
 "use client";
 
+import { useState, useEffect } from "react";
 import { 
   BarChart, 
   Bar, 
@@ -19,15 +21,62 @@ import {
   Plus,
   Zap,
   Package,
-  FileText
+  FileText,
+  Clock,
+  Sparkles,
+  X
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { KPI_DATA, PERFORMANCE_CHART, ACTIVITY_FEED } from "@/lib/mock-data";
 
 export default function Dashboard() {
+  const [showTrialBanner, setShowTrialBanner] = useState(true);
+
   return (
     <div className="space-y-8">
+      {/* Trial Period Banner */}
+      {showTrialBanner && (
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-primary/20 via-accent/20 to-primary/10 border border-primary/20 p-6 md:p-8 animate-in fade-in slide-in-from-top-4 duration-500">
+          <div className="absolute top-0 right-0 p-4">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-8 w-8 rounded-full hover:bg-white/10" 
+              onClick={() => setShowTrialBanner(false)}
+            >
+              <X size={16} className="text-muted-foreground" />
+            </Button>
+          </div>
+          
+          <div className="flex flex-col md:flex-row items-center gap-6 relative z-10">
+            <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center text-primary shrink-0 shadow-inner">
+              <Clock size={32} className="animate-pulse" />
+            </div>
+            
+            <div className="flex-1 text-center md:text-left space-y-2">
+              <div className="flex items-center justify-center md:justify-start gap-2">
+                <span className="bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full">Trial Active</span>
+                <h2 className="text-xl font-headline font-bold">7 Days Remaining in Your Free Trial</h2>
+              </div>
+              <p className="text-muted-foreground max-w-2xl">
+                Experience the full power of MarketMind AI. Upgrade now to unlock unlimited AI Photoshoots, bulk catalog automation, and advanced growth intelligence for all your marketplaces.
+              </p>
+            </div>
+            
+            <div className="flex items-center gap-3 shrink-0">
+              <Button size="lg" className="rounded-xl px-8 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25 font-bold">
+                <Sparkles size={18} className="mr-2" /> Upgrade to Premium
+              </Button>
+            </div>
+          </div>
+          
+          {/* Decorative background elements */}
+          <div className="absolute -bottom-12 -right-12 w-48 h-48 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -top-12 -left-12 w-48 h-48 bg-accent/10 rounded-full blur-3xl pointer-events-none" />
+        </div>
+      )}
+
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-headline font-bold mb-1">Brand Overview</h1>

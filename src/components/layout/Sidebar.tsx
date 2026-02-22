@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -10,7 +11,8 @@ import {
   Settings, 
   LogOut,
   ChevronRight,
-  BrainCircuit
+  BrainCircuit,
+  Zap
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -58,9 +60,16 @@ export function Sidebar() {
       </nav>
 
       <div className="p-4 border-t border-border/50">
-        <div className="bg-secondary/50 p-4 rounded-xl mb-4">
-          <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Active Plan</p>
-          <p className="text-sm font-bold text-foreground">Pro Enterprise</p>
+        <div className="bg-primary/10 p-4 rounded-xl mb-4 border border-primary/20 relative overflow-hidden group">
+          <div className="relative z-10">
+            <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-1">Current Plan</p>
+            <p className="text-sm font-bold text-foreground flex items-center gap-2">
+              7-Day Free Trial <Zap size={12} className="text-primary" />
+            </p>
+          </div>
+          <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:scale-110 transition-transform">
+            <Zap size={64} />
+          </div>
         </div>
         <Button variant="ghost" className="w-full justify-start text-muted-foreground hover:text-destructive transition-colors">
           <LogOut size={20} className="mr-2" />
