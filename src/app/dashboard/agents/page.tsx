@@ -129,7 +129,7 @@ export default function AgentsPage() {
     try {
       if (selectedAgent.id === 'photoshoot') {
         if (!isApiActive) {
-          throw new Error("Photoshoot requires an active Gemini key in Staff Portal.");
+          throw new Error("AI Agent node is offline check with admin");
         }
 
         const result = await generatePhotoshoot({
