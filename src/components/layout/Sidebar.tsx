@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { 
   LayoutDashboard, 
   Sparkles, 
@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 const navItems = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -32,6 +33,16 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { toast } = useToast();
+
+  const handleSignOut = () => {
+    toast({
+      title: "Logged Out",
+      description: "You have been successfully signed out of your session.",
+    });
+    router.push("/");
+  };
 
   return (
     <div className="w-64 h-screen bg-card border-r flex flex-col fixed left-0 top-0 z-40">
@@ -81,7 +92,11 @@ export function Sidebar() {
             <Zap size={64} />
           </div>
         </div>
-        <Button variant="ghost" className="w-full justify-start text-muted-foreground hover:text-destructive transition-colors">
+        <Button 
+          variant="ghost" 
+          onClick={handleSignOut}
+          className="w-full justify-start text-muted-foreground hover:text-destructive transition-colors"
+        >
           <LogOut size={20} className="mr-2" />
           Sign Out
         </Button>
