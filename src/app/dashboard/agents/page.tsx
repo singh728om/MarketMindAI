@@ -33,7 +33,8 @@ import {
   Phone,
   Building2,
   Palette,
-  PlayCircle
+  PlayCircle,
+  FileJson
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -71,7 +72,7 @@ import { useFirestore, useUser } from "@/firebase";
 
 const AGENTS = [
   { id: "photoshoot", title: "AI Photoshoot Studio", icon: Camera, desc: "Professional studio reshoots with model and environment control.", color: "text-purple-500" },
-  { id: "listing", title: "Listing Optimizer", icon: FileText, desc: "SEO-friendly titles, bullets, and descriptions.", color: "text-blue-500" },
+  { id: "listing", title: "Listing Optimizer", icon: FileText, desc: "SEO-friendly titles, bullets, and descriptions via Gemini Vision.", color: "text-blue-500" },
   { id: "catalog", title: "Catalog Automation", icon: LayoutGrid, desc: "Template generation + marketplace rule validation.", color: "text-emerald-500" },
   { id: "video", title: "Product to AI Video Ads", icon: Video, desc: "Transform product images into 5s cinematic UGC video ads.", color: "text-rose-500" },
   { id: "ugc", title: "UGC Script Studio", icon: Users, desc: "Creative hooks + detailed scripts.", color: "text-orange-500" },
@@ -333,10 +334,9 @@ function AgentsContent() {
           result = await optimizeProductListing({
             productName: formData.productName,
             category: formData.category,
-            keyFeatures: formData.keyFeatures.split(','),
-            targetAudience: formData.targetAudience,
+            color: formData.color,
             marketplace: formData.marketplace as any,
-            existingDescription: formData.productDescription,
+            photoDataUri: formData.base64Image || undefined,
             apiKey: activeKey
           });
           setOutput({ ...result, type: 'listing' });
@@ -529,7 +529,7 @@ function AgentsContent() {
                           </Select>
                         </div>
 
-                        {selectedAgent.id === 'ranking' && (
+                        {(selectedAgent.id === 'ranking' || selectedAgent.id === 'listing') && (
                           <div className="space-y-2">
                             <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1">
                               <Palette size={10} /> Product Color
@@ -603,23 +603,25 @@ function AgentsContent() {
                           </>
                         )}
 
-                        {(selectedAgent.id === 'photoshoot' || selectedAgent.id === 'video') && (
+                        {(selectedAgent.id === 'photoshoot' || selectedAgent.id === 'video' || selectedAgent.id === 'listing') && (
                           <div className="md:col-span-2 space-y-6">
-                            <div className="space-y-2">
-                              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Environment (Background)</Label>
-                              <Select value={formData.background} onValueChange={(val) => handleInputChange("background", val)} required>
-                                <SelectTrigger className="bg-slate-800 border-white/5 h-11 md:h-12 rounded-xl text-white text-sm">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent className="bg-slate-800 border-white/10 text-white">
-                                  <SelectItem value="professional-studio">Professional Studio</SelectItem>
-                                  <SelectItem value="outdoor-nature">Outdoor Nature</SelectItem>
-                                  <SelectItem value="casual-home">Casual Home</SelectItem>
-                                  <SelectItem value="sport-gym">Sport / Gym</SelectItem>
-                                  <SelectItem value="heritage-palace">Heritage Palace</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
+                            {selectedAgent.id !== 'listing' && (
+                              <div className="space-y-2">
+                                <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Environment (Background)</Label>
+                                <Select value={formData.background} onValueChange={(val) => handleInputChange("background", val)} required>
+                                  <SelectTrigger className="bg-slate-800 border-white/5 h-11 md:h-12 rounded-xl text-white text-sm">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent className="bg-slate-800 border-white/10 text-white">
+                                    <SelectItem value="professional-studio">Professional Studio</SelectItem>
+                                    <SelectItem value="outdoor-nature">Outdoor Nature</SelectItem>
+                                    <SelectItem value="casual-home">Casual Home</SelectItem>
+                                    <SelectItem value="sport-gym">Sport / Gym</SelectItem>
+                                    <SelectItem value="heritage-palace">Heritage Palace</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            )}
 
                             {selectedAgent.id === 'photoshoot' && (
                               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
@@ -698,7 +700,7 @@ function AgentsContent() {
                           </div>
                         )}
 
-                        {selectedAgent.id !== 'leads' && (
+                        {(selectedAgent.id !== 'leads' && selectedAgent.id !== 'listing') && (
                           <div className="md:col-span-2 space-y-2">
                             <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
                               {selectedAgent.id === 'webbuilder' ? 'Specific Website Requirements' : 
@@ -780,17 +782,35 @@ function AgentsContent() {
                         )}
 
                         {output.type === 'listing' && (
-                          <div className="space-y-4 md:space-y-6">
-                            <div className="p-4 bg-slate-900 rounded-xl space-y-2 border border-white/5">
-                              <Label className="text-[10px] font-bold uppercase text-slate-500">Optimized Title</Label>
+                          <div className="space-y-6">
+                            <div className="p-5 bg-slate-900 rounded-2xl border border-white/5 space-y-3">
+                              <div className="flex items-center justify-between">
+                                <Label className="text-[10px] font-bold uppercase text-slate-500 tracking-widest flex items-center gap-2">
+                                  <FileText size={12} /> Optimized Title
+                                </Label>
+                                <Badge variant="outline" className="border-emerald-500/20 text-emerald-500 text-[8px]">SEO SCORE: {output.seoScore}%</Badge>
+                              </div>
                               <p className="font-bold text-sm md:text-base leading-snug text-white">{output.title}</p>
                             </div>
-                            <div className="grid grid-cols-1 gap-2">
-                              {output.bulletPoints.map((b: string, i: number) => (
-                                <div key={i} className="flex gap-3 p-3 bg-slate-900 rounded-xl text-xs md:text-sm border border-white/5">
-                                  <CheckCircle2 className="text-emerald-500 size-4 shrink-0 mt-0.5" /> {b}
-                                </div>
-                              ))}
+
+                            <div className="space-y-3">
+                              <Label className="text-[10px] font-bold uppercase text-slate-500 tracking-widest flex items-center gap-2">
+                                <CheckCircle2 size={12} /> Key Features (Bullet Points)
+                              </Label>
+                              <div className="grid grid-cols-1 gap-2">
+                                {output.bulletPoints.map((b: string, i: number) => (
+                                  <div key={i} className="flex gap-3 p-3 bg-slate-900/50 rounded-xl text-xs border border-white/5">
+                                    <CheckCircle2 className="text-emerald-500 size-4 shrink-0 mt-0.5" /> {b}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div className="p-5 bg-slate-900 rounded-2xl border border-white/5 space-y-3">
+                              <Label className="text-[10px] font-bold uppercase text-slate-500 tracking-widest flex items-center gap-2">
+                                <FileJson size={12} /> Product Description
+                              </Label>
+                              <p className="text-xs md:text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">{output.description}</p>
                             </div>
                           </div>
                         )}
