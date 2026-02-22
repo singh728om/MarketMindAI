@@ -15,7 +15,11 @@ import {
   Download,
   Upload,
   Zap,
-  CheckCircle2
+  CheckCircle2,
+  Search,
+  Globe,
+  MapPin,
+  Link as LinkIcon
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -39,7 +43,9 @@ import {
 import { useToast } from "@/hooks/use-toast";
 
 const AGENTS = [
-  { id: "listing", title: "Listing Optimizer", icon: FileText, desc: "SEO-friendly titles, bullets, and A+ content.", color: "text-blue-500" },
+  { id: "listing", title: "Listing Optimizer", icon: FileText, desc: "SEO-friendly titles, bullets, and descriptions based on product details.", color: "text-blue-500" },
+  { id: "ranking", title: "Ranking Keyword Finder", icon: Search, desc: "Discover high-intent keywords to boost your search visibility.", color: "text-amber-500" },
+  { id: "leads", title: "Lead Generation Agent", icon: Globe, desc: "Extract potential B2B leads via location or direct website analysis.", color: "text-cyan-500" },
   { id: "photoshoot", title: "Photoshoot Agent", icon: Camera, desc: "Prompt builder + style presets for high-end photography.", color: "text-purple-500" },
   { id: "video", title: "Video Ad Agent", icon: Video, desc: "Storyboard + text-to-video prompt generation.", color: "text-rose-500" },
   { id: "catalog", title: "Catalog Automation", icon: LayoutGrid, desc: "Template generation + marketplace rule validation.", color: "text-emerald-500" },
@@ -58,6 +64,8 @@ export default function AgentsPage() {
     productName: "",
     category: "",
     color: "",
+    location: "",
+    websiteUrl: "",
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -84,9 +92,9 @@ export default function AgentsPage() {
     // Simulate API delay
     await new Promise(r => setTimeout(r, 2000));
     
-    const { productName, category, color } = formData;
+    const { productName, category, color, location, websiteUrl } = formData;
     
-    // Mocked results based on agent type using user inputs
+    // Mocked results based on agent type
     if (selectedAgent.id === 'listing') {
       setOutput({
         title: `Premium Handcrafted ${color || ""} ${productName} - ${category.toUpperCase()} Collection`,
@@ -99,6 +107,29 @@ export default function AgentsPage() {
           `Versatile Styling: Pairs perfectly with multiple items in your ${category} collection.`
         ],
         type: 'listing'
+      });
+    } else if (selectedAgent.id === 'ranking') {
+      setOutput({
+        keywords: [
+          `${productName.toLowerCase()} for men`,
+          `best ${color.toLowerCase()} ${category.toLowerCase()}`,
+          "premium ethnic wear",
+          "handcrafted luxury apparel",
+          "amazon best seller fashion",
+          "traditional outfit for festivals",
+          "designer clothing india"
+        ],
+        type: 'ranking'
+      });
+    } else if (selectedAgent.id === 'leads') {
+      setOutput({
+        leads: [
+          { name: "Rahul Mehta", email: "rahul@luxuryretail.in", role: "Store Owner", source: location || websiteUrl },
+          { name: "Sneha Kapoor", email: "sneha.k@fashionhub.com", role: "Procurement Manager", source: location || websiteUrl },
+          { name: "Vikram Singh", email: "v.singh@ethenicroots.co", role: "Chief Merchandiser", source: location || websiteUrl },
+          { name: "Anjali Das", email: "adas@boutiquefinds.net", role: "Founder", source: location || websiteUrl },
+        ],
+        type: 'leads'
       });
     } else {
       setOutput({
@@ -130,7 +161,7 @@ export default function AgentsPage() {
     setSelectedAgent(null);
     setOutput(null);
     setModelType("");
-    setFormData({ productName: "", category: "", color: "" });
+    setFormData({ productName: "", category: "", color: "", location: "", websiteUrl: "" });
   };
 
   return (
@@ -183,39 +214,62 @@ export default function AgentsPage() {
                 {!output ? (
                   <form onSubmit={handleRunAgent} className="space-y-8">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>Product Name</Label>
-                        <Input 
-                          placeholder="e.g. Silk Kurta" 
-                          required 
-                          value={formData.productName}
-                          onChange={(e) => handleInputChange("productName", e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Category</Label>
-                        <Select onValueChange={(val) => handleInputChange("category", val)} required>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select Category" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Fashion">Fashion</SelectItem>
-                            <SelectItem value="Apparels">Apparels</SelectItem>
-                            <SelectItem value="Ethnic">Ethnic</SelectItem>
-                            <SelectItem value="Other">Other</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      {selectedAgent.id === 'listing' && (
-                        <div className="space-y-2">
-                          <Label>Color</Label>
-                          <Input 
-                            placeholder="e.g. Midnight Blue" 
-                            required 
-                            value={formData.color}
-                            onChange={(e) => handleInputChange("color", e.target.value)}
-                          />
-                        </div>
+                      {selectedAgent.id !== 'leads' ? (
+                        <>
+                          <div className="space-y-2">
+                            <Label>Product Name</Label>
+                            <Input 
+                              placeholder="e.g. Silk Kurta" 
+                              required 
+                              value={formData.productName}
+                              onChange={(e) => handleInputChange("productName", e.target.value)}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Category</Label>
+                            <Select onValueChange={(val) => handleInputChange("category", val)} required>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select Category" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Fashion">Fashion</SelectItem>
+                                <SelectItem value="Apparels">Apparels</SelectItem>
+                                <SelectItem value="Ethnic">Ethnic</SelectItem>
+                                <SelectItem value="Other">Other</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          {(selectedAgent.id === 'listing' || selectedAgent.id === 'ranking') && (
+                            <div className="space-y-2">
+                              <Label>Color / Specific Variety</Label>
+                              <Input 
+                                placeholder="e.g. Midnight Blue" 
+                                required 
+                                value={formData.color}
+                                onChange={(e) => handleInputChange("color", e.target.value)}
+                              />
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <div className="space-y-2">
+                            <Label className="flex items-center gap-2"><MapPin size={14} /> Location</Label>
+                            <Input 
+                              placeholder="e.g. New Delhi, India" 
+                              value={formData.location}
+                              onChange={(e) => handleInputChange("location", e.target.value)}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="flex items-center gap-2"><LinkIcon size={14} /> Website URL</Label>
+                            <Input 
+                              placeholder="e.g. https://competitor.com" 
+                              value={formData.websiteUrl}
+                              onChange={(e) => handleInputChange("websiteUrl", e.target.value)}
+                            />
+                          </div>
+                        </>
                       )}
                     </div>
 
@@ -282,7 +336,7 @@ export default function AgentsPage() {
                       </div>
                     )}
 
-                    {selectedAgent.id !== 'listing' && (
+                    {selectedAgent.id !== 'listing' && selectedAgent.id !== 'ranking' && selectedAgent.id !== 'leads' && (
                       <div className="space-y-2">
                         <Label>Key Features or Brand Guidelines</Label>
                         <Textarea placeholder="List main selling points, brand tone, or specific requirements..." className="min-h-[100px]" />
@@ -348,6 +402,74 @@ export default function AgentsPage() {
                                   <span className="text-foreground">{bullet}</span>
                                 </div>
                               ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {output.keywords && (
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <Label className="text-muted-foreground">High-Ranking Keywords</Label>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="h-6 px-2 text-[10px] hover:bg-primary/10 hover:text-primary transition-colors" 
+                                onClick={() => copyToClipboard(output.keywords.join(", "))}
+                              >
+                                <Copy size={12} className="mr-1" /> Copy All Keywords
+                              </Button>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              {output.keywords.map((kw: string, i: number) => (
+                                <div key={i} className="px-3 py-1.5 bg-background rounded-full border text-xs font-medium flex items-center gap-2 group">
+                                  {kw}
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    onClick={() => copyToClipboard(kw)}
+                                  >
+                                    <Copy size={10} />
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {output.leads && (
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <Label className="text-muted-foreground">Generated Leads</Label>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="h-6 px-2 text-[10px] hover:bg-primary/10 hover:text-primary transition-colors" 
+                                onClick={() => copyToClipboard(JSON.stringify(output.leads, null, 2))}
+                              >
+                                <Copy size={12} className="mr-1" /> Copy Lead List
+                              </Button>
+                            </div>
+                            <div className="border rounded-xl overflow-hidden bg-background">
+                              <div className="grid grid-cols-3 gap-4 p-3 border-b bg-muted/50 text-[10px] font-bold uppercase tracking-wider">
+                                <span>Name</span>
+                                <span>Email</span>
+                                <span>Role</span>
+                              </div>
+                              <div className="divide-y">
+                                {output.leads.map((lead: any, i: number) => (
+                                  <div key={i} className="grid grid-cols-3 gap-4 p-3 text-xs items-center hover:bg-primary/5 transition-colors group">
+                                    <span className="font-bold">{lead.name}</span>
+                                    <span className="text-muted-foreground truncate">{lead.email}</span>
+                                    <div className="flex items-center justify-between">
+                                      <span className="px-2 py-0.5 rounded bg-muted text-[10px]">{lead.role}</span>
+                                      <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => copyToClipboard(lead.email)}>
+                                        <Copy size={10} />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
                             </div>
                           </div>
                         )}
