@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { 
@@ -15,7 +16,10 @@ import {
   X,
   Ticket,
   Loader2,
-  Video
+  Video,
+  Briefcase,
+  AlertCircle,
+  CheckCircle2
 } from "lucide-react";
 import { 
   AreaChart, 
@@ -28,11 +32,54 @@ import {
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { KPI_DATA, PERFORMANCE_CHART, ACTIVITY_FEED } from "@/lib/mock-data";
+import { Badge } from "@/components/ui/badge";
+import { query, collection, where, orderBy, limit, onSnapshot } from "firebase/firestore";
+import { useFirestore, useUser, useMemoFirebase } from "@/firebase";
+import { KPI_DATA as STATIC_KPI, PERFORMANCE_CHART, ACTIVITY_FEED } from "@/lib/mock-data";
 
 export default function Dashboard() {
   const [showTrialBanner, setShowTrialBanner] = useState(true);
+  const [ceoAnalysis, setCeoAnalysis] = useState<any>(null);
+  const [isLoadingAnalysis, setIsLoadingAnalysis] = useState(true);
   const router = useRouter();
+  const db = useFirestore();
+  const { user } = useUser();
+
+  // Fetch latest AI CEO Analysis from Firestore
+  useEffect(() => {
+    if (!db || !user) return;
+
+    const analysesRef = collection(db, "ceoAnalyses");
+    const q = query(
+      analysesRef,
+      where("userProfileId", "==", user.uid),
+      orderBy("createdAt", "desc"),
+      limit(1)
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      if (!snapshot.empty) {
+        setCeoAnalysis(snapshot.docs[0].data());
+      }
+      setIsLoadingAnalysis(false);
+    }, (err) => {
+      console.error("Firestore Error:", err);
+      setIsLoadingAnalysis(false);
+    });
+
+    return () => unsubscribe();
+  }, [db, user]);
+
+  const kpis = useMemo(() => {
+    if (!ceoAnalysis) return STATIC_KPI;
+    const m = ceoAnalysis.metrics;
+    return [
+      { title: "Total Sales", value: `₹${(m.totalSales / 100000).toFixed(1)}L`, change: "+12.5%", trend: "up" },
+      { title: "CTR", value: `${m.ctr}%`, change: "+0.4%", trend: "up" },
+      { title: "Return Rate", value: `${m.returnRate}%`, change: "-0.2%", trend: "down" },
+      { title: "ROAS", value: `${m.roas}x`, change: "+0.5x", trend: "up" }
+    ];
+  }, [ceoAnalysis]);
 
   return (
     <div className="space-y-8">
@@ -40,14 +87,9 @@ export default function Dashboard() {
       {showTrialBanner && (
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-primary/20 via-accent/20 to-primary/10 border border-primary/20 p-6 md:p-8 animate-in fade-in slide-in-from-top-4 duration-500">
           <div className="absolute top-0 right-0 p-4">
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="h-8 w-8 rounded-full hover:bg-white/10" 
-              onClick={() => setShowTrialBanner(false)}
-            >
+            <button className="h-8 w-8 rounded-full hover:bg-white/10 flex items-center justify-center transition-colors" onClick={() => setShowTrialBanner(false)}>
               <X size={16} className="text-muted-foreground" />
-            </Button>
+            </button>
           </div>
           
           <div className="flex flex-col md:flex-row items-center gap-6 relative z-10">
@@ -73,19 +115,27 @@ export default function Dashboard() {
               </Link>
             </div>
           </div>
-          
-          {/* Decorative background elements */}
-          <div className="absolute -bottom-12 -right-12 w-48 h-48 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -top-12 -left-12 w-48 h-48 bg-accent/10 rounded-full blur-3xl pointer-events-none" />
         </div>
       )}
 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-headline font-bold mb-1">Brand Overview</h1>
-          <p className="text-muted-foreground">Welcome back to MarketMind AI. Performance is up 12% this week.</p>
+          <div className="flex items-center gap-3 mb-1">
+            <h1 className="text-3xl font-headline font-bold text-white">Brand Overview</h1>
+            {ceoAnalysis && (
+              <Badge variant="outline" className="bg-amber-500/10 text-amber-500 border-amber-500/30 font-bold text-[10px] uppercase tracking-tighter">
+                <Briefcase size={10} className="mr-1" /> Powered by AI CEO Analysis
+              </Badge>
+            )}
+          </div>
+          <p className="text-muted-foreground">Welcome back. Performance is {ceoAnalysis ? 're-calculated based on latest reports' : 'up 12% this week'}.</p>
         </div>
         <div className="flex items-center gap-3">
+          <Link href="/dashboard/agents?agent=ceo">
+            <Button size="sm" className="bg-amber-500 hover:bg-amber-600 text-black font-bold">
+              <RefreshCw className="w-4 h-4 mr-2" /> Run AI CEO Analysis
+            </Button>
+          </Link>
           <Link href="/dashboard/projects">
             <Button size="sm" className="bg-primary hover:bg-primary/90">
               <Plus className="w-4 h-4 mr-2" /> New Project
@@ -96,7 +146,7 @@ export default function Dashboard() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {KPI_DATA.map((kpi) => (
+        {kpis.map((kpi) => (
           <Card key={kpi.title} className="rounded-2xl border-white/5 bg-card overflow-hidden">
             <CardContent className="p-6">
               <p className="text-sm font-medium text-muted-foreground mb-1">{kpi.title}</p>
@@ -115,35 +165,63 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Performance Chart */}
-        <Card className="lg:col-span-2 rounded-2xl border-white/5 bg-card">
-          <CardHeader>
-            <CardTitle className="font-headline">Weekly Sales & CTR</CardTitle>
-            <CardDescription>Correlation between ads and direct conversion.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={PERFORMANCE_CHART}>
-                  <defs>
-                    <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: 'hsl(var(--muted-foreground))', fontSize: 12}} />
-                  <YAxis axisLine={false} tickLine={false} tick={{fill: 'hsl(var(--muted-foreground))', fontSize: 12}} />
-                  <Tooltip 
-                    contentStyle={{backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '12px'}}
-                    itemStyle={{color: 'hsl(var(--foreground))'}}
-                  />
-                  <Area type="monotone" dataKey="sales" stroke="hsl(var(--primary))" fillOpacity={1} fill="url(#colorSales)" strokeWidth={3} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Performance Chart / CEO Insights */}
+        <div className="lg:col-span-2 space-y-8">
+          <Card className="rounded-2xl border-white/5 bg-card">
+            <CardHeader>
+              <CardTitle className="font-headline">Weekly Sales & CTR</CardTitle>
+              <CardDescription>Correlation between ads and direct conversion.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[300px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={PERFORMANCE_CHART}>
+                    <defs>
+                      <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: 'hsl(var(--muted-foreground))', fontSize: 12}} />
+                    <YAxis axisLine={false} tickLine={false} tick={{fill: 'hsl(var(--muted-foreground))', fontSize: 12}} />
+                    <Tooltip 
+                      contentStyle={{backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '12px'}}
+                      itemStyle={{color: 'hsl(var(--foreground))'}}
+                    />
+                    <Area type="monotone" dataKey="sales" stroke="hsl(var(--primary))" fillOpacity={1} fill="url(#colorSales)" strokeWidth={3} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+
+          {ceoAnalysis && (
+            <Card className="rounded-3xl border-amber-500/20 bg-amber-500/5 overflow-hidden">
+              <CardHeader className="bg-amber-500/10 border-b border-amber-500/10">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-xl font-headline font-bold text-amber-500 flex items-center gap-2">
+                    <Zap size={20} /> AI CEO Strategic Briefing
+                  </CardTitle>
+                  <Badge className="bg-amber-500 text-black text-[10px]">{ceoAnalysis.marketplace} Insights</Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="p-8 space-y-6">
+                <div className="p-4 rounded-xl bg-black/40 border border-white/5">
+                  <p className="text-sm text-slate-300 leading-relaxed font-medium italic">"{ceoAnalysis.summary}"</p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {ceoAnalysis.recommendations.map((rec: string, i: number) => (
+                    <div key={i} className="flex gap-3 p-4 bg-slate-900/50 rounded-2xl text-xs border border-white/5 hover:border-amber-500/30 transition-colors">
+                      <CheckCircle2 className="text-amber-500 size-4 shrink-0 mt-0.5" />
+                      <span className="text-slate-200">{rec}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
 
         {/* Quick Actions & Feed */}
         <div className="space-y-6">
@@ -153,18 +231,44 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent className="grid grid-cols-1 gap-2">
               <Button variant="secondary" className="w-full justify-start h-12 rounded-xl group" asChild>
+                <Link href="/dashboard/agents?agent=ceo">
+                  <Briefcase className="w-5 h-5 mr-3 text-amber-500" /> AI CEO Analysis
+                </Link>
+              </Button>
+              <Button variant="secondary" className="w-full justify-start h-12 rounded-xl group" asChild>
                 <Link href="/dashboard/agents?agent=listing">
                   <FileText className="w-5 h-5 mr-3 text-primary" /> AI Listing Agent
                 </Link>
               </Button>
               <Button variant="secondary" className="w-full justify-start h-12 rounded-xl group" asChild>
                 <Link href="/dashboard/agents?agent=video">
-                  <Video className="w-5 h-5 mr-3 text-rose-500" /> AI Video Ads
+                  <Video className="w-5 h-5 mr-3 text-rose-500" /> AI UGC Ads
                 </Link>
               </Button>
-              <Button variant="secondary" className="w-full justify-start h-12 rounded-xl group" onClick={() => router.push('/dashboard/tickets')}>
-                <Ticket className="w-5 h-5 mr-3 text-emerald-500" /> Support Tickets
-              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-2xl border-white/5 bg-card">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg font-headline text-white">Financial Pulse</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
+                <span className="text-xs text-emerald-500 font-bold uppercase tracking-widest">Est. Profit</span>
+                <span className="font-bold text-emerald-500">₹{ceoAnalysis ? (ceoAnalysis.metrics.profit / 100000).toFixed(1) : '8.4'}L</span>
+              </div>
+              <div className="flex items-center justify-between p-3 rounded-xl bg-rose-500/5 border border-rose-500/10">
+                <span className="text-xs text-rose-500 font-bold uppercase tracking-widest">Est. Loss</span>
+                <span className="font-bold text-rose-500">₹{ceoAnalysis ? (ceoAnalysis.metrics.loss / 100000).toFixed(1) : '1.2'}L</span>
+              </div>
+              {!ceoAnalysis && (
+                <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/20 flex gap-3">
+                  <AlertCircle className="text-amber-500 size-4 shrink-0 mt-0.5" />
+                  <p className="text-[10px] text-amber-500 leading-relaxed">
+                    Upload Sales & Returns reports in the AI Studio to calculate real-time Profit/Loss and identify leakage.
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -194,4 +298,8 @@ export default function Dashboard() {
       </div>
     </div>
   );
+}
+
+function RefreshCw({ className }: { className?: string }) {
+  return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></svg>;
 }

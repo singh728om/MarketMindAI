@@ -5,175 +5,48 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "UserProfile",
       "type": "object",
-      "description": "Represents a customer of the AI E-commerce Growth Agency. This entity holds customer-specific information, including their onboarding progress and marketplace preferences.",
+      "description": "Represents a customer of the AI E-commerce Growth Agency.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the UserProfile entity."
-        },
-        "email": {
-          "type": "string",
-          "description": "The unique email address of the customer.",
-          "format": "email"
-        },
-        "companyName": {
-          "type": "string",
-          "description": "The name of the customer's company or brand."
-        },
-        "onboardingStatus": {
-          "type": "string",
-          "description": "The current step or status of the customer's onboarding process (e.g., 'step1', 'completed')."
-        },
-        "marketplacePreferences": {
-          "type": "array",
-          "description": "A list of marketplaces the customer operates in or is interested in (e.g., 'Amazon', 'Flipkart', 'Myntra').",
-          "items": {
-            "type": "string"
-          }
-        },
-        "goals": {
-          "type": "array",
-          "description": "A list of business goals the customer aims to achieve with the AI services (e.g., 'sales', 'CTR', 'conversion', 'listing quality').",
-          "items": {
-            "type": "string"
-          }
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "The timestamp when the user profile was created.",
-          "format": "date-time"
-        },
-        "updatedAt": {
-          "type": "string",
-          "description": "The timestamp when the user profile was last updated.",
-          "format": "date-time"
-        }
+        "id": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "companyName": { "type": "string" },
+        "onboardingStatus": { "type": "string" },
+        "marketplacePreferences": { "type": "array", "items": { "type": "string" } },
+        "goals": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
       },
-      "required": [
-        "id",
-        "email",
-        "companyName",
-        "onboardingStatus",
-        "marketplacePreferences",
-        "goals",
-        "createdAt",
-        "updatedAt"
-      ]
+      "required": ["id", "email", "companyName", "onboardingStatus", "marketplacePreferences", "goals", "createdAt", "updatedAt"]
     },
-    "Employee": {
+    "CEOAnalysis": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Employee",
+      "title": "CEOAnalysis",
       "type": "object",
-      "description": "Represents an internal employee or administrator of the AI E-commerce Growth Agency, used for internal login and service delivery.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Employee entity."
-        },
-        "email": {
-          "type": "string",
-          "description": "The unique email address of the employee.",
-          "format": "email"
-        },
-        "firstName": {
-          "type": "string",
-          "description": "The first name of the employee."
-        },
-        "lastName": {
-          "type": "string",
-          "description": "The last name of the employee."
-        },
-        "role": {
-          "type": "string",
-          "description": "The role of the employee within the agency (e.g., 'Admin', 'ServiceAgent', 'Manager')."
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "The timestamp when the employee profile was created.",
-          "format": "date-time"
-        },
-        "updatedAt": {
-          "type": "string",
-          "description": "The timestamp when the employee profile was last updated.",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "id",
-        "email",
-        "firstName",
-        "lastName",
-        "role",
-        "createdAt",
-        "updatedAt"
-      ]
-    },
-    "Website": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Website",
-      "type": "object",
-      "description": "Stores a generated website created by the AI Website Builder.",
+      "description": "Stores the latest financial and strategic analysis from the AI CEO Agent.",
       "properties": {
         "id": { "type": "string" },
         "userProfileId": { "type": "string" },
-        "brandName": { "type": "string" },
-        "htmlContent": { "type": "string" },
+        "marketplace": { "type": "string" },
+        "metrics": {
+          "type": "object",
+          "properties": {
+            "totalSales": { "type": "number" },
+            "profit": { "type": "number" },
+            "loss": { "type": "number" },
+            "returnRate": { "type": "number" },
+            "ctr": { "type": "number" },
+            "roas": { "type": "number" }
+          }
+        },
+        "recommendations": { "type": "array", "items": { "type": "string" } },
+        "summary": { "type": "string" },
         "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["id", "userProfileId", "brandName", "htmlContent", "createdAt"]
-    },
-    "Project": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Project",
-      "type": "object",
-      "description": "Represents an overarching engagement or campaign initiated by a customer, under which multiple services and jobs may be executed.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Project entity."
-        },
-        "name": {
-          "type": "string",
-          "description": "The name of the project (e.g., 'CHIC ELAN - Q4 Campaign')."
-        },
-        "description": {
-          "type": "string",
-          "description": "A detailed description of the project's scope and objectives."
-        },
-        "userProfileId": {
-          "type": "string",
-          "description": "Reference to the UserProfile entity that owns this project. (Relationship: UserProfile 1:N Project)"
-        },
-        "status": {
-          "type": "string",
-          "description": "The current status of the project (e.g., 'Active', 'Archived', 'Onboarding')."
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "The timestamp when the project was created.",
-          "format": "date-time"
-        },
-        "updatedAt": {
-          "type": "string",
-          "description": "The timestamp when the project was last updated.",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "id",
-        "name",
-        "userProfileId",
-        "status",
-        "createdAt",
-        "updatedAt"
-      ]
+      "required": ["id", "userProfileId", "metrics", "recommendations", "createdAt"]
     }
   },
   "auth": {
-    "providers": [
-      "password",
-      "anonymous"
-    ]
+    "providers": ["password", "anonymous"]
   },
   "firestore": {
     "structure": [
@@ -186,11 +59,11 @@
         }
       },
       {
-        "path": "/websites/{websiteId}",
+        "path": "/ceoAnalyses/{analysisId}",
         "definition": {
-          "entityName": "Website",
-          "schema": { "$ref": "#/backend/entities/Website" },
-          "description": "Stores AI generated websites."
+          "entityName": "CEOAnalysis",
+          "schema": { "$ref": "#/backend/entities/CEOAnalysis" },
+          "description": "Stores the latest AI CEO analysis results."
         }
       }
     ]
