@@ -23,6 +23,9 @@ const PRICING_CATEGORIES = [
     icon: Zap,
     items: [
       { name: "Listing Creation & Optimization", price: "₹1,999", period: "Starting from" },
+      { name: "AI-Based Ranking Keyword Research", price: "Included", period: "Standard" },
+      { name: "AI Listing Improvement Suggestions", price: "Included", period: "Standard" },
+      { name: "Competitor Analysis & Market Positioning", price: "Included", period: "Standard" },
     ]
   },
   {
