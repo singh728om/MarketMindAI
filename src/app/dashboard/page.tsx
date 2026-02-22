@@ -14,7 +14,8 @@ import {
   Sparkles,
   X,
   Ticket,
-  Loader2
+  Loader2,
+  Video
 } from "lucide-react";
 import { 
   AreaChart, 
@@ -151,17 +152,17 @@ export default function Dashboard() {
               <CardTitle className="text-lg font-headline">Quick Actions</CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-1 gap-2">
-              <Link href="/dashboard/agents">
-                <Button variant="secondary" className="w-full justify-start h-12 rounded-xl group">
-                  <FileText className="w-5 h-5 mr-3 text-primary" /> Generate Listing
-                </Button>
-              </Link>
-              <Link href="/dashboard/agents">
-                <Button variant="secondary" className="w-full justify-start h-12 rounded-xl">
-                  <Zap className="w-5 h-5 mr-3 text-accent" /> Create Ad Video
-                </Button>
-              </Link>
-              <Button variant="secondary" className="justify-start h-12 rounded-xl" onClick={() => router.push('/dashboard/tickets')}>
+              <Button variant="secondary" className="w-full justify-start h-12 rounded-xl group" asChild>
+                <Link href="/dashboard/agents?agent=listing">
+                  <FileText className="w-5 h-5 mr-3 text-primary" /> AI Listing Agent
+                </Link>
+              </Button>
+              <Button variant="secondary" className="w-full justify-start h-12 rounded-xl group" asChild>
+                <Link href="/dashboard/agents?agent=video">
+                  <Video className="w-5 h-5 mr-3 text-rose-500" /> AI Video Ads
+                </Link>
+              </Button>
+              <Button variant="secondary" className="w-full justify-start h-12 rounded-xl group" onClick={() => router.push('/dashboard/tickets')}>
                 <Ticket className="w-5 h-5 mr-3 text-emerald-500" /> Support Tickets
               </Button>
             </CardContent>

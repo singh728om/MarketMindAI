@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { 
   Sparkles, 
   Camera, 
@@ -74,7 +75,7 @@ const AGENTS = [
   { id: "webbuilder", title: "AI Website Builder", icon: Layout, desc: "Generate a fully responsive, optimized brand landing page.", color: "text-indigo-400" },
 ];
 
-export default function AgentsPage() {
+function AgentsContent() {
   const [selectedAgent, setSelectedAgent] = useState<any>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [isSavingWeb, setIsSavingWeb] = useState(false);
@@ -83,6 +84,9 @@ export default function AgentsPage() {
   const [isApiActive, setIsApiActive] = useState(false);
   const [activeKey, setActiveKey] = useState<string>("");
   
+  const searchParams = useSearchParams();
+  const initialAgentId = searchParams.get("agent");
+
   const [formData, setFormData] = useState({
     productName: "",
     category: "Fashion",
@@ -101,6 +105,14 @@ export default function AgentsPage() {
   const { toast } = useToast();
   const db = useFirestore();
   const { user } = useUser();
+
+  // Handle initial agent selection via query params
+  useEffect(() => {
+    if (initialAgentId) {
+      const agent = AGENTS.find(a => a.id === initialAgentId);
+      if (agent) setSelectedAgent(agent);
+    }
+  }, [initialAgentId]);
 
   useEffect(() => {
     const checkKeys = () => {
@@ -774,5 +786,13 @@ export default function AgentsPage() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+export default function AgentsPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]"><Loader2 className="animate-spin text-primary w-12 h-12" /></div>}>
+      <AgentsContent />
+    </Suspense>
   );
 }
