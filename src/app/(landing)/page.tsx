@@ -1,5 +1,7 @@
+
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { 
@@ -49,7 +51,7 @@ export default function LandingPage() {
               <Sparkles size={14} />
               <span>Next-Gen E-commerce Intelligence</span>
             </div>
-            <h1 className="font-headline text-5xl md:text-7xl font-bold mb-6 tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-white to-white/60">
+            <h1 className="font-headline text-5xl md:text-7xl font-bold mb-6 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-amber-200 via-yellow-500 to-amber-600">
               Grow Faster on Amazon, <br className="hidden md:block" /> Flipkart & Myntra with AI
             </h1>
             <p className="text-muted-foreground text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">

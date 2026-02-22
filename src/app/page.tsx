@@ -163,7 +163,7 @@ export default function LandingPage() {
               <Sparkles size={12} />
               <span>Next-Gen E-commerce Intelligence</span>
             </div>
-            <h1 className="font-headline text-4xl md:text-7xl font-bold mb-6 tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-white to-white/60 leading-[1.1]">
+            <h1 className="font-headline text-4xl md:text-7xl font-bold mb-6 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-amber-200 via-yellow-500 to-amber-600 leading-[1.1]">
               Grow Faster on Amazon, <br className="hidden md:block" /> Flipkart & Myntra with AI
             </h1>
             <p className="text-muted-foreground text-base md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed px-4">
