@@ -58,6 +58,7 @@ import { generateWebsite } from "@/ai/flows/generate-website-flow";
 import { runAICeoAnalysis } from "@/ai/flows/ai-ceo-agent-flow";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Textarea } from "@/components/ui/textarea";
 import { doc, setDoc } from "firebase/firestore";
 import { useFirestore, useUser } from "@/firebase";
 
@@ -409,7 +410,7 @@ function AgentsContent() {
                     <form onSubmit={handleRunAgent} className="space-y-6 md:space-y-8">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                         {/* Generic Fields */}
-                        {selectedAgent.id !== 'photoshoot' && (
+                        {selectedAgent.id !== 'photoshoot' && selectedAgent.id !== 'video' && (
                           <div className="space-y-2">
                             <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Select Marketplace</Label>
                             <Select value={formData.marketplace} onValueChange={(val) => handleInputChange("marketplace", val)} required>
@@ -546,22 +547,36 @@ function AgentsContent() {
                                     </SelectContent>
                                   </Select>
                                 </div>
-
-                                <div className="space-y-2">
-                                  <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Background Setting</Label>
-                                  <Select value={formData.background} onValueChange={(val) => handleInputChange("background", val)}>
-                                    <SelectTrigger className="bg-slate-800 border-white/5 h-11 md:h-12 rounded-xl text-white text-sm">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent className="bg-slate-800 border-white/10 text-white">
-                                      <SelectItem value="studio">Professional Studio Shoot</SelectItem>
-                                      <SelectItem value="outdoor">Outdoor Lifestyle</SelectItem>
-                                      <SelectItem value="sport">Dynamic Sport Environment</SelectItem>
-                                      <SelectItem value="nature">Natural Setting</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </div>
                               </>
+                            )}
+
+                            {(selectedAgent.id === 'photoshoot' || selectedAgent.id === 'video') && (
+                              <div className="space-y-2">
+                                <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Background Setting</Label>
+                                <Select value={formData.background} onValueChange={(val) => handleInputChange("background", val)}>
+                                  <SelectTrigger className="bg-slate-800 border-white/5 h-11 md:h-12 rounded-xl text-white text-sm">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent className="bg-slate-800 border-white/10 text-white">
+                                    <SelectItem value="studio">Professional Studio Shoot</SelectItem>
+                                    <SelectItem value="outdoor">Outdoor Lifestyle</SelectItem>
+                                    <SelectItem value="sport">Dynamic Sport Environment</SelectItem>
+                                    <SelectItem value="nature">Natural Setting</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            )}
+
+                            {selectedAgent.id === 'video' && (
+                              <div className="md:col-span-2 space-y-2">
+                                <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Marketing Copy / Additional Instructions</Label>
+                                <Textarea 
+                                  placeholder="e.g. Cinematic close-ups, high energy feel, focusing on premium embroidery details..."
+                                  className="bg-slate-800 border-white/5 min-h-[100px] text-white rounded-xl focus:ring-primary"
+                                  value={formData.productDescription}
+                                  onChange={(e) => handleInputChange("productDescription", e.target.value)}
+                                />
+                              </div>
                             )}
 
                             {selectedAgent.id === 'leads' && (
