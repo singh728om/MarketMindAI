@@ -10,6 +10,7 @@ import {z} from 'genkit';
 const KeywordFinderInputSchema = z.object({
   productName: z.string(),
   category: z.string(),
+  color: z.string().optional(),
   marketplace: z.string(),
   apiKey: z.string().optional(),
 });
@@ -34,9 +35,10 @@ export async function findRankingKeywords(input: KeywordFinderInput): Promise<Ke
     input: input,
     output: { schema: KeywordFinderOutputSchema },
     prompt: `You are an expert e-commerce SEO specialist for {{marketplace}}. 
-    Analyze the search landscape for "{{productName}}" in the {{category}} segment.
-    Identify 5 high-intent keywords that are currently trending. 
-    Estimate monthly search volume and competition difficulty.`,
+    Analyze the search landscape for "{{productName}}" in the {{category}} segment{{#if color}} specifically in the color "{{color}}"{{/if}}.
+    Identify exactly 10 high-intent trending keywords. 
+    Focus on long-tail keywords that drive conversions. 
+    Estimate monthly search volume and competition difficulty based on current market trends.`,
   });
 
   return output!;

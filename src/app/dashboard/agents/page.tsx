@@ -31,7 +31,8 @@ import {
   MapPin,
   Link as LinkIcon,
   Phone,
-  Building2
+  Building2,
+  Palette
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -74,7 +75,7 @@ const AGENTS = [
   { id: "video", title: "Video Ad Agent", icon: Video, desc: "Storyboard + text-to-video prompt generation.", color: "text-rose-500" },
   { id: "ugc", title: "UGC Script Studio", icon: Users, desc: "Creative hooks + detailed scripts.", color: "text-orange-500" },
   { id: "report", title: "Client Report Narrator", icon: FileSearch, desc: "Weekly performance analysis into narrative.", color: "text-indigo-500" },
-  { id: "ranking", title: "Ranking Keyword Finder", icon: Search, desc: "Discover high-intent keywords to boost visibility.", color: "text-amber-500" },
+  { id: "ranking", title: "Ranking Keyword Finder", icon: Search, desc: "Discover 10 high-intent keywords to boost visibility.", color: "text-amber-500" },
   { id: "leads", title: "Lead Generation Agent", icon: Globe, desc: "Extract B2B leads via location or website analysis.", color: "text-cyan-500" },
   { id: "webbuilder", title: "AI Website Builder", icon: Layout, desc: "Generate a fully responsive, optimized brand landing page.", color: "text-indigo-400" },
 ];
@@ -94,6 +95,7 @@ function AgentsContent() {
   const [formData, setFormData] = useState({
     productName: "",
     category: "Fashion",
+    color: "",
     productDescription: "",
     marketplace: "Amazon",
     targetAudience: "DTC Shoppers",
@@ -183,6 +185,16 @@ function AgentsContent() {
     } finally {
       setIsSavingWeb(false);
     }
+  };
+
+  const handleCopyKeywords = () => {
+    if (!output?.keywords) return;
+    const text = output.keywords.map((k: any) => k.term).join(", ");
+    navigator.clipboard.writeText(text);
+    toast({
+      title: "Keywords Copied",
+      description: "Optimized terms saved to your clipboard.",
+    });
   };
 
   const handleDownload = () => {
@@ -347,6 +359,7 @@ function AgentsContent() {
           result = await findRankingKeywords({
             productName: formData.productName,
             category: formData.category,
+            color: formData.color,
             marketplace: formData.marketplace,
             apiKey: activeKey
           });
@@ -390,6 +403,7 @@ function AgentsContent() {
     setFormData({ 
       productName: "", 
       category: "Fashion", 
+      color: "",
       productDescription: "",
       marketplace: "Amazon",
       targetAudience: "DTC Shoppers",
@@ -494,6 +508,36 @@ function AgentsContent() {
                             </SelectContent>
                           </Select>
                         </div>
+
+                        {selectedAgent.id === 'ranking' && (
+                          <div className="space-y-2">
+                            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1">
+                              <Palette size={10} /> Product Color
+                            </Label>
+                            <Input 
+                              placeholder="e.g. Mustard Yellow, Navy Blue"
+                              className="bg-slate-800 border-white/5 h-11 md:h-12 rounded-xl text-white text-sm"
+                              value={formData.color}
+                              onChange={(e) => handleInputChange("color", e.target.value)}
+                            />
+                          </div>
+                        )}
+
+                        {(selectedAgent.id === 'listing' || selectedAgent.id === 'catalog' || selectedAgent.id === 'ranking') && (
+                          <div className="space-y-2">
+                            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Target Marketplace</Label>
+                            <Select value={formData.marketplace} onValueChange={(val) => handleInputChange("marketplace", val)} required>
+                              <SelectTrigger className="bg-slate-800 border-white/5 h-11 md:h-12 rounded-xl text-white text-sm">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="bg-slate-800 border-white/10 text-white">
+                                <SelectItem value="Amazon">Amazon India</SelectItem>
+                                <SelectItem value="Flipkart">Flipkart</SelectItem>
+                                <SelectItem value="Myntra">Myntra</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )}
                         
                         {selectedAgent.id === 'leads' && (
                           <>
@@ -761,6 +805,12 @@ function AgentsContent() {
 
                         {output.type === 'ranking' && (
                           <div className="space-y-4">
+                            <div className="flex items-center justify-between mb-4">
+                              <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Top 10 Trending Keywords</p>
+                              <Button variant="outline" size="sm" className="h-8 text-[10px] border-white/10" onClick={handleCopyKeywords}>
+                                <Copy size={12} className="mr-1" /> Copy Keywords
+                              </Button>
+                            </div>
                             <div className="grid grid-cols-1 gap-2 md:gap-3">
                               {output.keywords.map((k: any, i: number) => (
                                 <div key={i} className="flex items-center justify-between p-3 md:p-4 bg-slate-900 rounded-xl border border-white/5">
