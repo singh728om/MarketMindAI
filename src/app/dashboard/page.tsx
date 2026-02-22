@@ -1,46 +1,65 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer, 
-  AreaChart, 
-  Area 
-} from "recharts";
 import { 
   TrendingUp, 
   TrendingDown, 
   ArrowUpRight, 
-  ExternalLink,
   Plus,
   Zap,
-  Package,
   FileText,
   Clock,
   Sparkles,
   X,
-  Headphones
+  Headphones,
+  Loader2,
+  Send
 } from "lucide-react";
+import { 
+  AreaChart, 
+  Area,
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer 
+} from "recharts";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription,
+  DialogFooter
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { KPI_DATA, PERFORMANCE_CHART, ACTIVITY_FEED } from "@/lib/mock-data";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Dashboard() {
   const [showTrialBanner, setShowTrialBanner] = useState(true);
+  const [isSupportOpen, setIsSupportOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
-  const handleContactSupport = () => {
-    toast({
-      title: "Connecting to Agent",
-      description: "An expert account manager will be with you shortly.",
-    });
+  const handleSupportSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    // Simulate API call
+    setTimeout(() => {
+      setIsSubmitting(false);
+      setIsSupportOpen(false);
+      toast({
+        title: "Ticket Created",
+        description: "Your query has been assigned to a senior account manager. Ref: #MM-" + Math.floor(Math.random() * 9000 + 1000),
+      });
+    }, 1500);
   };
 
   return (
@@ -70,7 +89,7 @@ export default function Dashboard() {
                 <h2 className="text-xl font-headline font-bold">7 Days Remaining in Your Free Trial</h2>
               </div>
               <p className="text-muted-foreground max-w-2xl">
-                Experience the full power of MarketMind AI. Upgrade now to unlock unlimited AI Photoshoots, bulk catalog automation, and advanced growth intelligence for all your marketplaces.
+                Experience the full power of MarketMind AI. Upgrade now to unlock unlimited AI Photoshoots, bulk catalog automation, and advanced growth intelligence.
               </p>
             </div>
             
@@ -95,7 +114,7 @@ export default function Dashboard() {
           <p className="text-muted-foreground">Welcome back. Performance is up 12% this week.</p>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="outline" size="sm" className="hidden sm:inline-flex" onClick={handleContactSupport}>
+          <Button variant="outline" size="sm" className="hidden sm:inline-flex" onClick={() => setIsSupportOpen(true)}>
             <Headphones className="w-4 h-4 mr-2" /> Contact Support
           </Button>
           <Link href="/dashboard/projects">
@@ -174,7 +193,7 @@ export default function Dashboard() {
                   <Zap className="w-5 h-5 mr-3 text-accent" /> Create Ad Video
                 </Button>
               </Link>
-              <Button variant="secondary" className="justify-start h-12 rounded-xl" onClick={handleContactSupport}>
+              <Button variant="secondary" className="justify-start h-12 rounded-xl" onClick={() => setIsSupportOpen(true)}>
                 <Headphones className="w-5 h-5 mr-3 text-emerald-500" /> Contact Support
               </Button>
             </CardContent>
@@ -204,6 +223,57 @@ export default function Dashboard() {
           </Card>
         </div>
       </div>
+
+      {/* Support Ticket Dialog */}
+      <Dialog open={isSupportOpen} onOpenChange={setIsSupportOpen}>
+        <DialogContent className="sm:max-w-md rounded-3xl bg-card border-white/10">
+          <DialogHeader>
+            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary mb-4">
+              <Headphones size={24} />
+            </div>
+            <DialogTitle className="text-2xl font-headline font-bold">Contact Support</DialogTitle>
+            <DialogDescription>
+              Need help with your brand strategy? Submit a query and an agent will respond within 2-4 hours.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSupportSubmit} className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="support-name">Full Name</Label>
+              <Input id="support-name" placeholder="Enter your name" required className="rounded-xl h-12" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="support-query">How can we help you today?</Label>
+              <Textarea 
+                id="support-query" 
+                placeholder="Describe your issue or question..." 
+                className="rounded-xl min-h-[120px]" 
+                required 
+              />
+            </div>
+            <DialogFooter className="pt-4 flex flex-col sm:flex-row gap-2">
+              <Button 
+                type="button" 
+                variant="ghost" 
+                className="flex-1 rounded-xl h-12" 
+                onClick={() => setIsSupportOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                className="flex-1 rounded-xl h-12 shadow-lg shadow-primary/20" 
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Submitting...</>
+                ) : (
+                  <><Send className="mr-2 h-4 w-4" /> Submit Ticket</>
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
