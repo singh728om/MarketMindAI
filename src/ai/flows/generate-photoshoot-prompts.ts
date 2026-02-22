@@ -1,63 +1,81 @@
 'use server';
 /**
- * @fileOverview A Genkit flow for generating creative and specific photoshoot prompts for product images.
+ * @fileOverview A Genkit flow for generating professional AI photoshoots from product images.
  *
- * - generatePhotoshootPrompts - A function that handles the generation of image generation prompts.
- * - GeneratePhotoshootPromptsInput - The input type for the generatePhotoshootPrompts function.
- * - GeneratePhotoshootPromptsOutput - The return type for the generatePhotoshootPrompts function.
+ * - generatePhotoshoot - A function that handles the image-to-image photoshoot process.
+ * - GeneratePhotoshootInput - The input type for the photoshoot function.
+ * - GeneratePhotoshootOutput - The return type for the photoshoot function.
  */
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-const GeneratePhotoshootPromptsInputSchema = z.object({
-  productType: z.string().describe('The type of product being photographed (e.g., dress, jewelry, electronics).'),
-  productDescription: z.string().describe('A detailed description of the product, including key features and unique selling points.').optional(),
-  fabric: z.string().describe('The material or fabric of the product (e.g., silk, cotton, denim, leather).').optional(),
-  background: z.string().describe('The desired background for the photoshoot (e.g., minimalist studio, outdoor garden, cityscape, abstract).').optional(),
-  modelType: z.string().describe('The type of model to feature, if any (e.g., Indian model, diverse model, male model, female model).').optional(),
-  lighting: z.string().describe('The desired lighting style (e.g., soft natural light, dramatic studio lighting, golden hour).').optional(),
-  style: z.string().describe('The overall aesthetic or style of the photoshoot (e.g., minimalist, luxurious, vibrant, rustic, high-fashion).').optional(),
+const GeneratePhotoshootInputSchema = z.object({
+  photoDataUri: z
+    .string()
+    .describe(
+      "A photo of a product, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
+    ),
+  productType: z.string().describe('The type of product being photographed (e.g., dress, jewelry).'),
+  shotAngle: z.string().describe('The camera angle (e.g., front, back, zoom).').optional(),
+  modelType: z.string().describe('The type of model to feature (e.g., male, female, kids).').optional(),
+  background: z.string().describe('The desired background environment.').optional(),
+  style: z.string().describe('The overall aesthetic style.').optional(),
 });
-export type GeneratePhotoshootPromptsInput = z.infer<typeof GeneratePhotoshootPromptsInputSchema>;
+export type GeneratePhotoshootInput = z.infer<typeof GeneratePhotoshootInputSchema>;
 
-const GeneratePhotoshootPromptsOutputSchema = z.object({
-  promptString: z.string().describe('A detailed image generation prompt suitable for AI image models like DALL-E or Midjourney.'),
+const GeneratePhotoshootOutputSchema = z.object({
+  generatedImageDataUri: z.string().describe('The generated photoshoot image as a data URI.'),
+  description: z.string().describe('A brief description of the generated shot.'),
 });
-export type GeneratePhotoshootPromptsOutput = z.infer<typeof GeneratePhotoshootPromptsOutputSchema>;
+export type GeneratePhotoshootOutput = z.infer<typeof GeneratePhotoshootOutputSchema>;
 
-export async function generatePhotoshootPrompts(input: GeneratePhotoshootPromptsInput): Promise<GeneratePhotoshootPromptsOutput> {
-  return generatePhotoshootPromptsFlow(input);
+/**
+ * Executes an AI-powered photoshoot using Gemini 2.5 Flash Image.
+ * It takes a product photo and places it in a new generated context.
+ */
+export async function generatePhotoshoot(input: GeneratePhotoshootInput): Promise<GeneratePhotoshootOutput> {
+  return generatePhotoshootFlow(input);
 }
 
-const prompt = ai.definePrompt({
-  name: 'generatePhotoshootPrompt',
-  input: {schema: GeneratePhotoshootPromptsInputSchema},
-  output: {schema: GeneratePhotoshootPromptsOutputSchema},
-  prompt: `You are an AI creative director specializing in e-commerce product photography. Your task is to generate a detailed and inspiring image generation prompt for a product photoshoot, suitable for AI image models like DALL-E or Midjourney. Focus on creating a visually appealing and professional image that highlights the product for online marketplaces. Ensure the generated prompt is a single, concise string, free of internal quotation marks unless absolutely necessary for the prompt itself.
-
-Product Type: {{{productType}}}
-{{#if productDescription}}Product Description: {{{productDescription}}}{{/if}}
-
-{{#if fabric}}Fabric: {{{fabric}}} {{/if}}
-{{#if background}}Background: {{{background}}} {{/if}}
-{{#if modelType}}Model Type: {{{modelType}}} {{/if}}
-{{#if lighting}}Lighting: {{{lighting}}} {{/if}}
-{{#if style}}Style: {{{style}}} {{/if}}
-
-Based on the details above, generate a single, descriptive prompt string for an AI image generator. The prompt should be evocative and include details about composition, mood, aesthetic, and specific elements that will make the product stand out. Do not include any introductory or concluding remarks, just the prompt string itself. Example: 'A stunning close-up shot of a luxurious silk scarf, draped elegantly over a minimalist marble pedestal, bathed in soft, ethereal natural light from a large window. The background is a blurred, opulent living room with subtle gold accents. The overall style is high-fashion editorial, clean and sophisticated, 8k, photorealistic.'
-
-Your generated prompt should be production-ready and creative.`,
-});
-
-const generatePhotoshootPromptsFlow = ai.defineFlow(
+const generatePhotoshootFlow = ai.defineFlow(
   {
-    name: 'generatePhotoshootPromptsFlow',
-    inputSchema: GeneratePhotoshootPromptsInputSchema,
-    outputSchema: GeneratePhotoshootPromptsOutputSchema,
+    name: 'generatePhotoshootFlow',
+    inputSchema: GeneratePhotoshootInputSchema,
+    outputSchema: GeneratePhotoshootOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
-    return output!;
+    const prompt = `You are a professional product photographer. 
+Take the product from the provided image and place it in a high-end commercial photoshoot.
+Product: ${input.productType}
+Shot Angle: ${input.shotAngle || 'front view'}
+Model: ${input.modelType || 'no model'}
+Background: ${input.background || 'minimalist studio'}
+Style: ${input.style || 'high-fashion editorial, 8k, photorealistic'}
+
+Ensure the product details are preserved while the environment and lighting are perfectly integrated. 
+The output must be a single professional image.`;
+
+    const response = await ai.generate({
+      model: 'googleai/gemini-2.5-flash-image',
+      prompt: [
+        {media: {url: input.photoDataUri}},
+        {text: prompt},
+      ],
+      config: {
+        responseModalities: ['TEXT', 'IMAGE'],
+      },
+    });
+
+    const mediaPart = response.message?.content.find(p => !!p.media);
+    
+    if (!mediaPart || !mediaPart.media) {
+      throw new Error('Failed to generate image from Gemini.');
+    }
+
+    return {
+      generatedImageDataUri: mediaPart.media.url,
+      description: `A professional ${input.shotAngle || ''} ${input.productType} photoshoot in a ${input.background || 'studio'} setting.`,
+    };
   }
 );

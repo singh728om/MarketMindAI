@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -45,6 +44,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { generatePhotoshoot } from "@/ai/flows/generate-photoshoot-prompts";
 
 const AGENTS = [
   { id: "listing", title: "Listing Optimizer", icon: FileText, desc: "SEO-friendly titles, bullets, and descriptions based on product details.", color: "text-blue-500" },
@@ -72,6 +72,8 @@ export default function AgentsPage() {
     location: "",
     websiteUrl: "",
     shotAngle: "front",
+    background: "pro-studio",
+    base64Image: "" as string | null,
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -93,10 +95,15 @@ export default function AgentsPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      toast({
-        title: "File Ready",
-        description: `Successfully prepared ${file.name} for AI analysis.`,
-      });
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData(prev => ({ ...prev, base64Image: reader.result as string }));
+        toast({
+          title: "File Ready",
+          description: `Successfully prepared ${file.name} for AI analysis.`,
+        });
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -104,72 +111,79 @@ export default function AgentsPage() {
     e.preventDefault();
     setIsRunning(true);
     
-    // Simulate API delay - Real-time processing simulation
-    await new Promise(r => setTimeout(r, isApiActive ? 3000 : 1500));
-    
-    const { productName, category, color, location, websiteUrl, shotAngle } = formData;
-    
-    // Mocked results based on agent type
-    if (selectedAgent.id === 'listing') {
-      setOutput({
-        title: `Premium Handcrafted ${color || ""} ${productName} - ${category.toUpperCase()} Collection`,
-        description: `Elevate your ${category} wardrobe with our Premium ${productName}. This ${color.toLowerCase() || "stunning"} masterpiece is designed for the modern connoisseur, blending traditional artistry with a sophisticated contemporary fit. Perfect for weddings, festivals, and formal gatherings. Crafted to ensure durability and lasting style.`,
-        bullets: [
-          `Authentic ${color || "Premium"} Finish: Experience the rich depth of color and quality craftsmanship.`,
-          `Exquisite ${category} Design: Tailored for a sharp, streamlined silhouette that offers comfort.`,
-          "Marketplace Optimized: Content crafted to highlight unique selling points and boost ranking.",
-          "Durable Performance: High-quality materials used to ensure longevity and comfort.",
-          `Versatile Styling: Pairs perfectly with multiple items in your ${category} collection.`
-        ],
-        type: 'listing'
+    try {
+      if (selectedAgent.id === 'photoshoot' && isApiActive && formData.base64Image) {
+        // CALL REAL GENKIT FLOW
+        const result = await generatePhotoshoot({
+          photoDataUri: formData.base64Image,
+          productType: formData.productName,
+          shotAngle: formData.shotAngle,
+          modelType: modelType,
+          background: formData.background,
+          style: "high-fashion editorial, 8k, photorealistic"
+        });
+
+        setOutput({
+          title: `AI Photoshoot Result: ${formData.productName}`,
+          prompt: result.description,
+          imageUrl: result.generatedImageDataUri,
+          type: 'creative'
+        });
+      } else {
+        // MOCKED FALLBACK FOR DEMO OR OTHER AGENTS
+        await new Promise(r => setTimeout(r, 2000));
+        
+        const { productName, category, color, location, websiteUrl, shotAngle } = formData;
+        
+        if (selectedAgent.id === 'listing') {
+          setOutput({
+            title: `Premium Handcrafted ${color || ""} ${productName} - ${category.toUpperCase()} Collection`,
+            description: `Elevate your ${category} wardrobe with our Premium ${productName}. This ${color.toLowerCase() || "stunning"} masterpiece is designed for the modern connoisseur, blending traditional artistry with a sophisticated contemporary fit.`,
+            bullets: [
+              `Authentic ${color || "Premium"} Finish: Rich depth of color and quality craftsmanship.`,
+              "Marketplace Optimized: Content crafted to boost ranking.",
+              "Durable Performance: High-quality materials used to ensure longevity."
+            ],
+            type: 'listing'
+          });
+        } else if (selectedAgent.id === 'ranking') {
+          setOutput({
+            keywords: [`${productName.toLowerCase()} for men`, `best ${color.toLowerCase()} ${category.toLowerCase()}`, "premium ethnic wear"],
+            type: 'ranking'
+          });
+        } else if (selectedAgent.id === 'leads') {
+          setOutput({
+            leads: [
+              { name: "Rahul Mehta", email: "rahul@luxuryretail.in", mobile: "+91 98765 43210", role: "Store Owner", source: location || websiteUrl },
+              { name: "Sneha Kapoor", email: "sneha.k@fashionhub.com", mobile: "+91 87654 32109", role: "Procurement Manager", source: location || websiteUrl },
+            ],
+            type: 'leads'
+          });
+        } else {
+          const angleText = shotAngle === 'zoom' ? 'detailed zoom-in' : `${shotAngle} view`;
+          setOutput({
+            title: `AI Generation: ${productName}`,
+            prompt: `A professional shot showing the ${angleText} of a ${color || ""} ${productName} in a ${formData.background} setting.`,
+            imageUrl: "https://picsum.photos/seed/agency/600/400",
+            type: 'creative'
+          });
+        }
+      }
+
+      toast({
+        title: isApiActive ? "Agent Analysis Success" : "Demo Execution Complete",
+        description: "The AI has finished generating your custom content.",
       });
-    } else if (selectedAgent.id === 'ranking') {
-      setOutput({
-        keywords: [
-          `${productName.toLowerCase()} for men`,
-          `best ${color.toLowerCase()} ${category.toLowerCase()}`,
-          "premium ethnic wear",
-          "handcrafted luxury apparel",
-          "amazon best seller fashion",
-          "traditional outfit for festivals",
-          "designer clothing india"
-        ],
-        type: 'ranking'
+    } catch (err: any) {
+      console.error(err);
+      toast({
+        variant: "destructive",
+        title: "Agent Execution Failed",
+        description: "There was an error communicating with the AI node. Please check your API keys.",
       });
-    } else if (selectedAgent.id === 'leads') {
-      setOutput({
-        leads: [
-          { name: "Rahul Mehta", email: "rahul@luxuryretail.in", mobile: "+91 98765 43210", role: "Store Owner", source: location || websiteUrl },
-          { name: "Sneha Kapoor", email: "sneha.k@fashionhub.com", mobile: "+91 87654 32109", role: "Procurement Manager", source: location || websiteUrl },
-          { name: "Vikram Singh", email: "v.singh@ethenicroots.co", mobile: "+91 76543 21098", role: "Chief Merchandiser", source: location || websiteUrl },
-          { name: "Anjali Das", email: "adas@boutiquefinds.net", mobile: "+91 65432 10987", role: "Founder", source: location || websiteUrl },
-        ],
-        type: 'leads'
-      });
-    } else if (selectedAgent.id === 'photoshoot') {
-      const angleText = shotAngle === 'zoom' ? 'detailed zoom-in' : `${shotAngle} view`;
-      setOutput({
-        title: `AI Photoshoot: ${productName}`,
-        prompt: `A high-fashion editorial shot showing the ${angleText} of a ${color || ""} ${productName} on a minimalist marble pedestal, soft natural light, 8k, photorealistic.`,
-        videoUrl: "https://picsum.photos/seed/photoshoot/600/400",
-        type: 'creative'
-      });
-    } else {
-      setOutput({
-        title: `Optimized ${color || "Premium"} ${productName}`,
-        bullets: [`High-Quality ${category} Materials`, "Ergonomic Design", "Professional Craftsmanship"],
-        description: `A comprehensive ${category} description generated by our expert AI agent for your ${color || ""} ${productName} to maximize conversion.`,
-        prompt: `A cinematic overview of a ${color || ""} ${productName}, showcasing its premium features and elegant design.`,
-        videoUrl: "https://picsum.photos/seed/creative/600/400",
-        type: 'creative'
-      });
+    } finally {
+      setIsRunning(false);
     }
-    
-    setIsRunning(false);
-    toast({
-      title: isApiActive ? "Agent Analysis Success" : "Agent Execution Complete",
-      description: isApiActive ? "Real-time AI node has finished generating your custom content." : "The AI has finished generating your content.",
-    });
   };
 
   const copyToClipboard = (text: string) => {
@@ -184,7 +198,16 @@ export default function AgentsPage() {
     setSelectedAgent(null);
     setOutput(null);
     setModelType("");
-    setFormData({ productName: "", category: "", color: "", location: "", websiteUrl: "", shotAngle: "front" });
+    setFormData({ 
+      productName: "", 
+      category: "", 
+      color: "", 
+      location: "", 
+      websiteUrl: "", 
+      shotAngle: "front",
+      background: "pro-studio",
+      base64Image: null
+    });
   };
 
   return (
@@ -326,15 +349,28 @@ export default function AgentsPage() {
                           ref={fileInputRef} 
                           onChange={handleFileChange} 
                           accept="image/*"
-                          multiple
                         />
                         <div 
                           onClick={() => fileInputRef.current?.click()}
-                          className="border-2 border-dashed border-white/10 rounded-xl p-8 flex flex-col items-center justify-center gap-4 hover:bg-secondary/30 transition-colors cursor-pointer group"
+                          className={cn(
+                            "border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center gap-4 hover:bg-secondary/30 transition-colors cursor-pointer group overflow-hidden",
+                            formData.base64Image ? "border-primary/50 bg-primary/5" : "border-white/10"
+                          )}
                         >
-                           <Upload size={24} className="text-muted-foreground group-hover:text-primary transition-colors" />
-                           <p className="text-sm font-medium">Upload product photos</p>
-                           <Button type="button" variant="outline" size="sm">Select Files</Button>
+                           {formData.base64Image ? (
+                             <div className="relative group/img w-full max-w-[200px] aspect-square rounded-lg overflow-hidden border">
+                               <img src={formData.base64Image} alt="Product Preview" className="w-full h-full object-contain" />
+                               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 flex items-center justify-center transition-opacity">
+                                 <span className="text-white text-xs font-bold uppercase">Change Photo</span>
+                               </div>
+                             </div>
+                           ) : (
+                             <>
+                               <Upload size={24} className="text-muted-foreground group-hover:text-primary transition-colors" />
+                               <p className="text-sm font-medium">Upload product photo</p>
+                               <Button type="button" variant="outline" size="sm">Select File</Button>
+                             </>
+                           )}
                         </div>
                         
                         {(selectedAgent.id === 'photoshoot' || selectedAgent.id === 'video') && (
@@ -349,6 +385,7 @@ export default function AgentsPage() {
                                   <SelectItem value="mens">Mens</SelectItem>
                                   <SelectItem value="female">Female</SelectItem>
                                   <SelectItem value="kids">Kids</SelectItem>
+                                  <SelectItem value="none">No Model (Product Only)</SelectItem>
                                 </SelectContent>
                               </Select>
                             </div>
@@ -369,16 +406,9 @@ export default function AgentsPage() {
                               </div>
                             )}
 
-                            {modelType === 'kids' && (
-                              <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
-                                <Label>Age (Years)</Label>
-                                <Input type="number" placeholder="Enter age" min="0" max="18" required />
-                              </div>
-                            )}
-
                             <div className="space-y-2">
                               <Label>Background Setting</Label>
-                              <Select required>
+                              <Select onValueChange={(val) => handleInputChange("background", val)} required>
                                 <SelectTrigger>
                                   <SelectValue placeholder="Select environment" />
                                 </SelectTrigger>
@@ -396,14 +426,11 @@ export default function AgentsPage() {
                       </div>
                     )}
 
-                    {selectedAgent.id !== 'listing' && selectedAgent.id !== 'ranking' && selectedAgent.id !== 'leads' && (
-                      <div className="space-y-2">
-                        <Label>Key Features or Brand Guidelines</Label>
-                        <Textarea placeholder="List main selling points, brand tone, or specific requirements..." className="min-h-[100px]" />
-                      </div>
-                    )}
-
-                    <Button type="submit" className="w-full h-14 rounded-xl text-lg font-bold shadow-xl shadow-primary/20" disabled={isRunning}>
+                    <Button 
+                      type="submit" 
+                      className="w-full h-14 rounded-xl text-lg font-bold shadow-xl shadow-primary/20" 
+                      disabled={isRunning || (selectedAgent.id === 'photoshoot' && !formData.base64Image)}
+                    >
                       {isRunning ? (
                         <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Agent is processing...</>
                       ) : (
@@ -425,36 +452,39 @@ export default function AgentsPage() {
                       </div>
                       
                       <div className="grid grid-cols-1 gap-6 text-sm">
+                        {output.imageUrl && (
+                          <div className="space-y-2">
+                            <Label className="text-muted-foreground">Generated Photoshoot</Label>
+                            <div className="aspect-[4/3] w-full max-w-2xl mx-auto bg-muted rounded-2xl flex items-center justify-center overflow-hidden border-2 border-primary/20 shadow-2xl relative group">
+                              <img src={output.imageUrl} alt="Result" className="w-full h-full object-cover" />
+                              <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button size="sm" className="rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-md" onClick={() => copyToClipboard(output.imageUrl)}>
+                                  <Copy size={14} className="mr-2" /> Copy Image URL
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
                         {output.title && (
                           <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                              <Label className="text-muted-foreground">Generated Title</Label>
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="h-6 px-2 text-[10px] hover:bg-primary/10 hover:text-primary transition-colors" 
-                                onClick={() => copyToClipboard(output.title)}
-                              >
-                                <Copy size={12} className="mr-1" /> Copy Title
-                              </Button>
-                            </div>
+                            <Label className="text-muted-foreground">AI Description</Label>
                             <div className="p-4 bg-background rounded-xl border font-bold text-foreground">{output.title}</div>
                           </div>
                         )}
                         
+                        {output.prompt && (
+                          <div className="space-y-2">
+                            <Label className="text-muted-foreground">Scene Context</Label>
+                            <div className="p-4 bg-background rounded-xl border italic text-muted-foreground text-xs leading-relaxed">
+                              "{output.prompt}"
+                            </div>
+                          </div>
+                        )}
+
                         {output.bullets && (
                           <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                              <Label className="text-muted-foreground">Key Features (Bullet Points)</Label>
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="h-6 px-2 text-[10px] hover:bg-primary/10 hover:text-primary transition-colors" 
-                                onClick={() => copyToClipboard(output.bullets.join("\n"))}
-                              >
-                                <Copy size={12} className="mr-1" /> Copy All Bullets
-                              </Button>
-                            </div>
+                            <Label className="text-muted-foreground">Key Features</Label>
                             <div className="p-4 bg-background rounded-xl border space-y-2">
                               {output.bullets.map((bullet: string, i: number) => (
                                 <div key={i} className="flex gap-2 items-start">
@@ -466,113 +496,23 @@ export default function AgentsPage() {
                           </div>
                         )}
 
-                        {output.keywords && (
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                              <Label className="text-muted-foreground">High-Ranking Keywords</Label>
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="h-6 px-2 text-[10px] hover:bg-primary/10 hover:text-primary transition-colors" 
-                                onClick={() => copyToClipboard(output.keywords.join(", "))}
-                              >
-                                <Copy size={12} className="mr-1" /> Copy All Keywords
-                              </Button>
+                        {output.leads && (
+                          <div className="border rounded-xl overflow-hidden bg-background">
+                            <div className="grid grid-cols-4 gap-4 p-3 border-b bg-muted/50 text-[10px] font-bold uppercase tracking-wider">
+                              <span>Name</span>
+                              <span>Email</span>
+                              <span>Mobile</span>
+                              <span>Role</span>
                             </div>
-                            <div className="flex flex-wrap gap-2">
-                              {output.keywords.map((kw: string, i: number) => (
-                                <div key={i} className="px-3 py-1.5 bg-background rounded-full border text-xs font-medium flex items-center gap-2 group">
-                                  {kw}
-                                  <Button 
-                                    variant="ghost" 
-                                    size="icon" 
-                                    className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity"
-                                    onClick={() => copyToClipboard(kw)}
-                                  >
-                                    <Copy size={10} />
-                                  </Button>
+                            <div className="divide-y">
+                              {output.leads.map((lead: any, i: number) => (
+                                <div key={i} className="grid grid-cols-4 gap-4 p-3 text-xs items-center hover:bg-primary/5 transition-colors group">
+                                  <span className="font-bold">{lead.name}</span>
+                                  <span className="text-muted-foreground truncate">{lead.email}</span>
+                                  <span className="text-muted-foreground">{lead.mobile}</span>
+                                  <span className="px-2 py-0.5 rounded bg-muted text-[10px] whitespace-nowrap inline-block text-center">{lead.role}</span>
                                 </div>
                               ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {output.leads && (
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                              <Label className="text-muted-foreground">Generated Leads</Label>
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="h-6 px-2 text-[10px] hover:bg-primary/10 hover:text-primary transition-colors" 
-                                onClick={() => copyToClipboard(JSON.stringify(output.leads, null, 2))}
-                              >
-                                <Copy size={12} className="mr-1" /> Copy Lead List
-                              </Button>
-                            </div>
-                            <div className="border rounded-xl overflow-hidden bg-background">
-                              <div className="grid grid-cols-4 gap-4 p-3 border-b bg-muted/50 text-[10px] font-bold uppercase tracking-wider">
-                                <span>Name</span>
-                                <span>Email</span>
-                                <span>Mobile</span>
-                                <span>Role</span>
-                              </div>
-                              <div className="divide-y">
-                                {output.leads.map((lead: any, i: number) => (
-                                  <div key={i} className="grid grid-cols-4 gap-4 p-3 text-xs items-center hover:bg-primary/5 transition-colors group">
-                                    <span className="font-bold">{lead.name}</span>
-                                    <span className="text-muted-foreground truncate">{lead.email}</span>
-                                    <span className="text-muted-foreground">{lead.mobile}</span>
-                                    <div className="flex items-center justify-between">
-                                      <span className="px-2 py-0.5 rounded bg-muted text-[10px] whitespace-nowrap">{lead.role}</span>
-                                      <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => copyToClipboard(`${lead.email} | ${lead.mobile}`)}>
-                                        <Copy size={10} />
-                                      </Button>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                        
-                        {output.type === 'creative' && (
-                          <div className="space-y-2">
-                            <Label className="text-muted-foreground">Generated Prompt / Preview</Label>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div className="p-4 bg-background rounded-xl border italic text-muted-foreground text-xs leading-relaxed relative group">
-                                <Button 
-                                  variant="ghost" 
-                                  size="icon" 
-                                  className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                                  onClick={() => copyToClipboard(output.prompt)}
-                                >
-                                  <Copy size={10} />
-                                </Button>
-                                "{output.prompt}"
-                              </div>
-                              <div className="aspect-video bg-muted rounded-xl flex items-center justify-center overflow-hidden border">
-                                <img src={output.videoUrl} alt="Preview" className="w-full h-full object-cover" />
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {output.description && (
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                              <Label className="text-muted-foreground">Detailed Description</Label>
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="h-6 px-2 text-[10px] hover:bg-primary/10 hover:text-primary transition-colors" 
-                                onClick={() => copyToClipboard(output.description)}
-                              >
-                                <Copy size={12} className="mr-1" /> Copy Description
-                              </Button>
-                            </div>
-                            <div className="p-4 bg-background rounded-xl border text-foreground leading-relaxed whitespace-pre-wrap">
-                              {output.description}
                             </div>
                           </div>
                         )}
