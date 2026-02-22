@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import { 
-  Ticket, 
+  Ticket as TicketIcon, 
   Search, 
   Filter, 
   Clock, 
@@ -15,7 +15,10 @@ import {
   Plus,
   Loader2,
   Send,
-  LifeBuoy
+  LifeBuoy,
+  User,
+  Headphones,
+  ArrowLeft
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -44,6 +47,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
@@ -55,7 +59,12 @@ const MOCK_TICKETS = [
     status: "In Progress",
     priority: "High",
     updatedAt: "2 hours ago",
-    replies: 3
+    replies: 3,
+    messages: [
+      { role: 'user', text: "Hi, my Myntra onboarding has been stuck at the brand registry stage for 3 days. Any update?", time: "2 days ago" },
+      { role: 'agent', text: "Hello! I've checked with the Myntra team. They are currently verifying your trademark certificate. It should be cleared by tomorrow.", time: "1 day ago" },
+      { role: 'user', text: "Great, thanks for the update. Looking forward to it.", time: "2 hours ago" }
+    ]
   },
   {
     id: "MM-1290",
@@ -64,7 +73,11 @@ const MOCK_TICKETS = [
     status: "Resolved",
     priority: "Medium",
     updatedAt: "1 day ago",
-    replies: 1
+    replies: 2,
+    messages: [
+      { role: 'user', text: "The backgrounds in my recent photoshoot look a bit grainy. Can we re-generate?", time: "2 days ago" },
+      { role: 'agent', text: "Apologies for that. We've updated the model parameters for better resolution. I've re-queued your styles for processing.", time: "1 day ago" }
+    ]
   },
   {
     id: "MM-9023",
@@ -73,7 +86,10 @@ const MOCK_TICKETS = [
     status: "Pending",
     priority: "High",
     updatedAt: "Just now",
-    replies: 0
+    replies: 0,
+    messages: [
+      { role: 'user', text: "I'm having trouble connecting my Amazon SP-API. Getting an auth error.", time: "Just now" }
+    ]
   },
   {
     id: "MM-3341",
@@ -82,7 +98,11 @@ const MOCK_TICKETS = [
     status: "Resolved",
     priority: "Low",
     updatedAt: "3 days ago",
-    replies: 2
+    replies: 1,
+    messages: [
+      { role: 'user', text: "How often should I refresh my keywords for Myntra?", time: "4 days ago" },
+      { role: 'agent', text: "We recommend a refresh every 30 days based on seasonal trends.", time: "3 days ago" }
+    ]
   }
 ];
 
@@ -100,14 +120,15 @@ const SUPPORT_SERVICES = [
 export default function TicketsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isNewTicketOpen, setIsNewTicketOpen] = useState(false);
+  const [selectedTicket, setSelectedTicket] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [replyText, setReplyText] = useState("");
   const { toast } = useToast();
 
   const handleNewTicketSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Simulate API delay
     setTimeout(() => {
       setIsSubmitting(false);
       setIsNewTicketOpen(false);
@@ -116,6 +137,25 @@ export default function TicketsPage() {
         description: "Your support request has been queued. Reference: #MM-" + Math.floor(Math.random() * 9000 + 1000),
       });
     }, 1500);
+  };
+
+  const handleSendReply = () => {
+    if (!replyText.trim()) return;
+    setIsSubmitting(true);
+
+    setTimeout(() => {
+      setIsSubmitting(false);
+      const newMessage = { role: 'user', text: replyText, time: "Just now" };
+      setSelectedTicket({
+        ...selectedTicket,
+        messages: [...selectedTicket.messages, newMessage]
+      });
+      setReplyText("");
+      toast({
+        title: "Reply Sent",
+        description: "Your message has been added to the ticket.",
+      });
+    }, 1000);
   };
 
   const filteredTickets = MOCK_TICKETS.filter(t => 
@@ -155,7 +195,11 @@ export default function TicketsPage() {
 
       <div className="space-y-4">
         {filteredTickets.map((ticket) => (
-          <Card key={ticket.id} className="rounded-2xl border-white/5 bg-card hover:border-primary/30 transition-all group cursor-pointer overflow-hidden">
+          <Card 
+            key={ticket.id} 
+            className="rounded-2xl border-white/5 bg-card hover:border-primary/30 transition-all group cursor-pointer overflow-hidden"
+            onClick={() => setSelectedTicket(ticket)}
+          >
             <div className="flex items-center p-6 gap-6">
               <div className={cn(
                 "w-12 h-12 rounded-xl flex items-center justify-center shrink-0",
@@ -212,7 +256,7 @@ export default function TicketsPage() {
         {filteredTickets.length === 0 && (
           <div className="py-20 text-center space-y-4">
              <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mx-auto text-muted-foreground">
-               <Ticket size={40} />
+               <TicketIcon size={40} />
              </div>
              <div>
                <h3 className="text-xl font-bold font-headline">No tickets found</h3>
@@ -222,6 +266,80 @@ export default function TicketsPage() {
           </div>
         )}
       </div>
+
+      {/* Ticket Conversation Dialog */}
+      <Dialog open={!!selectedTicket} onOpenChange={(open) => !open && setSelectedTicket(null)}>
+        <DialogContent className="max-w-2xl bg-card border-white/10 rounded-3xl overflow-hidden max-h-[90vh] flex flex-col p-0">
+          {selectedTicket && (
+            <>
+              <DialogHeader className="p-6 pb-4 bg-muted/20 border-b">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className={cn(
+                      "w-10 h-10 rounded-xl flex items-center justify-center",
+                      selectedTicket.status === 'Resolved' ? "bg-emerald-500/10 text-emerald-500" : "bg-primary/10 text-primary"
+                    )}>
+                      <TicketIcon size={20} />
+                    </div>
+                    <div>
+                      <DialogTitle className="text-xl font-headline font-bold">{selectedTicket.subject}</DialogTitle>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-[10px] font-bold text-primary uppercase tracking-widest">{selectedTicket.id}</span>
+                        <Badge variant="outline" className="text-[9px] h-4 px-1.5">{selectedTicket.category}</Badge>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </DialogHeader>
+
+              <ScrollArea className="flex-1 p-6">
+                <div className="space-y-6">
+                  {selectedTicket.messages.map((msg: any, i: number) => (
+                    <div key={i} className={cn(
+                      "flex flex-col max-w-[85%]",
+                      msg.role === 'user' ? "ml-auto items-end" : "items-start"
+                    )}>
+                      <div className="flex items-center gap-2 mb-1">
+                        {msg.role === 'agent' && <Headphones size={12} className="text-primary" />}
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                          {msg.role === 'user' ? "You" : "MarketMind Agent"}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground">• {msg.time}</span>
+                      </div>
+                      <div className={cn(
+                        "p-4 rounded-2xl text-sm leading-relaxed",
+                        msg.role === 'user' 
+                          ? "bg-primary text-primary-foreground rounded-tr-none" 
+                          : "bg-secondary/40 border border-white/5 rounded-tl-none"
+                      )}>
+                        {msg.text}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+
+              <div className="p-6 border-t bg-muted/10">
+                <div className="flex gap-2">
+                  <Textarea 
+                    placeholder="Type your reply here..." 
+                    className="rounded-xl min-h-[60px] bg-background resize-none"
+                    value={replyText}
+                    onChange={(e) => setReplyText(e.target.value)}
+                  />
+                  <Button 
+                    className="h-auto px-4 rounded-xl shadow-lg shadow-primary/20" 
+                    disabled={isSubmitting || !replyText.trim()}
+                    onClick={handleSendReply}
+                  >
+                    {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : <Send size={20} />}
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* New Ticket Dialog */}
       <Dialog open={isNewTicketOpen} onOpenChange={setIsNewTicketOpen}>
