@@ -71,6 +71,7 @@ export default function AgentsPage() {
   const [output, setOutput] = useState<any>(null);
   const [modelType, setModelType] = useState<string>("none");
   const [isApiActive, setIsApiActive] = useState(false);
+  const [activeKey, setActiveKey] = useState<string>("");
   
   const [formData, setFormData] = useState({
     productName: "",
@@ -95,6 +96,7 @@ export default function AgentsPage() {
           const parsed = JSON.parse(keys);
           if (parsed.gemini && parsed.gemini.trim() !== "") {
             setIsApiActive(true);
+            setActiveKey(parsed.gemini);
             return;
           }
         } catch (e) {
@@ -102,6 +104,7 @@ export default function AgentsPage() {
         }
       }
       setIsApiActive(false);
+      setActiveKey("");
     };
 
     checkKeys();
@@ -152,7 +155,8 @@ export default function AgentsPage() {
             shotAngle: formData.shotAngle,
             modelType: modelType,
             background: formData.background,
-            style: "high-fashion commercial editorial, professional studio lighting, extremely detailed, 8k resolution"
+            style: "high-fashion commercial editorial, professional studio lighting, extremely detailed, 8k resolution",
+            apiKey: activeKey
           });
           setOutput({ imageUrl: result.generatedImageDataUri, type: 'creative' });
           break;
@@ -164,7 +168,8 @@ export default function AgentsPage() {
             keyFeatures: formData.keyFeatures.split(','),
             targetAudience: formData.targetAudience,
             marketplace: formData.marketplace as any,
-            existingDescription: formData.productDescription
+            existingDescription: formData.productDescription,
+            apiKey: activeKey
           });
           setOutput({ ...result, type: 'listing' });
           break;
@@ -173,7 +178,8 @@ export default function AgentsPage() {
           result = await generateCatalogTemplate({
             marketplaces: [formData.marketplace],
             productType: formData.category,
-            desiredAttributes: formData.keyFeatures.split(',')
+            desiredAttributes: formData.keyFeatures.split(','),
+            apiKey: activeKey
           });
           setOutput({ ...result, type: 'catalog' });
           break;
@@ -184,7 +190,8 @@ export default function AgentsPage() {
             productDescription: formData.productDescription,
             targetAudience: formData.targetAudience,
             adGoal: "Increase Sales",
-            callToAction: "Shop Now"
+            callToAction: "Shop Now",
+            apiKey: activeKey
           });
           setOutput({ ...result, type: 'video' });
           break;
@@ -195,7 +202,8 @@ export default function AgentsPage() {
             targetAudience: formData.targetAudience,
             campaignGoal: "Brand Awareness",
             keyFeatures: formData.keyFeatures.split(','),
-            desiredTone: "Relatable & Authentic"
+            desiredTone: "Relatable & Authentic",
+            apiKey: activeKey
           });
           setOutput({ ...result, type: 'ugc' });
           break;
@@ -205,13 +213,13 @@ export default function AgentsPage() {
             clientName: "CHIC ELAN",
             reportPeriod: "Last 7 Days",
             kpis: { sales: "+15%", ctr: "4.2%", conversion: "3.1%", roas: "4.5x" },
-            weeklyPerformanceData: JSON.stringify({ visits: 4500, orders: 120 })
+            weeklyPerformanceData: JSON.stringify({ visits: 4500, orders: 120 }),
+            apiKey: activeKey
           });
           setOutput({ ...result, type: 'report' });
           break;
 
         case 'ranking':
-          // Simulate Ranking Finder with small delay
           await new Promise(r => setTimeout(r, 1500));
           setOutput({ 
             type: 'ranking',
@@ -225,7 +233,6 @@ export default function AgentsPage() {
           break;
 
         case 'leads':
-          // Simulate Lead Gen with small delay
           await new Promise(r => setTimeout(r, 1500));
           setOutput({
             type: 'leads',
@@ -250,7 +257,7 @@ export default function AgentsPage() {
       toast({
         variant: "destructive",
         title: "Agent Error",
-        description: err.message || "Failed to execute agent.",
+        description: err.message || "Failed to execute agent. Please verify your API key.",
       });
     } finally {
       setIsRunning(false);
