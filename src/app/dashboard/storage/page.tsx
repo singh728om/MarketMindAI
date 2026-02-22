@@ -3,10 +3,9 @@
 import { useState, useRef } from "react";
 import { 
   HardDrive, 
-  Cloud, 
+  Database, 
   Upload, 
   File, 
-  Folder, 
   MoreVertical, 
   Search, 
   RefreshCw, 
@@ -14,13 +13,14 @@ import {
   ShieldCheck,
   CheckCircle2,
   AlertCircle,
-  Plus,
   Loader2,
   FileText,
   FileArchive,
   FileVideo,
   FileImage,
-  X
+  X,
+  Zap,
+  Lock
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,32 +29,38 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const INITIAL_FILES = [
-  { id: 1, name: "Amazon_Sales_Report_Oct.csv", type: "CSV", size: "2.4 MB", date: "2 hours ago", status: "Synced" },
-  { id: 2, name: "Product_Photos_Batch_A.zip", type: "Archive", size: "145 MB", date: "1 day ago", status: "Synced" },
-  { id: 3, name: "Brand_Guidelines_v2.pdf", type: "PDF", size: "8.1 MB", date: "3 days ago", status: "Synced" },
-  { id: 4, name: "Ad_Creatives_Instagram.mp4", type: "Video", size: "42 MB", date: "1 week ago", status: "Synced" },
+  { id: 1, name: "Amazon_Sales_Report_Oct.csv", type: "CSV", size: "2.4 MB", date: "2 hours ago", status: "Stored" },
+  { id: 2, name: "Product_Photos_Batch_A.zip", type: "Archive", size: "145 MB", date: "1 day ago", status: "Stored" },
+  { id: 3, name: "Brand_Guidelines_v2.pdf", type: "PDF", size: "8.1 MB", date: "3 days ago", status: "Stored" },
+  { id: 4, name: "Ad_Creatives_Instagram.mp4", type: "Video", size: "42 MB", date: "1 week ago", status: "Stored" },
 ];
 
 export default function StoragePage() {
-  const [isConnected, setIsConnected] = useState(false);
-  const [isConnecting, setIsConnecting] = useState(false);
+  const [isVaultActive, setIsVaultActive] = useState(false);
+  const [isActivating, setIsActivating] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [files, setFiles] = useState(INITIAL_FILES);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  const handleConnectDrive = () => {
-    setIsConnecting(true);
-    // Simulate OAuth2 redirect and connection
+  const handleActivateVault = () => {
+    setIsActivating(true);
+    // Simulate provisioning internal storage node
     setTimeout(() => {
-      setIsConnecting(false);
-      setIsConnected(true);
+      setIsActivating(false);
+      setIsVaultActive(true);
       toast({
-        title: "Google Drive Connected",
-        description: "Your brand storage is now linked to MarketMind AI.",
+        title: "Brand Vault Online",
+        description: "Your dedicated MarketMind storage node has been provisioned.",
       });
     }, 2000);
   };
@@ -89,12 +95,12 @@ export default function StoragePage() {
         type: file.name.split('.').pop()?.toUpperCase() || 'DATA',
         size: (file.size / (1024 * 1024)).toFixed(1) + " MB",
         date: "Just now",
-        status: "Synced"
+        status: "Stored"
       };
       setFiles([newFile, ...files]);
       toast({
-        title: "File Synced to Drive",
-        description: `${file.name} is now securely stored.`,
+        title: "File Secured in Vault",
+        description: `${file.name} has been encrypted and stored.`,
       });
       if (fileInputRef.current) fileInputRef.current.value = "";
     }, 2500);
@@ -119,44 +125,44 @@ export default function StoragePage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-headline font-bold mb-1">Storage Services</h1>
-          <p className="text-muted-foreground">Securely manage your brand assets and reports via Google Drive.</p>
+          <p className="text-muted-foreground">Internal high-performance cloud vault for your brand assets.</p>
         </div>
         <div className="flex items-center gap-2">
-          {isConnected && (
+          {isVaultActive && (
             <Badge variant="outline" className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 px-3 py-1 flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              Drive Connected
+              Vault Node: ACTIVE
             </Badge>
           )}
         </div>
       </div>
 
-      {!isConnected ? (
+      {!isVaultActive ? (
         <Card className="rounded-[2.5rem] border-white/5 bg-card/50 backdrop-blur-xl overflow-hidden p-12 text-center space-y-8 border-dashed border-2">
-          <div className="mx-auto w-24 h-24 rounded-3xl bg-primary/10 flex items-center justify-center text-primary mb-6">
-            <Cloud size={48} className="animate-float" />
+          <div className="mx-auto w-24 h-24 rounded-3xl bg-primary/10 flex items-center justify-center text-primary mb-6 shadow-2xl shadow-primary/10">
+            <Database size={48} className="animate-float" />
           </div>
           <div className="max-w-md mx-auto space-y-4">
-            <h2 className="text-3xl font-headline font-bold">Connect Your Storage</h2>
+            <h2 className="text-3xl font-headline font-bold">Initialize Your Brand Vault</h2>
             <p className="text-muted-foreground">
-              Link your Google Drive account to automatically backup AI generated assets, sync reports, and centralize your marketplace data.
+              MarketMind provides dedicated, AES-256 encrypted storage for all your AI-generated photoshoot assets, listing reports, and marketplace documentation.
             </p>
           </div>
           <div className="flex flex-col items-center gap-4">
             <Button 
               size="lg" 
               className="rounded-2xl h-16 px-10 text-lg font-bold shadow-2xl shadow-primary/20 min-w-[240px]" 
-              onClick={handleConnectDrive}
-              disabled={isConnecting}
+              onClick={handleActivateVault}
+              disabled={isActivating}
             >
-              {isConnecting ? (
-                <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Authorizing...</>
+              {isActivating ? (
+                <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Provisioning Node...</>
               ) : (
-                <><Cloud className="mr-2 h-5 w-5" /> Connect Google Drive</>
+                <><Zap className="mr-2 h-5 w-5" /> Activate Brand Vault</>
               )}
             </Button>
             <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold flex items-center gap-2">
-              <ShieldCheck size={12} className="text-primary" /> OAuth 2.0 Secure Integration
+              <ShieldCheck size={12} className="text-primary" /> Proprietary Agency Infrastructure
             </p>
           </div>
         </Card>
@@ -168,7 +174,7 @@ export default function StoragePage() {
               <div className="relative flex-1 w-full">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input 
-                  placeholder="Search files in Drive..." 
+                  placeholder="Search secured files..." 
                   className="pl-10 h-12 rounded-xl bg-card border-white/5"
                 />
               </div>
@@ -182,7 +188,7 @@ export default function StoragePage() {
                 {isUploading ? (
                   <><Loader2 className="animate-spin mr-2" /> {uploadProgress}%</>
                 ) : (
-                  <><Upload size={18} className="mr-2" /> Upload Data</>
+                  <><Upload size={18} className="mr-2" /> Upload Asset</>
                 )}
               </Button>
             </div>
@@ -190,7 +196,7 @@ export default function StoragePage() {
             {isUploading && (
               <Card className="rounded-2xl border-primary/20 bg-primary/5 p-4 animate-in fade-in slide-in-from-top-2">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-bold text-primary uppercase">Uploading to Drive...</span>
+                  <span className="text-xs font-bold text-primary uppercase">Securing in Vault...</span>
                   <span className="text-xs font-bold">{uploadProgress}%</span>
                 </div>
                 <Progress value={uploadProgress} className="h-1.5" />
@@ -204,9 +210,9 @@ export default function StoragePage() {
                   <thead>
                     <tr className="bg-muted/30 text-[10px] uppercase tracking-wider font-bold text-muted-foreground border-b border-white/5">
                       <th className="px-8 py-4">File Name</th>
-                      <th className="px-8 py-4">Type</th>
+                      <th className="px-8 py-4">Format</th>
                       <th className="px-8 py-4">Size</th>
-                      <th className="px-8 py-4">Date</th>
+                      <th className="px-8 py-4">Stored On</th>
                       <th className="px-8 py-4 text-right">Action</th>
                     </tr>
                   </thead>
@@ -239,10 +245,10 @@ export default function StoragePage() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="bg-slate-900 border-white/10 text-white">
                               <DropdownMenuItem className="flex items-center gap-2">
-                                <ExternalLink size={14} /> Open in Drive
+                                <ExternalLink size={14} /> Open Preview
                               </DropdownMenuItem>
                               <DropdownMenuItem className="text-rose-500 flex items-center gap-2" onClick={() => setFiles(files.filter(f => f.id !== file.id))}>
-                                <X size={14} /> Delete
+                                <X size={14} /> Purge from Vault
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -254,7 +260,7 @@ export default function StoragePage() {
               </div>
               <CardFooter className="p-6 bg-muted/10 flex justify-center border-t border-white/5">
                 <Button variant="link" className="text-xs text-muted-foreground font-bold uppercase tracking-widest hover:text-primary">
-                  View All Files in Drive <ExternalLink size={12} className="ml-2" />
+                  Access Master Archive <ExternalLink size={12} className="ml-2" />
                 </Button>
               </CardFooter>
             </Card>
@@ -265,56 +271,56 @@ export default function StoragePage() {
             <Card className="rounded-3xl border-white/5 bg-card overflow-hidden">
               <CardHeader className="bg-primary/5 border-b border-white/5">
                 <CardTitle className="text-lg font-headline flex items-center gap-2">
-                  <HardDrive size={18} className="text-primary" /> Storage Usage
+                  <HardDrive size={18} className="text-primary" /> Vault Utilization
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-8 space-y-6">
                 <div className="space-y-4">
                   <div className="flex justify-between text-xs font-bold uppercase tracking-widest">
-                    <span className="text-muted-foreground">G-Drive Capacity</span>
-                    <span className="text-primary">12.4 GB / 15 GB</span>
+                    <span className="text-muted-foreground">Node Capacity</span>
+                    <span className="text-primary">12.4 GB / 100 GB</span>
                   </div>
-                  <Progress value={82} className="h-2 bg-slate-800" />
+                  <Progress value={12.4} className="h-2 bg-slate-800" />
                   <p className="text-[10px] text-muted-foreground leading-relaxed">
-                    You are using 82% of your primary Google Drive storage. Consider upgrading your plan for more agency asset room.
+                    You are utilizing 12.4% of your high-speed agency storage. All data is replicated across 3 regional nodes.
                   </p>
                 </div>
                 
                 <div className="space-y-3 pt-4 border-t border-white/5">
                   <div className="flex items-center gap-3 text-xs text-slate-300">
                     <div className="w-2 h-2 rounded-full bg-blue-500" />
-                    <span>AI Photoshoots (4.2 GB)</span>
+                    <span>AI Content (4.2 GB)</span>
                   </div>
                   <div className="flex items-center gap-3 text-xs text-slate-300">
                     <div className="w-2 h-2 rounded-full bg-purple-500" />
-                    <span>UGC Video Ads (6.8 GB)</span>
+                    <span>Video Masters (6.8 GB)</span>
                   </div>
                   <div className="flex items-center gap-3 text-xs text-slate-300">
                     <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                    <span>Marketplace Reports (1.4 GB)</span>
+                    <span>Marketplace Intel (1.4 GB)</span>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Sync Status */}
+            {/* Encryption Status */}
             <Card className="rounded-3xl border-white/5 bg-card overflow-hidden">
               <CardHeader>
-                <CardTitle className="text-lg font-headline">Live Sync</CardTitle>
-                <CardDescription>Real-time node status</CardDescription>
+                <CardTitle className="text-lg font-headline">Vault Security</CardTitle>
+                <CardDescription>Enterprise Grade Encryption</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="p-4 rounded-xl bg-secondary/20 border border-white/5 flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <RefreshCw size={16} className="text-primary animate-spin" />
-                    <span className="text-xs font-bold">Auto-Sync Active</span>
+                    <Lock size={16} className="text-emerald-500" />
+                    <span className="text-xs font-bold">AES-256 Active</span>
                   </div>
-                  <Badge className="bg-emerald-500/10 text-emerald-500 text-[8px] border-none uppercase font-bold tracking-tighter">Healthy</Badge>
+                  <Badge className="bg-emerald-500/10 text-emerald-500 text-[8px] border-none uppercase font-bold tracking-tighter">Verified</Badge>
                 </div>
-                <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/20 flex gap-3">
-                  <AlertCircle className="text-amber-500 size-4 shrink-0 mt-0.5" />
-                  <p className="text-[10px] text-amber-500 leading-relaxed">
-                    Data ingestion for Amazon Ads reports is slightly delayed due to marketplace API maintenance.
+                <div className="p-4 rounded-xl bg-primary/5 border border-primary/20 flex gap-3">
+                  <RefreshCw size={16} className="text-primary animate-spin shrink-0 mt-0.5" />
+                  <p className="text-[10px] text-slate-400 leading-relaxed">
+                    Real-time synchronization active. Changes are mirrored across your dashboard and internal agency fulfillment nodes.
                   </p>
                 </div>
               </CardContent>
@@ -323,10 +329,10 @@ export default function StoragePage() {
             {/* Pro Tip */}
             <div className="p-6 rounded-3xl bg-primary/5 border border-primary/20 space-y-3">
                <h4 className="font-bold text-primary text-sm flex items-center gap-2">
-                 <CheckCircle2 size={16} /> Asset Tip
+                 <Zap size={16} /> Asset tip
                </h4>
                <p className="text-xs text-muted-foreground leading-relaxed">
-                 AI generated photoshoot results are automatically saved to your 'MarketMind_Assets' folder in Google Drive for easy sharing with your team.
+                 AI generated photoshoot results are automatically saved here for easy sharing with your team. No manual upload needed.
                </p>
             </div>
           </div>
@@ -335,10 +341,3 @@ export default function StoragePage() {
     </div>
   );
 }
-
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
