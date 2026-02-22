@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { BrainCircuit, Check, ArrowLeft, Zap, ShoppingBag, Sparkles, MapPin, Mail, Phone } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const PRICING_CATEGORIES = [
   {
@@ -23,9 +25,9 @@ const PRICING_CATEGORIES = [
     icon: Zap,
     items: [
       { name: "Listing Creation & Optimization", price: "₹1,999", period: "Starting from" },
-      { name: "AI-Based Ranking Keyword Research", price: "Included", period: "Standard" },
-      { name: "AI Listing Improvement Suggestions", price: "Included", period: "Standard" },
-      { name: "Competitor Analysis & Market Positioning", price: "Included", period: "Standard" },
+      { name: "AI-Based Ranking Keyword Research", price: "₹999", period: "per audit" },
+      { name: "AI Listing Improvement Suggestions", price: "₹999", period: "per listing" },
+      { name: "Competitor Analysis & Market Positioning", price: "₹999", period: "per report" },
     ]
   },
   {
@@ -41,6 +43,8 @@ const PRICING_CATEGORIES = [
 ];
 
 export default function PricingPage() {
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
   return (
     <div className="flex flex-col min-h-screen">
       {/* Navbar */}
@@ -76,9 +80,21 @@ export default function PricingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {PRICING_CATEGORIES.map((category) => (
-              <Card key={category.title} className="rounded-3xl border-white/5 bg-card/50 backdrop-blur-sm overflow-hidden flex flex-col">
+              <Card 
+                key={category.title} 
+                onClick={() => setSelectedCategory(category.title)}
+                className={cn(
+                  "rounded-3xl border-white/5 bg-card/50 backdrop-blur-sm overflow-hidden flex flex-col cursor-pointer transition-all duration-300",
+                  selectedCategory === category.title 
+                    ? "ring-2 ring-primary border-primary/50 scale-[1.02] shadow-2xl shadow-primary/20" 
+                    : "hover:border-white/20 hover:bg-card/70"
+                )}
+              >
                 <CardHeader className="p-8">
-                  <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-6">
+                  <div className={cn(
+                    "w-12 h-12 rounded-2xl flex items-center justify-center transition-colors mb-6",
+                    selectedCategory === category.title ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary"
+                  )}>
                     <category.icon size={24} />
                   </div>
                   <CardTitle className="font-headline text-2xl">{category.title}</CardTitle>
@@ -100,8 +116,11 @@ export default function PricingPage() {
                   </div>
                 </CardContent>
                 <CardFooter className="p-8 pt-0 mt-auto">
-                  <Button className="w-full rounded-xl h-12 font-bold" variant={category.title === "AI Creative Studio" ? "default" : "secondary"}>
-                    Choose {category.title.split(' ')[0]}
+                  <Button 
+                    className="w-full rounded-xl h-12 font-bold" 
+                    variant={selectedCategory === category.title ? "default" : "secondary"}
+                  >
+                    {selectedCategory === category.title ? "Plan Selected" : `Choose ${category.title.split(' ')[0]}`}
                   </Button>
                 </CardFooter>
               </Card>
