@@ -83,7 +83,6 @@ export default function InternalSettingsPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
-          {/* API Keys */}
           <Card className="bg-slate-900 border-white/5 overflow-hidden">
             <CardHeader className="bg-accent/5 border-b border-white/5 p-8">
               <div className="flex items-center gap-4">
@@ -97,7 +96,6 @@ export default function InternalSettingsPage() {
               </div>
             </CardHeader>
             <CardContent className="p-8 space-y-8">
-              {/* Gemini Slot */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between mb-2">
                   <Label className="text-slate-300 font-bold uppercase tracking-widest text-[10px]">Google Gemini API Key (Pro 1.5)</Label>
@@ -129,7 +127,6 @@ export default function InternalSettingsPage() {
                 <p className="text-[10px] text-slate-500 italic">Core engine for: Photoshoot, Listing Optimizer, and Growth Engine.</p>
               </div>
 
-              {/* OpenAI Slot */}
               <div className="space-y-4 pt-6 border-t border-white/5">
                 <div className="flex items-center justify-between mb-2">
                   <Label className="text-slate-300 font-bold uppercase tracking-widest text-[10px]">OpenAI API Key (GPT-4o)</Label>
@@ -149,13 +146,12 @@ export default function InternalSettingsPage() {
             </CardContent>
             <CardFooter className="bg-slate-800/30 p-6 flex justify-end">
               <Button onClick={handleSaveConfig} className="bg-accent text-accent-foreground rounded-xl px-8 font-bold" disabled={isSaving}>
-                {isSaving ? <RefreshCw className="animate-spin mr-2" size={16} /> : <Save className="mr-2" size={16} />}
+                {isSaving ? <RefreshCw className="animate-spin mr-2" size={16} /> : <Save size={16} className="mr-2" />}
                 Save System Config
               </Button>
             </CardFooter>
           </Card>
 
-          {/* Operational Controls */}
           <Card className="bg-slate-900 border-white/5">
             <CardHeader>
               <CardTitle className="text-xl font-headline font-bold text-white">Global Restrictions</CardTitle>

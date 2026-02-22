@@ -105,18 +105,18 @@ export default function AgentsPage() {
 
   useEffect(() => {
     const checkKeys = () => {
-      const keys = localStorage.getItem("marketmind_api_keys");
-      if (keys) {
-        try {
+      try {
+        const keys = localStorage.getItem("marketmind_api_keys");
+        if (keys) {
           const parsed = JSON.parse(keys);
           if (parsed.gemini && parsed.gemini.trim() !== "") {
             setIsApiActive(true);
             setActiveKey(parsed.gemini);
             return;
           }
-        } catch (e) {
-          console.error("Failed to check API keys", e);
         }
+      } catch (e) {
+        console.error("Failed to check API keys", e);
       }
       setIsApiActive(false);
       setActiveKey("");
@@ -591,7 +591,7 @@ export default function AgentsPage() {
                     <div className="space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-4">
                       <div className="p-5 md:p-10 rounded-2xl md:rounded-3xl bg-slate-800/50 border border-white/5 space-y-6 md:space-y-8">
                         <div className="flex items-center justify-between">
-                          <h4 className="font-bold font-headline text-lg md:text-xl">Output Generated</h4>
+                          <h4 className="font-bold font-headline text-lg md:text-xl text-white">Output Generated</h4>
                           <Badge className="bg-emerald-500 text-[10px]">Production Ready</Badge>
                         </div>
                         
@@ -627,7 +627,7 @@ export default function AgentsPage() {
                           <div className="space-y-4 md:space-y-6">
                             <div className="p-4 bg-slate-900 rounded-xl space-y-2 border border-white/5">
                               <Label className="text-[10px] font-bold uppercase text-slate-500">Optimized Title</Label>
-                              <p className="font-bold text-sm md:text-base leading-snug">{output.title}</p>
+                              <p className="font-bold text-sm md:text-base leading-snug text-white">{output.title}</p>
                             </div>
                             <div className="grid grid-cols-1 gap-2">
                               {output.bulletPoints.map((b: string, i: number) => (
@@ -654,14 +654,14 @@ export default function AgentsPage() {
                               {output.storyboard.map((s: any) => (
                                 <div key={s.sceneNumber} className="p-4 bg-slate-900 rounded-xl border border-white/5">
                                   <p className="text-[10px] font-bold text-rose-400 mb-1 uppercase">Scene {s.sceneNumber}</p>
-                                  <p className="text-xs md:text-sm font-medium leading-relaxed">{s.description}</p>
+                                  <p className="text-xs md:text-sm font-medium leading-relaxed text-white">{s.description}</p>
                                   <p className="text-[10px] text-slate-500 mt-2 italic">{s.visualElements}</p>
                                 </div>
                               ))}
                             </div>
                             <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-xl">
                               <Label className="text-[10px] font-bold uppercase text-rose-400">Generation Prompt</Label>
-                              <p className="text-[10px] md:text-xs italic mt-1 leading-relaxed">{output.videoGenerationPrompt}</p>
+                              <p className="text-[10px] md:text-xs italic mt-1 leading-relaxed text-slate-300">{output.videoGenerationPrompt}</p>
                             </div>
                           </div>
                         )}
@@ -696,16 +696,16 @@ export default function AgentsPage() {
                                 <div key={i} className="flex items-center justify-between p-3 md:p-4 bg-slate-900 rounded-xl border border-white/5">
                                   <div className="flex items-center gap-3 min-w-0">
                                     <BarChart3 className="text-amber-500 size-4 shrink-0" />
-                                    <span className="font-bold text-xs md:text-sm truncate">{k.term}</span>
+                                    <span className="font-bold text-xs md:text-sm truncate text-white">{k.term}</span>
                                   </div>
                                   <div className="flex gap-3 md:gap-4 shrink-0">
                                     <div className="text-right">
                                       <p className="text-[8px] uppercase text-slate-500 font-bold">Vol</p>
-                                      <p className="text-[10px] md:text-xs font-mono">{k.volume}</p>
+                                      <p className="text-[10px] md:text-xs font-mono text-slate-300">{k.volume}</p>
                                     </div>
                                     <div className="text-right hidden sm:block">
                                       <p className="text-[8px] uppercase text-slate-500 font-bold">Diff</p>
-                                      <Badge variant="outline" className="text-[8px] h-4 py-0 border-white/10">{k.difficulty}</Badge>
+                                      <Badge variant="outline" className="text-[8px] h-4 py-0 border-white/10 text-slate-400">{k.difficulty}</Badge>
                                     </div>
                                   </div>
                                 </div>
@@ -739,11 +739,11 @@ export default function AgentsPage() {
                       </div>
                       
                       <div className="flex flex-col sm:flex-row gap-3 pb-8">
-                        <Button variant="outline" className="flex-1 h-11 md:h-12 rounded-xl border-white/10" onClick={() => setOutput(null)}>New Session</Button>
+                        <Button variant="outline" className="flex-1 h-11 md:h-12 rounded-xl border-white/10 text-white" onClick={() => setOutput(null)}>New Session</Button>
                         
                         {output.type === 'webbuilder' && (
                           <Button 
-                            className="flex-1 h-11 md:h-12 rounded-xl bg-emerald-600 hover:bg-emerald-700 shadow-lg font-bold"
+                            className="flex-1 h-11 md:h-12 rounded-xl bg-emerald-600 hover:bg-emerald-700 shadow-lg font-bold text-white"
                             onClick={handleSaveWebsite}
                             disabled={isSavingWeb}
                           >
@@ -753,7 +753,7 @@ export default function AgentsPage() {
                         )}
 
                         <Button 
-                          className="flex-1 h-11 md:h-12 rounded-xl bg-primary shadow-lg shadow-primary/20 font-bold"
+                          className="flex-1 h-11 md:h-12 rounded-xl bg-primary shadow-lg shadow-primary/20 font-bold text-white"
                           onClick={handleDownload}
                         >
                           <FileDown size={18} className="mr-2" /> Download Assets

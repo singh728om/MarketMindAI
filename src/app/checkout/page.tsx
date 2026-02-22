@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { 
@@ -22,7 +23,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 
-export default function CheckoutPage() {
+function CheckoutContent() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [paymentMode, setPaymentMode] = useState("card");
@@ -100,7 +101,6 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-background hero-gradient pb-20">
-      {/* Navbar */}
       <header className="fixed top-0 w-full z-50 border-b border-white/5 bg-background/80 backdrop-blur-xl">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
@@ -115,7 +115,6 @@ export default function CheckoutPage() {
 
       <main className="container mx-auto px-4 pt-32">
         <div className="max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Checkout Form */}
           <div className="space-y-8">
             <div>
               <h1 className="text-3xl font-headline font-bold mb-2">Checkout</h1>
@@ -211,8 +210,7 @@ export default function CheckoutPage() {
                   </Label>
                 </RadioGroup>
 
-                {/* Conditional Promo Code Input */}
-                <div className="mt-4 p-4 rounded-2xl bg-primary/5 border border-primary/20 space-y-4 animate-in fade-in slide-in-from-top-2">
+                <div className="mt-4 p-4 rounded-2xl bg-primary/5 border border-primary/20 space-y-4">
                   <Label className="text-sm font-bold flex items-center gap-2">
                     <Tag size={16} className="text-primary" /> Have a Promo Code?
                   </Label>
@@ -258,7 +256,6 @@ export default function CheckoutPage() {
             </form>
           </div>
 
-          {/* Order Summary Sidebar */}
           <div className="lg:pt-24">
             <Card className="rounded-3xl border-white/5 bg-card/50 backdrop-blur-xl sticky top-32 overflow-hidden">
               <CardHeader className="bg-primary/5 border-b border-white/5">
@@ -296,23 +293,19 @@ export default function CheckoutPage() {
                     <span className="text-primary">₹{totalPrice.toLocaleString()}</span>
                   </div>
                 </div>
-
-                <div className="bg-secondary/20 p-4 rounded-xl space-y-3">
-                  <p className="text-xs font-bold uppercase tracking-widest text-primary">Instant Benefits</p>
-                  <ul className="text-xs space-y-2 text-muted-foreground">
-                    <li className="flex items-center gap-2"><CheckCircle2 size={12} className="text-primary" /> Priority AI processing</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 size={12} className="text-primary" /> Dedicated account manager</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 size={12} className="text-primary" /> Multi-marketplace support</li>
-                  </ul>
-                </div>
               </CardContent>
-              <CardFooter className="p-8 pt-0 text-[10px] text-muted-foreground leading-relaxed">
-                By completing the purchase, you agree to MarketMind AI's Terms of Service and Refund Policy. {paymentMode !== 'cod' && "You will be redirected to the secure payment portal."}
-              </CardFooter>
             </Card>
           </div>
         </div>
       </main>
     </div>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="animate-spin text-primary w-12 h-12" /></div>}>
+      <CheckoutContent />
+    </Suspense>
   );
 }
