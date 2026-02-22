@@ -46,6 +46,7 @@ import {
   DialogFooter,
   DialogTrigger
 } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
@@ -55,6 +56,7 @@ const AVAILABLE_SERVICES = [
   { id: "flipkart-on", name: "Flipkart Onboarding", category: "Onboarding", icon: ShoppingBag, marketplace: "Flipkart" },
   { id: "ajio-on", name: "Ajio Onboarding", category: "Onboarding", icon: ShoppingBag, marketplace: "Ajio" },
   { id: "nykaa-on", name: "Nykaa Onboarding", category: "Onboarding", icon: ShoppingBag, marketplace: "Nykaa" },
+  { id: "listing-creation", name: "Listing Creation", category: "SEO", icon: ListChecks, marketplace: "Multi-channel" },
   { id: "listing-opt", name: "Listing Optimization", category: "SEO", icon: Zap, marketplace: "Multi-channel" },
   { id: "keyword-res", name: "Keyword Research", category: "SEO", icon: Search, marketplace: "Multi-channel" },
   { id: "photoshoot", name: "AI Photoshoot", category: "Creative", icon: Sparkles, marketplace: "Creative Studio" },
@@ -84,6 +86,29 @@ const INITIAL_PROJECTS = [
         { name: "Brand Registry Approval", completed: true },
         { name: "Catalog Template Selection", completed: false },
         { name: "Final QC & Live", completed: false },
+      ]
+    }
+  },
+  {
+    id: "proj-listing-1",
+    name: "Listing Creation",
+    marketplace: "Amazon India",
+    status: "Drafting",
+    progress: 30,
+    updatedAt: "45 mins ago",
+    assets: 15,
+    priority: "High",
+    type: "SEO",
+    icon: ListChecks,
+    details: {
+      listingsCreated: 5,
+      listingsInProgress: 25,
+      brandOnboarded: true,
+      milestones: [
+        { name: "Product Data Ingestion", completed: true },
+        { name: "AI Copy Generation", completed: false },
+        { name: "Image Attachment", completed: false },
+        { name: "Bulk Marketplace Push", completed: false },
       ]
     }
   },
@@ -130,29 +155,6 @@ const INITIAL_PROJECTS = [
         { name: "Copywriting Optimization", completed: true },
         { name: "Bulk Upload Prep", completed: true },
         { name: "Listing Audit", completed: true },
-      ]
-    }
-  },
-  {
-    id: "proj-4",
-    name: "AI Photoshoot Session",
-    marketplace: "Multi-channel",
-    status: "Active",
-    progress: 20,
-    updatedAt: "30 mins ago",
-    assets: 8,
-    priority: "High",
-    type: "Creative",
-    icon: Sparkles,
-    details: {
-      listingsCreated: 4,
-      listingsInProgress: 16,
-      brandOnboarded: true,
-      milestones: [
-        { name: "Scene Planning", completed: true },
-        { name: "AI Background Generation", completed: false },
-        { name: "Model Integration", completed: false },
-        { name: "Post-Processing", completed: false },
       ]
     }
   }
