@@ -50,7 +50,7 @@ export function Sidebar() {
         <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-primary-foreground">
           <BrainCircuit size={24} />
         </div>
-        <span className="font-headline text-xl font-bold tracking-tight">MarketMind</span>
+        <span className="font-headline text-xl font-bold tracking-tight">MarketMind AI</span>
       </Link>
 
       <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto">

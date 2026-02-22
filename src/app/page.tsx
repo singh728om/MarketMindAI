@@ -422,7 +422,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="pt-8 border-t flex flex-col md:flex-row justify-between items-center gap-6">
-            <p className="text-muted-foreground text-xs text-center md:text-left">© 2024 MarketMind. All rights reserved.</p>
+            <p className="text-muted-foreground text-xs text-center md:text-left">© 2024 MarketMind AI. All rights reserved.</p>
             <div className="flex items-center gap-4">
               <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center cursor-pointer hover:bg-primary transition-colors">
                 <span className="text-[10px] font-bold">LI</span>

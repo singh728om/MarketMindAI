@@ -35,7 +35,7 @@ export default function OnboardingPage() {
   const handleNext = () => {
     if (step < 4) setStep(step + 1);
     else {
-      toast({ title: "Welcome to MarketMind!", description: "Account setup is complete." });
+      toast({ title: "Welcome to MarketMind AI!", description: "Account setup is complete." });
       router.push("/dashboard");
     }
   };
@@ -70,7 +70,7 @@ export default function OnboardingPage() {
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-background relative overflow-hidden hero-gradient">
       <Link href="/" className="absolute top-10 left-10 flex items-center gap-2 hover:opacity-80 transition-opacity">
          <BrainCircuit className="text-primary w-8 h-8" />
-         <span className="font-headline font-bold text-xl tracking-tight">MarketMind</span>
+         <span className="font-headline font-bold text-xl tracking-tight">MarketMind AI</span>
       </Link>
 
       <div className="w-full max-w-2xl">
