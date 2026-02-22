@@ -20,7 +20,10 @@ import {
   Globe,
   RefreshCw,
   Copy,
-  FileDown
+  FileDown,
+  BarChart3,
+  Mail,
+  ExternalLink
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -125,18 +128,6 @@ export default function AgentsPage() {
     }
   };
 
-  const downloadFile = (content: string, filename: string, type: string) => {
-    const blob = new Blob([content], { type });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast({ title: "Export Started", description: `Saving ${filename}` });
-  };
-
   const handleRunAgent = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isApiActive) {
@@ -219,6 +210,31 @@ export default function AgentsPage() {
           setOutput({ ...result, type: 'report' });
           break;
 
+        case 'ranking':
+          // Simulate Ranking Finder
+          setOutput({ 
+            type: 'ranking',
+            keywords: [
+              { term: `${formData.productName} for festive season`, volume: "12.5k", difficulty: "Medium" },
+              { term: `Best ${formData.category} under 2000`, volume: "45k", difficulty: "High" },
+              { term: `Handcrafted ${formData.productName}`, volume: "3.2k", difficulty: "Low" },
+              { term: `${formData.marketplace} fashion trends 2024`, volume: "89k", difficulty: "Very High" }
+            ]
+          });
+          break;
+
+        case 'leads':
+          // Simulate Lead Gen
+          setOutput({
+            type: 'leads',
+            results: [
+              { company: "Ethnic Elegance Exports", contact: "Vikram Mehta", email: "v.exports@elegance.com", website: "eleganceexports.in" },
+              { company: "Vastra Boutique Group", contact: "Ananya Iyer", email: "buying@vastra.com", website: "vastraboutique.in" },
+              { company: "Retail Core India", contact: "Sameer Shah", email: "vendor@retailcore.co.in", website: "retailcore.in" }
+            ]
+          });
+          break;
+
         default:
           throw new Error("This agent is currently in private beta.");
       }
@@ -294,11 +310,11 @@ export default function AgentsPage() {
       </div>
 
       <Dialog open={!!selectedAgent} onOpenChange={(open) => !open && resetForm()}>
-        <DialogContent className="max-w-4xl bg-slate-900 border-white/10 rounded-3xl overflow-hidden max-h-[95vh] flex flex-col p-0 text-white">
+        <DialogContent className="max-w-4xl bg-slate-900 border-white/10 rounded-3xl overflow-hidden max-h-[95vh] flex flex-col p-0 text-white shadow-2xl">
           {selectedAgent && (
             <>
-              <DialogHeader className="p-6 md:p-8 pb-0 shrink-0">
-                <div className="flex items-center gap-4 mb-2">
+              <DialogHeader className="p-6 md:p-8 pb-0 shrink-0 border-b border-white/5">
+                <div className="flex items-center gap-4 mb-4">
                   <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl bg-slate-800 flex items-center justify-center ${selectedAgent.color}`}>
                     <selectedAgent.icon size={24} />
                   </div>
@@ -309,8 +325,8 @@ export default function AgentsPage() {
                 </div>
               </DialogHeader>
 
-              <ScrollArea className="flex-1">
-                <div className="p-6 md:p-8 pt-4">
+              <ScrollArea className="flex-1 h-full">
+                <div className="p-6 md:p-8 pt-4 pb-12">
                   {!output ? (
                     <form onSubmit={handleRunAgent} className="space-y-8">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -319,7 +335,7 @@ export default function AgentsPage() {
                           <Input 
                             placeholder="e.g. Silk Kurta" 
                             required 
-                            className="bg-slate-800 border-white/5 h-12 rounded-xl"
+                            className="bg-slate-800 border-white/5 h-12 rounded-xl text-white"
                             value={formData.productName}
                             onChange={(e) => handleInputChange("productName", e.target.value)}
                           />
@@ -327,7 +343,7 @@ export default function AgentsPage() {
                         <div className="space-y-2">
                           <Label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Category</Label>
                           <Select onValueChange={(val) => handleInputChange("category", val)} required>
-                            <SelectTrigger className="bg-slate-800 border-white/5 h-12 rounded-xl">
+                            <SelectTrigger className="bg-slate-800 border-white/5 h-12 rounded-xl text-white">
                               <SelectValue placeholder="Select Segment" />
                             </SelectTrigger>
                             <SelectContent className="bg-slate-800 border-white/10 text-white">
@@ -342,7 +358,7 @@ export default function AgentsPage() {
                           <Label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Description / Details</Label>
                           <Input 
                             placeholder="Brief details about the product..." 
-                            className="bg-slate-800 border-white/5 h-12 rounded-xl"
+                            className="bg-slate-800 border-white/5 h-12 rounded-xl text-white"
                             value={formData.productDescription}
                             onChange={(e) => handleInputChange("productDescription", e.target.value)}
                           />
@@ -350,7 +366,7 @@ export default function AgentsPage() {
                       </div>
 
                       {selectedAgent.id === 'photoshoot' && (
-                        <div className="space-y-6 bg-slate-800/30 p-6 md:p-8 rounded-2xl border border-white/5">
+                        <div className="space-y-6 bg-slate-800/30 p-6 md:p-8 rounded-2xl border border-white/5 animate-in fade-in slide-in-from-top-2">
                           <input type="file" className="hidden" ref={fileInputRef} onChange={handleFileChange} accept="image/*" />
                           <div 
                             onClick={() => fileInputRef.current?.click()}
@@ -369,7 +385,7 @@ export default function AgentsPage() {
                             <div className="space-y-2">
                               <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Model</Label>
                               <Select onValueChange={(val) => setModelType(val)} defaultValue="none">
-                                <SelectTrigger className="bg-slate-800 border-white/5 h-11 rounded-xl"><SelectValue /></SelectTrigger>
+                                <SelectTrigger className="bg-slate-800 border-white/5 h-11 rounded-xl text-white"><SelectValue /></SelectTrigger>
                                 <SelectContent className="bg-slate-800 border-white/10 text-white">
                                   <SelectItem value="male">Male</SelectItem>
                                   <SelectItem value="female">Female</SelectItem>
@@ -381,7 +397,7 @@ export default function AgentsPage() {
                             <div className="space-y-2">
                               <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Angle</Label>
                               <Select onValueChange={(val) => handleInputChange("shotAngle", val)} defaultValue="front">
-                                <SelectTrigger className="bg-slate-800 border-white/5 h-11 rounded-xl"><SelectValue /></SelectTrigger>
+                                <SelectTrigger className="bg-slate-800 border-white/5 h-11 rounded-xl text-white"><SelectValue /></SelectTrigger>
                                 <SelectContent className="bg-slate-800 border-white/10 text-white">
                                   <SelectItem value="front">Front</SelectItem>
                                   <SelectItem value="back">Back</SelectItem>
@@ -395,7 +411,7 @@ export default function AgentsPage() {
 
                       <Button 
                         type="submit" 
-                        className="w-full h-14 rounded-xl text-lg font-bold bg-primary shadow-xl shadow-primary/20" 
+                        className="w-full h-14 rounded-xl text-lg font-bold bg-primary hover:bg-primary/90 shadow-xl shadow-primary/20" 
                         disabled={isRunning}
                       >
                         {isRunning ? <><RefreshCw className="mr-2 h-5 w-5 animate-spin" /> Orchestrating AI...</> : <><Zap className="mr-2 h-5 w-5" /> Start Production</>}
@@ -478,6 +494,54 @@ export default function AgentsPage() {
                         {output.type === 'report' && (
                           <div className="p-6 bg-slate-900 rounded-2xl border border-white/5">
                             <p className="text-sm leading-relaxed whitespace-pre-wrap text-slate-300">{output.narrativeSummary}</p>
+                          </div>
+                        )}
+
+                        {output.type === 'ranking' && (
+                          <div className="space-y-4">
+                            <div className="grid grid-cols-1 gap-3">
+                              {output.keywords.map((k: any, i: number) => (
+                                <div key={i} className="flex items-center justify-between p-4 bg-slate-900 rounded-xl border border-white/5">
+                                  <div className="flex items-center gap-3">
+                                    <BarChart3 className="text-amber-500 size-4" />
+                                    <span className="font-bold text-sm">{k.term}</span>
+                                  </div>
+                                  <div className="flex gap-4">
+                                    <div className="text-right">
+                                      <p className="text-[8px] uppercase text-slate-500 font-bold">Vol</p>
+                                      <p className="text-xs font-mono">{k.volume}</p>
+                                    </div>
+                                    <div className="text-right">
+                                      <p className="text-[8px] uppercase text-slate-500 font-bold">Diff</p>
+                                      <Badge variant="outline" className="text-[8px] h-4 py-0">{k.difficulty}</Badge>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {output.type === 'leads' && (
+                          <div className="space-y-4">
+                            <div className="grid grid-cols-1 gap-3">
+                              {output.results.map((l: any, i: number) => (
+                                <div key={i} className="p-4 bg-slate-900 rounded-xl border border-white/5 flex items-center justify-between">
+                                  <div className="space-y-1">
+                                    <p className="font-bold text-sm text-cyan-400">{l.company}</p>
+                                    <p className="text-xs text-slate-400 flex items-center gap-1"><Users size={10} /> {l.contact}</p>
+                                  </div>
+                                  <div className="flex gap-2">
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-white" title="Email Lead">
+                                      <Mail size={14} />
+                                    </Button>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-white" title="Visit Site">
+                                      <ExternalLink size={14} />
+                                    </Button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         )}
                       </div>
