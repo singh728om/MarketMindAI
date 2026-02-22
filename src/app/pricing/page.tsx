@@ -51,9 +51,9 @@ const PRICING_CATEGORIES: Category[] = [
     description: "Next-gen visual assets powered by proprietary AI.",
     icon: Sparkles,
     items: [
-      { id: "photoshoot", name: "AI Photoshoot", price: 100, priceDisplay: "₹100", period: "per style" },
-      { id: "video", name: "AI Video Ad (15s)", price: 499, priceDisplay: "₹499", period: "per video" },
-      { id: "ethnic", name: "Ethnic Model Fit", price: 150, priceDisplay: "₹150", period: "per style" },
+      { id: "photoshoot", name: "AI Photoshoot", price: 999, priceDisplay: "₹999", period: "per style" },
+      { id: "video", name: "AI Video Ad (15s)", price: 1499, priceDisplay: "₹1,499", period: "per video" },
+      { id: "flyer", name: "AI Flyer", price: 499, priceDisplay: "₹499", period: "per design" },
     ]
   }
 ];
