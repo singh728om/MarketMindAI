@@ -18,7 +18,10 @@ import {
   Package,
   Zap,
   ShoppingBag,
-  Sparkles
+  Sparkles,
+  Video,
+  Globe,
+  Check
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -31,9 +34,33 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription,
+  DialogFooter,
+  DialogTrigger
+} from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
-const MOCK_PROJECTS = [
+const AVAILABLE_SERVICES = [
+  { id: "myntra-on", name: "Myntra Onboarding", category: "Onboarding", icon: ShoppingBag, marketplace: "Myntra" },
+  { id: "amazon-on", name: "Amazon Onboarding", category: "Onboarding", icon: ShoppingBag, marketplace: "Amazon" },
+  { id: "flipkart-on", name: "Flipkart Onboarding", category: "Onboarding", icon: ShoppingBag, marketplace: "Flipkart" },
+  { id: "ajio-on", name: "Ajio Onboarding", category: "Onboarding", icon: ShoppingBag, marketplace: "Ajio" },
+  { id: "nykaa-on", name: "Nykaa Onboarding", category: "Onboarding", icon: ShoppingBag, marketplace: "Nykaa" },
+  { id: "listing-opt", name: "Listing Optimization", category: "SEO", icon: Zap, marketplace: "Multi-channel" },
+  { id: "keyword-res", name: "Keyword Research", category: "SEO", icon: Search, marketplace: "Multi-channel" },
+  { id: "photoshoot", name: "AI Photoshoot", category: "Creative", icon: Sparkles, marketplace: "Creative Studio" },
+  { id: "video-ad", name: "AI Video Ad (15s)", category: "Creative", icon: Video, marketplace: "Creative Studio" },
+  { id: "web-builder", name: "Website Store Builder", category: "Development", icon: Globe, marketplace: "Direct" },
+  { id: "shopify", name: "Shopify Store", category: "Development", icon: ShoppingBag, marketplace: "Shopify" },
+];
+
+const INITIAL_PROJECTS = [
   {
     id: "proj-1",
     name: "Myntra Onboarding",
@@ -81,23 +108,13 @@ const MOCK_PROJECTS = [
     priority: "High",
     type: "Creative",
     icon: Sparkles
-  },
-  {
-    id: "proj-5",
-    name: "Ajio Onboarding",
-    marketplace: "Ajio",
-    status: "Document Review",
-    progress: 10,
-    updatedAt: "5 hours ago",
-    assets: 0,
-    priority: "Medium",
-    type: "Onboarding",
-    icon: ShoppingBag
   }
 ];
 
 export default function ProjectsPage() {
+  const [projects, setProjects] = useState(INITIAL_PROJECTS);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
 
   const handleAction = (action: string, projectName: string) => {
@@ -107,7 +124,40 @@ export default function ProjectsPage() {
     });
   };
 
-  const filteredProjects = MOCK_PROJECTS.filter(p => 
+  const handleStartService = (service: typeof AVAILABLE_SERVICES[0]) => {
+    const exists = projects.some(p => p.name === service.name);
+    
+    if (exists) {
+      toast({
+        variant: "destructive",
+        title: "Service Already Active",
+        description: `You already have an active project for ${service.name}.`,
+      });
+      return;
+    }
+
+    const newProject = {
+      id: `proj-${Date.now()}`,
+      name: service.name,
+      marketplace: service.marketplace,
+      status: "Initial Setup",
+      progress: 5,
+      updatedAt: "Just now",
+      assets: 0,
+      priority: "Medium",
+      type: service.category,
+      icon: service.icon
+    };
+
+    setProjects([newProject, ...projects]);
+    setIsDialogOpen(false);
+    toast({
+      title: "Service Started!",
+      description: `${service.name} has been added to your opted projects.`,
+    });
+  };
+
+  const filteredProjects = projects.filter(p => 
     p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     p.marketplace.toLowerCase().includes(searchQuery.toLowerCase()) ||
     p.type.toLowerCase().includes(searchQuery.toLowerCase())
@@ -120,9 +170,60 @@ export default function ProjectsPage() {
           <h1 className="text-3xl font-headline font-bold mb-1">Opted Projects</h1>
           <p className="text-muted-foreground">Track the progress of your marketplace onboarding and AI services.</p>
         </div>
-        <Button className="shadow-lg shadow-primary/20 rounded-xl h-12 px-6">
-          <Plus className="w-4 h-4 mr-2" /> Start New Service
-        </Button>
+        
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="shadow-lg shadow-primary/20 rounded-xl h-12 px-6">
+              <Plus className="w-4 h-4 mr-2" /> Start New Service
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl bg-card border-white/10 rounded-3xl overflow-hidden max-h-[85vh] flex flex-col p-0">
+            <DialogHeader className="p-8 pb-0">
+              <DialogTitle className="text-2xl font-headline">Opt for New Service</DialogTitle>
+              <DialogDescription>
+                Select a marketplace onboarding or AI creative service to initiate.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex-1 overflow-y-auto p-8 pt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {AVAILABLE_SERVICES.map((service) => {
+                const isActive = projects.some(p => p.name === service.name);
+                return (
+                  <div 
+                    key={service.id}
+                    onClick={() => !isActive && handleStartService(service)}
+                    className={cn(
+                      "flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer group",
+                      isActive 
+                        ? "opacity-50 cursor-not-allowed bg-muted/20 border-white/5" 
+                        : "border-white/5 bg-white/5 hover:bg-primary/5 hover:border-primary/50"
+                    )}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={cn(
+                        "w-10 h-10 rounded-xl flex items-center justify-center transition-colors",
+                        isActive ? "bg-muted text-muted-foreground" : "bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white"
+                      )}>
+                        <service.icon size={20} />
+                      </div>
+                      <div className="space-y-0.5">
+                        <p className="font-bold text-sm leading-tight">{service.name}</p>
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">{service.category}</p>
+                      </div>
+                    </div>
+                    {isActive ? (
+                      <Check size={16} className="text-emerald-500" />
+                    ) : (
+                      <ChevronRight size={16} className="text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            <DialogFooter className="p-6 bg-muted/20 border-t">
+              <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="rounded-xl">Cancel</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Search and Filters */}
@@ -230,4 +331,3 @@ export default function ProjectsPage() {
     </div>
   );
 }
-
