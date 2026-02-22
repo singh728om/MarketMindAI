@@ -50,6 +50,7 @@ export default function AgentsPage() {
   const [selectedAgent, setSelectedAgent] = useState<any>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [output, setOutput] = useState<any>(null);
+  const [modelType, setModelType] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -124,7 +125,7 @@ export default function AgentsPage() {
       </div>
 
       {/* Agent Modal */}
-      <Dialog open={!!selectedAgent} onOpenChange={() => { setSelectedAgent(null); setOutput(null); }}>
+      <Dialog open={!!selectedAgent} onOpenChange={() => { setSelectedAgent(null); setOutput(null); setModelType(""); }}>
         <DialogContent className="max-w-3xl bg-card border-white/10 rounded-3xl overflow-hidden max-h-[90vh] flex flex-col p-0">
           {selectedAgent && (
             <>
@@ -151,7 +152,16 @@ export default function AgentsPage() {
                       </div>
                       <div className="space-y-2">
                         <Label>Category</Label>
-                        <Input placeholder="e.g. Apparel" required />
+                        <Select required>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select Category" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="fashion">Fashion</SelectItem>
+                            <SelectItem value="apparels">Apparels</SelectItem>
+                            <SelectItem value="other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
 
@@ -179,29 +189,39 @@ export default function AgentsPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label>Model Type</Label>
-                            <Select>
+                            <Select onValueChange={(val) => setModelType(val)} required>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select model style" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="indian-female">Indian Female (Ethnic)</SelectItem>
-                                <SelectItem value="indian-male">Indian Male (Ethnic)</SelectItem>
-                                <SelectItem value="diverse">Diverse Global</SelectItem>
-                                <SelectItem value="none">No Model (Flatlay/Studio)</SelectItem>
+                                <SelectItem value="mens-ethnic">Mens Ethnic</SelectItem>
+                                <SelectItem value="female-ethnic">Female Ethnic</SelectItem>
+                                <SelectItem value="mens-casual">Mens Casual</SelectItem>
+                                <SelectItem value="female-casual">Female Casual</SelectItem>
+                                <SelectItem value="kids">Kids</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
+                          
+                          {modelType === 'kids' && (
+                            <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                              <Label>Age (Years)</Label>
+                              <Input type="number" placeholder="Enter age" min="0" max="18" required />
+                            </div>
+                          )}
+
                           <div className="space-y-2">
                             <Label>Background Setting</Label>
-                            <Select>
+                            <Select required>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select environment" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="minimal">Minimal Studio</SelectItem>
-                                <SelectItem value="heritage">Heritage Haveli</SelectItem>
-                                <SelectItem value="luxury">Luxury Interior</SelectItem>
-                                <SelectItem value="nature">Garden/Nature</SelectItem>
+                                <SelectItem value="pro-studio">Professional Studio</SelectItem>
+                                <SelectItem value="casual-outdoor">Casual Outdoor</SelectItem>
+                                <SelectItem value="heritage">Heritage Palace</SelectItem>
+                                <SelectItem value="modern-minimalist">Modern Minimalist</SelectItem>
+                                <SelectItem value="nature-garden">Nature/Garden</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
