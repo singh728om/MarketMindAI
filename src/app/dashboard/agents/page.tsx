@@ -27,7 +27,9 @@ import {
   X,
   Layout,
   Save,
-  Eye
+  Eye,
+  MapPin,
+  Link as LinkIcon
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -99,6 +101,8 @@ function AgentsContent() {
     kidAge: "5",
     kidGender: "boy",
     base64Image: null as string | null,
+    location: "",
+    websiteUrl: "",
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -348,8 +352,9 @@ function AgentsContent() {
 
         case 'leads':
           result = await generateB2BLeads({
-            niche: formData.productName + " " + formData.category,
-            location: "India",
+            niche: formData.category,
+            location: formData.location || undefined,
+            websiteUrl: formData.websiteUrl || undefined,
             apiKey: activeKey
           });
           setOutput({ ...result, type: 'leads' });
@@ -390,7 +395,9 @@ function AgentsContent() {
       background: "professional-studio",
       kidAge: "5",
       kidGender: "boy",
-      base64Image: null
+      base64Image: null,
+      location: "",
+      websiteUrl: ""
     });
   };
 
@@ -452,20 +459,24 @@ function AgentsContent() {
                   {!output ? (
                     <form onSubmit={handleRunAgent} className="space-y-6 md:space-y-8">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                        <div className="space-y-2">
+                        {selectedAgent.id !== 'leads' && (
+                          <div className="space-y-2">
+                            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                              {selectedAgent.id === 'webbuilder' ? 'Brand Name' : 'Product Name'}
+                            </Label>
+                            <Input 
+                              placeholder={selectedAgent.id === 'webbuilder' ? "e.g. Silk Elegance" : "e.g. Silk Kurta"}
+                              required 
+                              className="bg-slate-800 border-white/5 h-11 md:h-12 rounded-xl text-white text-sm"
+                              value={formData.productName}
+                              onChange={(e) => handleInputChange("productName", e.target.value)}
+                            />
+                          </div>
+                        )}
+                        <div className={cn("space-y-2", selectedAgent.id === 'leads' && "md:col-span-2")}>
                           <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                            {selectedAgent.id === 'webbuilder' ? 'Brand Name' : 'Product Name'}
+                            {selectedAgent.id === 'leads' ? 'Product Category (Industry)' : 'Category / Niche'}
                           </Label>
-                          <Input 
-                            placeholder={selectedAgent.id === 'webbuilder' ? "e.g. Silk Elegance" : "e.g. Silk Kurta"}
-                            required 
-                            className="bg-slate-800 border-white/5 h-11 md:h-12 rounded-xl text-white text-sm"
-                            value={formData.productName}
-                            onChange={(e) => handleInputChange("productName", e.target.value)}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Category / Niche</Label>
                           <Select value={formData.category} onValueChange={(val) => handleInputChange("category", val)} required>
                             <SelectTrigger className="bg-slate-800 border-white/5 h-11 md:h-12 rounded-xl text-white text-sm">
                               <SelectValue placeholder="Select Segment" />
@@ -480,6 +491,33 @@ function AgentsContent() {
                           </Select>
                         </div>
                         
+                        {selectedAgent.id === 'leads' && (
+                          <>
+                            <div className="space-y-2">
+                              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1">
+                                <MapPin size={10} /> Target Location (Optional)
+                              </Label>
+                              <Input 
+                                placeholder="e.g. India, USA, or Delhi"
+                                className="bg-slate-800 border-white/5 h-11 md:h-12 rounded-xl text-white text-sm"
+                                value={formData.location}
+                                onChange={(e) => handleInputChange("location", e.target.value)}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1">
+                                <LinkIcon size={10} /> Website URL (Optional)
+                              </Label>
+                              <Input 
+                                placeholder="https://yourbrand.com"
+                                className="bg-slate-800 border-white/5 h-11 md:h-12 rounded-xl text-white text-sm"
+                                value={formData.websiteUrl}
+                                onChange={(e) => handleInputChange("websiteUrl", e.target.value)}
+                              />
+                            </div>
+                          </>
+                        )}
+
                         {selectedAgent.id === 'photoshoot' && (
                           <div className="md:col-span-2 space-y-6">
                             <div className="space-y-2">
@@ -573,7 +611,7 @@ function AgentsContent() {
                           </div>
                         )}
 
-                        {selectedAgent.id !== 'photoshoot' && (
+                        {selectedAgent.id !== 'photoshoot' && selectedAgent.id !== 'leads' && (
                           <div className="md:col-span-2 space-y-2">
                             <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
                               {selectedAgent.id === 'webbuilder' ? 'Specific Website Requirements' : 'Description / Context'}
@@ -729,18 +767,23 @@ function AgentsContent() {
                           <div className="space-y-4">
                             <div className="grid grid-cols-1 gap-2 md:gap-3">
                               {output.results.map((l: any, i: number) => (
-                                <div key={i} className="p-3 md:p-4 bg-slate-900 rounded-xl border border-white/5 flex items-center justify-between">
-                                  <div className="space-y-0.5 min-w-0 flex-1 mr-2">
-                                    <p className="font-bold text-xs md:text-sm text-cyan-400 truncate">{l.company}</p>
-                                    <p className="text-[10px] text-slate-400 flex items-center gap-1"><Users size={10} /> {l.contact}</p>
+                                <div key={i} className="p-3 md:p-4 bg-slate-900 rounded-xl border border-white/5 space-y-3">
+                                  <div className="flex items-center justify-between">
+                                    <div className="space-y-0.5 min-w-0 flex-1 mr-2">
+                                      <p className="font-bold text-xs md:text-sm text-cyan-400 truncate">{l.company}</p>
+                                      <p className="text-[10px] text-slate-400 flex items-center gap-1"><Users size={10} /> {l.contact}</p>
+                                    </div>
+                                    <div className="flex gap-1 md:gap-2 shrink-0">
+                                      <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-white" title="Email Lead">
+                                        <Mail size={12} />
+                                      </Button>
+                                      <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-white" title="Visit Site">
+                                        <ExternalLink size={12} />
+                                      </Button>
+                                    </div>
                                   </div>
-                                  <div className="flex gap-1 md:gap-2 shrink-0">
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-white" title="Email Lead">
-                                      <Mail size={12} />
-                                    </Button>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-white" title="Visit Site">
-                                      <ExternalLink size={12} />
-                                    </Button>
+                                  <div className="p-2 bg-slate-950/50 rounded-lg border border-white/5">
+                                    <p className="text-[10px] text-slate-400 leading-relaxed"><Sparkles size={10} className="inline mr-1 text-cyan-500" /> {l.reason}</p>
                                   </div>
                                 </div>
                               ))}
