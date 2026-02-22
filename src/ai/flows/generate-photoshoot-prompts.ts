@@ -14,7 +14,6 @@ const GeneratePhotoshootInputSchema = z.object({
   shotAngle: z.string().optional(),
   modelType: z.string().optional(),
   kidAge: z.string().optional(),
-  kidGender: z.string().optional(),
   background: z.string().optional(),
   style: z.string().optional(),
   apiKey: z.string().optional(),
@@ -27,7 +26,6 @@ const GeneratePhotoshootOutputSchema = z.object({
 export type GeneratePhotoshootOutput = z.infer<typeof GeneratePhotoshootOutputSchema>;
 
 export async function generatePhotoshoot(input: GeneratePhotoshootInput): Promise<GeneratePhotoshootOutput> {
-  // Initialize a localized Genkit instance to use the dynamic API key
   const ai = genkit({
     plugins: [googleAI({ apiKey: input.apiKey })],
   });
@@ -36,51 +34,54 @@ export async function generatePhotoshoot(input: GeneratePhotoshootInput): Promis
   if (input.modelType === 'none') {
     modelText = 'the product alone in a clean setting';
   } else if (input.modelType === 'kids') {
-    const gender = input.kidGender === 'boy' ? 'baby boy' : 'baby girl';
-    modelText = `a professional ${input.kidAge || '5'}-year-old ${gender} model wearing or holding the product`;
-  } else {
-    modelText = `a professional ${input.modelType} model wearing or holding the product`;
+    modelText = `a professional ${input.kidAge || '5'}-year-old child model wearing or holding the product`;
+  } else if (input.modelType === 'mens') {
+    modelText = `a professional male fashion model wearing or holding the product`;
+  } else if (input.modelType === 'womens') {
+    modelText = `a professional female fashion model wearing or holding the product`;
   }
 
-  // Handle advanced shot angles for prompt engineering
   let angleDescription = "";
   switch (input.shotAngle) {
-    case 'front': angleDescription = "eye-level straight-on front view"; break;
-    case 'back': angleDescription = "view from behind showing the back details"; break;
-    case 'left-side': angleDescription = "left-side profile view showing product depth"; break;
-    case 'right-side': angleDescription = "right-side profile view showing product depth"; break;
-    case 'zoom': angleDescription = "macro close-up focus on textures and fine craftsmanship"; break;
-    case 'wide': angleDescription = "wide-angle contextual shot including background scenery"; break;
-    default: angleDescription = input.shotAngle || "standard commercial angle";
+    case 'front': angleDescription = "straight-on eye-level front view"; break;
+    case 'back': angleDescription = "view from behind showing back details"; break;
+    case 'left-side': angleDescription = "left-side profile view"; break;
+    case 'right-side': angleDescription = "right-side profile view"; break;
+    case 'close': angleDescription = "macro close-up focus on textures and fine craftsmanship"; break;
+    default: angleDescription = "standard commercial angle";
+  }
+
+  let backgroundText = "";
+  switch (input.background) {
+    case 'studio': backgroundText = "clean professional high-key studio with soft shadows"; break;
+    case 'outdoor': backgroundText = "natural daylight outdoor city or street setting"; break;
+    case 'sport': backgroundText = "dynamic fitness gym or stadium environment"; break;
+    case 'nature': backgroundText = "serene natural environment like a park or forest"; break;
+    default: backgroundText = input.background || "professional studio";
   }
   
-  // Step 1: Creative Direction (Prompt Engineering)
   const promptEngineeringResponse = await ai.generate({
     model: 'googleai/gemini-2.5-flash',
-    prompt: `You are a world-class commercial fashion and product photographer. Write a highly detailed, professional photography prompt for an AI image generator.
+    prompt: `You are a world-class commercial fashion photographer. Write a highly detailed photography prompt.
     PRODUCT: ${input.productType}
     CATEGORY: ${input.category || 'General'}
     MODEL: ${modelText}
     ANGLE: ${angleDescription}
-    BACKGROUND: ${input.background || 'professional high-key studio'}
-    STYLE: ${input.style || 'high-end commercial editorial'}
+    BACKGROUND: ${backgroundText}
+    STYLE: ${input.style || 'high-end commercial editorial, extremely detailed, 8k resolution, realistic lighting'}
     
-    The prompt should focus on realistic lighting, high-fidelity textures, and a professional brand aesthetic. Output ONLY the final prompt text.`,
+    The prompt should focus on realism and professional brand aesthetic. Output ONLY the final prompt text.`,
   });
 
   const finalPromptText = promptEngineeringResponse.text;
 
-  // Step 2: Generation
   if (input.photoDataUri) {
-    // Image-to-Image Reshoot
     const response = await ai.generate({
       model: 'googleai/gemini-2.5-flash-image',
-      config: {
-        responseModalities: ['TEXT', 'IMAGE'],
-      },
+      config: { responseModalities: ['TEXT', 'IMAGE'] },
       prompt: [
         {media: {url: input.photoDataUri}},
-        {text: `Perform a professional studio reshoot based on this creative direction: ${finalPromptText}. CONSTRAINT: Keep the product absolutely identical to the original image in terms of design, color, and texture. Do not hallucinate new logos or patterns.`},
+        {text: `Perform a professional studio reshoot based on this creative direction: ${finalPromptText}. CONSTRAINT: Keep the product absolutely identical to the original image in terms of design, color, and texture.`},
       ],
     });
 
@@ -88,7 +89,6 @@ export async function generatePhotoshoot(input: GeneratePhotoshootInput): Promis
     if (!mediaPart || !mediaPart.media) throw new Error('AI Photographer failed to generate image.');
     return { generatedImageDataUri: mediaPart.media.url };
   } else {
-    // Text-to-Image Creation
     const { media } = await ai.generate({
       model: 'googleai/imagen-4.0-fast-generate-001',
       prompt: finalPromptText,

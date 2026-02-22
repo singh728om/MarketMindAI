@@ -17,14 +17,15 @@ import {
   Search,
   Globe,
   RefreshCw,
-  FileDown,
   Layout,
   Briefcase,
   FileUp,
   HardDrive,
   Download,
   ShieldCheck,
-  CheckCircle2
+  CheckCircle2,
+  Copy,
+  ChevronDown
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -78,7 +79,6 @@ function AgentsContent() {
   const [isSavingWeb, setIsSavingWeb] = useState(false);
   const [isVaulting, setIsVaulting] = useState(false);
   const [output, setOutput] = useState<any>(null);
-  const [modelType, setModelType] = useState<string>("none");
   const [isApiActive, setIsApiActive] = useState(false);
   const [activeKey, setActiveKey] = useState<string>("");
   const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
@@ -95,9 +95,9 @@ function AgentsContent() {
     targetAudience: "DTC Shoppers",
     keyFeatures: "Premium Quality, Handcrafted",
     shotAngle: "front",
-    background: "professional-studio",
+    background: "studio",
+    modelType: "none",
     kidAge: "5",
-    kidGender: "boy",
     base64Image: null as string | null,
     location: "",
     country: "India",
@@ -189,7 +189,6 @@ function AgentsContent() {
 
   const handleSaveToVault = () => {
     setIsVaulting(true);
-    // Simulate encryption and upload to Brand Vault
     setTimeout(() => {
       setIsVaulting(false);
       toast({
@@ -205,11 +204,11 @@ function AgentsContent() {
     let downloadUrl = "";
     let fileName = `marketmind-${selectedAgent.id}-${Date.now()}`;
 
-    if (output.imageUrl) {
-      downloadUrl = output.imageUrl;
+    if (output.imageUrl || output.generatedImageDataUri) {
+      downloadUrl = output.imageUrl || output.generatedImageDataUri;
       fileName += ".png";
-    } else if (output.videoUrl) {
-      downloadUrl = output.videoUrl;
+    } else if (output.videoUrl || output.videoDataUri) {
+      downloadUrl = output.videoUrl || output.videoDataUri;
       fileName += ".mp4";
     } else {
       const text = JSON.stringify(output, null, 2);
@@ -225,17 +224,13 @@ function AgentsContent() {
     link.click();
     document.body.removeChild(link);
     
-    if (!output.imageUrl && !output.videoUrl) {
-      URL.revokeObjectURL(downloadUrl);
-    }
-    
     toast({ title: "Download Started", description: `Exporting ${fileName}` });
   };
 
   const handleRunAgent = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isApiActive) {
-      toast({ variant: "destructive", title: "AI Studio Error", description: "AI Gent node is offline check with admin" });
+      toast({ variant: "destructive", title: "AI Studio Error", description: "AI Agent node is offline. Please check system config." });
       return;
     }
 
@@ -246,11 +241,6 @@ function AgentsContent() {
 
       switch (selectedAgent.id) {
         case 'ceo':
-          if (uploadedFiles.length === 0) {
-            toast({ variant: "destructive", title: "Missing Reports", description: "Please upload at least one performance report (Sales/Ads/Returns)." });
-            setIsRunning(false);
-            return;
-          }
           result = await runAICeoAnalysis({
             marketplace: formData.marketplace as any,
             reportSummary: `Reports Uploaded: ${uploadedFiles.join(', ')}`,
@@ -265,41 +255,25 @@ function AgentsContent() {
             productType: formData.productName,
             category: formData.category,
             shotAngle: formData.shotAngle,
-            modelType: modelType,
-            kidAge: modelType === 'kids' ? formData.kidAge : undefined,
-            kidGender: modelType === 'kids' ? formData.kidGender : undefined,
+            modelType: formData.modelType,
+            kidAge: formData.modelType === 'kids' ? formData.kidAge : undefined,
             background: formData.background,
-            style: "high-fashion commercial editorial, professional studio lighting, extremely detailed, 8k resolution",
+            style: "high-fashion commercial editorial, realistic lighting, extremely detailed, 8k",
             apiKey: activeKey
           });
           setOutput({ imageUrl: result.generatedImageDataUri, type: 'creative' });
           break;
 
         case 'video':
-          if (!formData.base64Image) {
-            toast({ variant: "destructive", title: "Missing Asset", description: "Please upload a product photo for video generation." });
-            setIsRunning(false);
-            return;
-          }
           result = await generateVideoAdContent({
             productName: formData.productName,
             productCategory: formData.category,
             background: formData.background,
             marketingText: formData.productDescription,
-            photoDataUri: formData.base64Image,
+            photoDataUri: formData.base64Image!,
             apiKey: activeKey
           });
           setOutput({ videoUrl: result.videoDataUri, type: 'video' });
-          break;
-
-        case 'webbuilder':
-          result = await generateWebsite({
-            brandName: formData.productName,
-            niche: formData.category,
-            requirements: formData.productDescription,
-            apiKey: activeKey
-          });
-          setOutput({ ...result, type: 'webbuilder' });
           break;
 
         case 'listing':
@@ -312,28 +286,6 @@ function AgentsContent() {
             apiKey: activeKey
           });
           setOutput({ ...result, type: 'listing' });
-          break;
-
-        case 'catalog':
-          result = await generateCatalogTemplate({
-            marketplaces: [formData.marketplace],
-            productType: formData.category,
-            desiredAttributes: formData.keyFeatures.split(','),
-            apiKey: activeKey
-          });
-          setOutput({ ...result, type: 'catalog' });
-          break;
-
-        case 'ugc':
-          result = await generateUgcCampaignAssets({
-            productDescription: formData.productDescription,
-            targetAudience: formData.targetAudience,
-            campaignGoal: "Brand Awareness",
-            keyFeatures: formData.keyFeatures.split(','),
-            desiredTone: "Relatable & Authentic",
-            apiKey: activeKey
-          });
-          setOutput({ ...result, type: 'ugc' });
           break;
 
         case 'ranking':
@@ -358,7 +310,7 @@ function AgentsContent() {
           break;
 
         default:
-          throw new Error("This agent is currently in private beta.");
+          throw new Error("Agent functionality coming soon.");
       }
 
       toast({ title: "Agent Execution Complete" });
@@ -374,7 +326,6 @@ function AgentsContent() {
     setSelectedAgent(null);
     setOutput(null);
     setUploadedFiles([]);
-    setModelType("none");
     setFormData({ 
       productName: "", 
       category: "Fashion", 
@@ -384,14 +335,19 @@ function AgentsContent() {
       targetAudience: "DTC Shoppers",
       keyFeatures: "Premium Quality, Handcrafted",
       shotAngle: "front",
-      background: "professional-studio",
+      background: "studio",
+      modelType: "none",
       kidAge: "5",
-      kidGender: "boy",
       base64Image: null,
       location: "",
       country: "India",
       websiteUrl: ""
     });
+  };
+
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast({ title: "Copied to Clipboard" });
   };
 
   return (
@@ -435,7 +391,7 @@ function AgentsContent() {
         <DialogContent className="max-w-4xl bg-slate-900 border-white/10 rounded-3xl overflow-hidden max-h-[95vh] flex flex-col p-0 text-white shadow-2xl">
           {selectedAgent && (
             <>
-              <DialogHeader className="p-5 md:p-8 pb-4 shrink-0 border-b border-white/5 relative">
+              <DialogHeader className="p-5 md:p-8 pb-4 shrink-0 border-b border-white/5">
                 <div className="flex items-center gap-4">
                   <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl bg-slate-800 flex items-center justify-center ${selectedAgent.color}`}>
                     <selectedAgent.icon size={24} />
@@ -452,6 +408,7 @@ function AgentsContent() {
                   {!output ? (
                     <form onSubmit={handleRunAgent} className="space-y-6 md:space-y-8">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                        {/* Generic Fields */}
                         <div className="space-y-2">
                           <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Select Marketplace</Label>
                           <Select value={formData.marketplace} onValueChange={(val) => handleInputChange("marketplace", val)} required>
@@ -480,20 +437,6 @@ function AgentsContent() {
                                 </Button>
                               </div>
                               <div className="p-4 rounded-xl bg-slate-800 border border-white/5 flex items-center justify-between">
-                                <span className="text-xs font-bold">Inventory Data</span>
-                                <input type="file" className="hidden" id="inv-up" onChange={handleFileChange} />
-                                <Button size="sm" variant="outline" className="h-8 text-[10px]" asChild>
-                                  <label htmlFor="inv-up" className="cursor-pointer"><FileUp size={12} className="mr-1" /> Upload</label>
-                                </Button>
-                              </div>
-                              <div className="p-4 rounded-xl bg-slate-800 border border-white/5 flex items-center justify-between">
-                                <span className="text-xs font-bold">Returns Report</span>
-                                <input type="file" className="hidden" id="ret-up" onChange={handleFileChange} />
-                                <Button size="sm" variant="outline" className="h-8 text-[10px]" asChild>
-                                  <label htmlFor="ret-up" className="cursor-pointer"><FileUp size={12} className="mr-1" /> Upload</label>
-                                </Button>
-                              </div>
-                              <div className="p-4 rounded-xl bg-slate-800 border border-white/5 flex items-center justify-between">
                                 <span className="text-xs font-bold">Ads Performance</span>
                                 <input type="file" className="hidden" id="ads-up" onChange={handleFileChange} />
                                 <Button size="sm" variant="outline" className="h-8 text-[10px]" asChild>
@@ -514,27 +457,22 @@ function AgentsContent() {
                           </div>
                         ) : (
                           <>
-                            {selectedAgent.id !== 'leads' && (
-                              <div className="space-y-2">
-                                <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                                  {selectedAgent.id === 'webbuilder' ? 'Brand Name' : 'Product Name'}
-                                </Label>
-                                <Input 
-                                  placeholder={selectedAgent.id === 'webbuilder' ? "e.g. Silk Elegance" : "e.g. Silk Kurta"}
-                                  required 
-                                  className="bg-slate-800 border-white/5 h-11 md:h-12 rounded-xl text-white text-sm"
-                                  value={formData.productName}
-                                  onChange={(e) => handleInputChange("productName", e.target.value)}
-                                />
-                              </div>
-                            )}
-                            <div className={cn("space-y-2", selectedAgent.id === 'leads' && "md:col-span-2")}>
-                              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                                {selectedAgent.id === 'leads' ? 'Target Industry' : 'Category / Niche'}
-                              </Label>
+                            <div className="space-y-2">
+                              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Product Name</Label>
+                              <Input 
+                                placeholder="e.g. Silk Kurta" 
+                                required 
+                                className="bg-slate-800 border-white/5 h-11 md:h-12 rounded-xl text-white text-sm"
+                                value={formData.productName}
+                                onChange={(e) => handleInputChange("productName", e.target.value)}
+                              />
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Category</Label>
                               <Select value={formData.category} onValueChange={(val) => handleInputChange("category", val)} required>
                                 <SelectTrigger className="bg-slate-800 border-white/5 h-11 md:h-12 rounded-xl text-white text-sm">
-                                  <SelectValue placeholder="Select Segment" />
+                                  <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent className="bg-slate-800 border-white/10 text-white">
                                   <SelectItem value="Fashion">Fashion</SelectItem>
@@ -545,146 +483,221 @@ function AgentsContent() {
                                 </SelectContent>
                               </Select>
                             </div>
+
+                            {(selectedAgent.id === 'photoshoot' || selectedAgent.id === 'listing' || selectedAgent.id === 'ranking') && (
+                              <div className="space-y-2">
+                                <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Product Color</Label>
+                                <Input 
+                                  placeholder="e.g. Maroon" 
+                                  className="bg-slate-800 border-white/5 h-11 md:h-12 rounded-xl text-white text-sm"
+                                  value={formData.color}
+                                  onChange={(e) => handleInputChange("color", e.target.value)}
+                                />
+                              </div>
+                            )}
+
+                            {selectedAgent.id === 'photoshoot' && (
+                              <>
+                                <div className="space-y-2">
+                                  <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Select Model</Label>
+                                  <Select value={formData.modelType} onValueChange={(val) => handleInputChange("modelType", val)}>
+                                    <SelectTrigger className="bg-slate-800 border-white/5 h-11 md:h-12 rounded-xl text-white text-sm">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-slate-800 border-white/10 text-white">
+                                      <SelectItem value="none">No Model (Product Only)</SelectItem>
+                                      <SelectItem value="mens">Mens Model</SelectItem>
+                                      <SelectItem value="womens">Womens Model</SelectItem>
+                                      <SelectItem value="kids">Kids Model</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+
+                                {formData.modelType === 'kids' && (
+                                  <div className="space-y-2">
+                                    <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Child Age (1-12 yrs)</Label>
+                                    <Select value={formData.kidAge} onValueChange={(val) => handleInputChange("kidAge", val)}>
+                                      <SelectTrigger className="bg-slate-800 border-white/5 h-11 md:h-12 rounded-xl text-white text-sm">
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent className="bg-slate-800 border-white/10 text-white">
+                                        {[...Array(12)].map((_, i) => (
+                                          <SelectItem key={i+1} value={(i+1).toString()}>{i+1} Years Old</SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                )}
+
+                                <div className="space-y-2">
+                                  <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Shot Angle</Label>
+                                  <Select value={formData.shotAngle} onValueChange={(val) => handleInputChange("shotAngle", val)}>
+                                    <SelectTrigger className="bg-slate-800 border-white/5 h-11 md:h-12 rounded-xl text-white text-sm">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-slate-800 border-white/10 text-white">
+                                      <SelectItem value="front">Front View</SelectItem>
+                                      <SelectItem value="back">Back View</SelectItem>
+                                      <SelectItem value="right-side">Right Side View</SelectItem>
+                                      <SelectItem value="left-side">Left Side View</SelectItem>
+                                      <SelectItem value="close">Close-up View</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+
+                                <div className="space-y-2">
+                                  <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Background Setting</Label>
+                                  <Select value={formData.background} onValueChange={(val) => handleInputChange("background", val)}>
+                                    <SelectTrigger className="bg-slate-800 border-white/5 h-11 md:h-12 rounded-xl text-white text-sm">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-slate-800 border-white/10 text-white">
+                                      <SelectItem value="studio">Professional Studio Shoot</SelectItem>
+                                      <SelectItem value="outdoor">Outdoor Lifestyle</SelectItem>
+                                      <SelectItem value="sport">Dynamic Sport Environment</SelectItem>
+                                      <SelectItem value="nature">Natural Setting</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              </>
+                            )}
+
+                            {selectedAgent.id === 'leads' && (
+                              <>
+                                <div className="space-y-2">
+                                  <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Target Indian Cities</Label>
+                                  <Input 
+                                    placeholder="e.g. Mumbai, Delhi, Bangalore" 
+                                    className="bg-slate-800 border-white/5 h-11 md:h-12 rounded-xl text-white text-sm"
+                                    value={formData.location}
+                                    onChange={(e) => handleInputChange("location", e.target.value)}
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Target Country</Label>
+                                  <Select value={formData.country} onValueChange={(val) => handleInputChange("country", val)}>
+                                    <SelectTrigger className="bg-slate-800 border-white/5 h-11 md:h-12 rounded-xl text-white text-sm">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-slate-800 border-white/10 text-white">
+                                      <SelectItem value="India">India</SelectItem>
+                                      <SelectItem value="USA">USA</SelectItem>
+                                      <SelectItem value="UAE">UAE</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              </>
+                            )}
                           </>
                         )}
 
                         {(selectedAgent.id === 'photoshoot' || selectedAgent.id === 'video' || selectedAgent.id === 'listing') && (
-                          <div className="md:col-span-2 space-y-6">
-                            <div className="space-y-4 bg-slate-800/30 p-4 md:p-6 rounded-2xl border border-white/5">
+                          <div className="md:col-span-2 space-y-4">
+                            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Upload Product Photo</Label>
+                            <div 
+                              onClick={() => fileInputRef.current?.click()}
+                              className={cn(
+                                "border-2 border-dashed rounded-2xl p-8 flex flex-col items-center justify-center gap-3 cursor-pointer transition-all",
+                                formData.base64Image ? "border-primary/50 bg-primary/5" : "border-white/10 bg-slate-800/30"
+                              )}
+                            >
                               <input type="file" className="hidden" ref={fileInputRef} onChange={handleFileChange} accept="image/*" />
-                              <div 
-                                onClick={() => fileInputRef.current?.click()}
-                                className={cn(
-                                  "border-2 border-dashed rounded-2xl p-6 md:p-10 flex flex-col items-center justify-center gap-3 hover:bg-slate-800 transition-all cursor-pointer group overflow-hidden",
-                                  formData.base64Image ? "border-primary/50 bg-primary/5" : "border-white/10"
-                                )}
-                              >
-                                {formData.base64Image ? (
-                                  <img src={formData.base64Image} alt="Input" className="w-full max-w-[150px] aspect-square object-contain rounded-xl shadow-2xl" />
-                                ) : (
-                                  <><Upload size={24} className="text-primary" /><p className="text-xs md:text-sm font-bold">Upload Product Asset</p></>
-                                )}
-                              </div>
+                              {formData.base64Image ? (
+                                <img src={formData.base64Image} alt="Input" className="w-32 aspect-square object-contain rounded-xl" />
+                              ) : (
+                                <><Upload size={24} className="text-primary" /><p className="text-xs font-bold">Click to upload raw asset</p></>
+                              )}
                             </div>
                           </div>
                         )}
                       </div>
 
-                      <div className="pt-4">
-                        <Button 
-                          type="submit" 
-                          className="w-full h-12 md:h-14 rounded-xl text-sm md:text-lg font-bold bg-primary hover:bg-primary/90 shadow-xl shadow-primary/20" 
-                          disabled={isRunning}
-                        >
-                          {isRunning ? <><RefreshCw className="mr-2 h-5 w-5 animate-spin" /> {selectedAgent.id === 'ceo' ? 'Analyzing Financial Data...' : 'Orchestrating AI...'}</> : <><Zap className="mr-2 h-5 w-5" /> Start Production</>}
-                        </Button>
-                      </div>
+                      <Button 
+                        type="submit" 
+                        className="w-full h-12 md:h-14 rounded-xl text-lg font-bold shadow-xl shadow-primary/20" 
+                        disabled={isRunning}
+                      >
+                        {isRunning ? <><RefreshCw className="mr-2 h-5 w-5 animate-spin" /> Orchestrating AI...</> : <><Zap className="mr-2 h-5 w-5" /> Start Production</>}
+                      </Button>
                     </form>
                   ) : (
-                    <div className="space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-4">
-                      <div className="p-5 md:p-10 rounded-2xl md:rounded-3xl bg-slate-800/50 border border-white/5 space-y-6 md:space-y-8">
+                    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">
+                      <div className="p-6 md:p-10 rounded-3xl bg-slate-800/50 border border-white/5 space-y-6">
                         <div className="flex items-center justify-between">
-                          <h4 className="font-bold font-headline text-lg md:text-xl text-white">Output Generated</h4>
+                          <h4 className="font-bold font-headline text-xl">Output Generated</h4>
                           <Badge className="bg-emerald-500 text-[10px]">Production Ready</Badge>
                         </div>
                         
-                        {output.type === 'ceo' && (
-                          <div className="space-y-8">
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                              <Card className="bg-slate-900 border-white/5 p-4 rounded-xl">
-                                <p className="text-[8px] uppercase text-slate-500 font-bold mb-1">Total Sales</p>
-                                <p className="text-lg font-bold text-white">₹{output.metrics.totalSales.toLocaleString()}</p>
-                              </Card>
-                              <Card className="bg-slate-900 border-white/5 p-4 rounded-xl">
-                                <p className="text-[8px] uppercase text-slate-500 font-bold mb-1">Net Profit</p>
-                                <p className="text-lg font-bold text-emerald-500">₹{output.metrics.profit.toLocaleString()}</p>
-                              </Card>
-                              <Card className="bg-slate-900 border-white/5 p-4 rounded-xl">
-                                <p className="text-[8px] uppercase text-slate-500 font-bold mb-1">Identified Loss</p>
-                                <p className="text-lg font-bold text-rose-500">₹{output.metrics.loss.toLocaleString()}</p>
-                              </Card>
-                              <Card className="bg-slate-900 border-white/5 p-4 rounded-xl">
-                                <p className="text-[8px] uppercase text-slate-500 font-bold mb-1">Return Rate</p>
-                                <p className="text-lg font-bold text-amber-500">{output.metrics.returnRate}%</p>
-                              </Card>
-                              <Card className="bg-slate-900 border-white/5 p-4 rounded-xl">
-                                <p className="text-[8px] uppercase text-slate-500 font-bold mb-1">CTR</p>
-                                <p className="text-lg font-bold text-blue-500">{output.metrics.ctr}%</p>
-                              </Card>
-                              <Card className="bg-slate-900 border-white/5 p-4 rounded-xl">
-                                <p className="text-[8px] uppercase text-slate-500 font-bold mb-1">ROAS</p>
-                                <p className="text-lg font-bold text-indigo-500">{output.metrics.roas}x</p>
-                              </Card>
-                            </div>
-
-                            <div className="space-y-4">
-                              <Label className="text-[10px] font-bold uppercase text-amber-400">CEO Strategic Recommendations</Label>
-                              <div className="grid grid-cols-1 gap-2">
-                                {output.recommendations.map((r: string, i: number) => (
-                                  <div key={i} className="flex gap-3 p-4 bg-slate-900 rounded-xl text-xs border border-white/5 border-l-amber-500/50 border-l-4">
-                                    <Zap className="text-amber-400 size-4 shrink-0" /> {r}
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-
-                            <div className="p-5 bg-slate-900 rounded-2xl border border-white/5 space-y-2">
-                              <Label className="text-[10px] font-bold uppercase text-slate-500">Executive Narrative</Label>
-                              <p className="text-xs md:text-sm text-slate-300 leading-relaxed italic">"{output.narrative}"</p>
-                            </div>
-                          </div>
-                        )}
-
                         {output.imageUrl && (
-                          <div className="w-full max-w-lg mx-auto aspect-square rounded-2xl md:rounded-[2rem] overflow-hidden border-4 border-white/5 shadow-2xl bg-slate-900">
+                          <div className="w-full max-w-lg mx-auto aspect-square rounded-3xl overflow-hidden border-4 border-white/5 shadow-2xl bg-slate-900">
                             <img src={output.imageUrl} alt="AI Result" className="w-full h-full object-cover" />
                           </div>
                         )}
 
                         {output.videoUrl && (
-                          <div className="w-full max-w-lg mx-auto aspect-[9/16] rounded-2xl md:rounded-[2rem] overflow-hidden border-4 border-white/5 shadow-2xl bg-slate-900 group relative">
+                          <div className="w-full max-w-lg mx-auto aspect-[9/16] rounded-3xl overflow-hidden border-4 border-white/5 shadow-2xl bg-slate-900">
                             <video src={output.videoUrl} className="w-full h-full object-cover" autoPlay loop muted controls />
                           </div>
                         )}
 
-                        {/* Generic data display for text-based agents */}
-                        {!output.imageUrl && !output.videoUrl && output.type !== 'ceo' && (
-                          <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 scrollbar-thin">
-                            <pre className="text-[10px] md:text-xs text-slate-300 bg-slate-900/80 p-4 rounded-xl border border-white/5 whitespace-pre-wrap font-mono">
-                              {JSON.stringify(output, null, 2)}
-                            </pre>
+                        {output.type === 'ranking' && (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {output.keywords.map((k: any, i: number) => (
+                              <div key={i} className="p-4 rounded-xl bg-slate-900 border border-white/5 flex items-center justify-between group">
+                                <div className="space-y-1">
+                                  <p className="text-sm font-bold text-white">{k.term}</p>
+                                  <p className="text-[10px] text-slate-500 uppercase">{k.volume} Vol • {k.difficulty} Comp</p>
+                                </div>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleCopy(k.term)}>
+                                  <Copy size={14} />
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {output.type === 'listing' && (
+                          <div className="space-y-6">
+                            <div className="p-4 rounded-xl bg-slate-900 border border-white/5 space-y-2">
+                              <div className="flex justify-between items-center"><Label className="text-[10px] font-bold text-primary uppercase">Optimized Title</Label><Button size="sm" variant="ghost" onClick={() => handleCopy(output.title)}><Copy size={12} /></Button></div>
+                              <p className="text-sm font-medium">{output.title}</p>
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-[10px] font-bold text-primary uppercase">High-Conversion Bullets</Label>
+                              <div className="space-y-2">
+                                {output.bulletPoints.map((b: string, i: number) => (
+                                  <div key={i} className="p-3 bg-slate-900 rounded-lg text-xs flex gap-3"><Zap className="size-3 text-amber-500 shrink-0" /> {b}</div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {output.type === 'leads' && (
+                          <div className="grid grid-cols-1 gap-3">
+                            {output.results.map((l: any, i: number) => (
+                              <div key={i} className="p-5 rounded-2xl bg-slate-900 border border-white/5 grid grid-cols-3 gap-4 items-center">
+                                <div className="flex items-center gap-3"><Briefcase className="text-accent size-5" /> <span className="font-bold text-sm truncate">{l.businessName}</span></div>
+                                <div className="text-xs text-slate-400 font-mono text-center">{l.mobile}</div>
+                                <div className="text-xs text-slate-400 text-right truncate">{l.email}</div>
+                              </div>
+                            ))}
                           </div>
                         )}
                       </div>
                       
                       <div className="flex flex-col sm:flex-row gap-3 pb-12">
-                        <Button variant="outline" className="flex-1 h-11 md:h-12 rounded-xl border-white/10 text-white" onClick={() => setOutput(null)}>New Session</Button>
-                        
-                        {output.type === 'ceo' && (
-                          <Button 
-                            className="flex-1 h-11 md:h-12 rounded-xl bg-amber-600 hover:bg-amber-700 shadow-lg font-bold text-white"
-                            onClick={handleSaveToDashboard}
-                            disabled={isSavingWeb}
-                          >
-                            {isSavingWeb ? <Loader2 className="animate-spin mr-2" /> : <RefreshCw size={18} className="mr-2" />} 
-                            Sync Dashboard
-                          </Button>
-                        )}
-
+                        <Button variant="outline" className="flex-1 h-12 rounded-xl" onClick={() => setOutput(null)}>New Session</Button>
                         <Button 
                           variant="secondary"
-                          className="flex-1 h-11 md:h-12 rounded-xl bg-slate-800 hover:bg-slate-700 font-bold text-white"
+                          className="flex-1 h-12 rounded-xl bg-slate-800 hover:bg-slate-700 font-bold"
                           onClick={handleSaveToVault}
                           disabled={isVaulting}
                         >
                           {isVaulting ? <Loader2 className="animate-spin mr-2" /> : <HardDrive size={18} className="mr-2" />} 
                           Save to Brand Vault
                         </Button>
-
-                        <Button 
-                          className="flex-1 h-11 md:h-12 rounded-xl bg-primary shadow-lg shadow-primary/20 font-bold text-white" 
-                          onClick={handleDownload}
-                        >
+                        <Button className="flex-1 h-12 rounded-xl bg-primary shadow-lg shadow-primary/20 font-bold" onClick={handleDownload}>
                           <Download size={18} className="mr-2" /> Download Asset
                         </Button>
                       </div>
@@ -692,13 +705,6 @@ function AgentsContent() {
                   )}
                 </div>
               </ScrollArea>
-              
-              <div className="p-3 md:p-4 bg-slate-950/50 border-t border-white/5 flex items-center justify-center gap-2 shrink-0">
-                <div className={`w-1.5 h-1.5 rounded-full ${isApiActive ? 'bg-emerald-500 animate-pulse' : 'bg-slate-600'}`} />
-                <span className="text-[8px] md:text-[10px] text-slate-500 uppercase tracking-widest font-bold">
-                  {isApiActive ? 'AI Production Pipeline Active' : 'Internal Node Offline - Demo Only'}
-                </span>
-              </div>
             </>
           )}
         </DialogContent>
