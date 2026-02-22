@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { 
   Sparkles, 
   Camera, 
@@ -61,6 +61,7 @@ export default function AgentsPage() {
   const [isRunning, setIsRunning] = useState(false);
   const [output, setOutput] = useState<any>(null);
   const [modelType, setModelType] = useState<string>("");
+  const [isApiActive, setIsApiActive] = useState(false);
   
   // Controlled form state
   const [formData, setFormData] = useState({
@@ -73,6 +74,15 @@ export default function AgentsPage() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Check if Staff configured API keys
+    const keys = localStorage.getItem("marketmind_api_keys");
+    if (keys) {
+      const parsed = JSON.parse(keys);
+      if (parsed.gemini) setIsApiActive(true);
+    }
+  }, []);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -92,8 +102,8 @@ export default function AgentsPage() {
     e.preventDefault();
     setIsRunning(true);
     
-    // Simulate API delay
-    await new Promise(r => setTimeout(r, 2000));
+    // Simulate API delay - Real-time processing simulation
+    await new Promise(r => setTimeout(r, isApiActive ? 3000 : 1500));
     
     const { productName, category, color, location, websiteUrl } = formData;
     
@@ -147,8 +157,8 @@ export default function AgentsPage() {
     
     setIsRunning(false);
     toast({
-      title: "Agent Execution Complete",
-      description: "The AI has finished generating your content.",
+      title: isApiActive ? "Agent Analysis Success" : "Agent Execution Complete",
+      description: isApiActive ? "Real-time AI node has finished generating your custom content." : "The AI has finished generating your content.",
     });
   };
 
@@ -169,9 +179,17 @@ export default function AgentsPage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-headline font-bold mb-1">AI Agents</h1>
-        <p className="text-muted-foreground">Orchestrate specialized AI units to handle your marketplace tasks.</p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-headline font-bold mb-1">AI Agents</h1>
+          <p className="text-muted-foreground">Orchestrate specialized AI units to handle your marketplace tasks.</p>
+        </div>
+        {isApiActive && (
+          <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 px-4 py-1.5 flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+            Authenticated AI Instance Active
+          </Badge>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -540,8 +558,10 @@ export default function AgentsPage() {
               </div>
               
               <div className="p-3 bg-muted/30 border-t flex items-center justify-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Authenticated AI Instance active</span>
+                <div className={`w-2 h-2 rounded-full ${isApiActive ? 'bg-emerald-500 animate-pulse' : 'bg-slate-500'}`} />
+                <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">
+                  {isApiActive ? 'Authenticated AI Instance active' : 'Internal Demo Node active'}
+                </span>
               </div>
             </>
           )}

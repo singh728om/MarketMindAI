@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Key, 
   ShieldCheck, 
@@ -26,15 +27,29 @@ import { Switch } from "@/components/ui/switch";
 export default function InternalSettingsPage() {
   const [showKey, setShowKey] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [keys, setKeys] = useState({
+    gemini: "AIzaSyCqOB3Ka2dA0Nl5kbLFrg9KER2whBkt3pA",
+    openai: "",
+    status: "Active"
+  });
+  
   const { toast } = useToast();
+
+  useEffect(() => {
+    const savedKeys = localStorage.getItem("marketmind_api_keys");
+    if (savedKeys) {
+      setKeys(JSON.parse(savedKeys));
+    }
+  }, []);
 
   const handleSaveConfig = () => {
     setIsSaving(true);
     setTimeout(() => {
+      localStorage.setItem("marketmind_api_keys", JSON.stringify(keys));
       setIsSaving(false);
       toast({
         title: "System Config Updated",
-        description: "Gemini API keys and global constraints have been synced.",
+        description: "API keys and global constraints have been synced across all nodes.",
       });
     }, 1500);
   };
@@ -61,7 +76,8 @@ export default function InternalSettingsPage() {
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="p-8 space-y-6">
+            <CardContent className="p-8 space-y-8">
+              {/* Gemini Slot */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between mb-2">
                   <Label className="text-slate-300 font-bold uppercase tracking-widest text-[10px]">Google Gemini API Key (Pro 1.5)</Label>
@@ -70,19 +86,35 @@ export default function InternalSettingsPage() {
                 <div className="relative">
                   <Input 
                     type={showKey ? "text" : "password"} 
-                    defaultValue="AIzaSyCqOB3Ka2dA0Nl5kbLFrg9KER2whBkt3pA"
+                    value={keys.gemini}
+                    onChange={(e) => setKeys({...keys, gemini: e.target.value})}
                     className="h-12 rounded-xl bg-slate-800 border-white/5 text-white font-mono text-sm pr-20"
                   />
                   <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
                     <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-white" onClick={() => setShowKey(!showKey)}>
                       {showKey ? <EyeOff size={16} /> : <Eye size={16} />}
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-white">
-                      <RefreshCw size={16} />
-                    </Button>
                   </div>
                 </div>
-                <p className="text-[10px] text-slate-500 italic">Used for: Listing Optimizer, Report Narrator, and Growth Engine.</p>
+                <p className="text-[10px] text-slate-500 italic">Core engine for: Listing Optimizer, Keyword Finder, and Growth Engine.</p>
+              </div>
+
+              {/* OpenAI Slot */}
+              <div className="space-y-4 pt-6 border-t border-white/5">
+                <div className="flex items-center justify-between mb-2">
+                  <Label className="text-slate-300 font-bold uppercase tracking-widest text-[10px]">OpenAI API Key (GPT-4o)</Label>
+                  <Badge variant="secondary" className="bg-slate-800 text-slate-500 text-[10px]">{keys.openai ? 'Configured' : 'Optional'}</Badge>
+                </div>
+                <div className="relative">
+                  <Input 
+                    type={showKey ? "text" : "password"} 
+                    placeholder="sk-proj-..."
+                    value={keys.openai}
+                    onChange={(e) => setKeys({...keys, openai: e.target.value})}
+                    className="h-12 rounded-xl bg-slate-800 border-white/5 text-white font-mono text-sm"
+                  />
+                </div>
+                <p className="text-[10px] text-slate-500 italic">Fallback engine for: Lead Generation and UGC Scripting.</p>
               </div>
 
               <div className="space-y-4 pt-6 border-t border-white/5">
@@ -124,7 +156,7 @@ export default function InternalSettingsPage() {
               <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-800/50 border border-white/5">
                 <div className="space-y-1">
                   <p className="text-sm font-bold text-white">Public Maintenance Mode</p>
-                  <p className="text-xs text-slate-500">Disable all customer logins for scheduled platform upgrades.</p>
+                  <p className="text-xs text-muted-foreground">Disable all customer logins for scheduled platform upgrades.</p>
                 </div>
                 <Switch />
               </div>
