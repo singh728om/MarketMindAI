@@ -7,11 +7,12 @@ import {
   ShoppingBag, 
   Upload, 
   Target, 
-  Settings, 
   ChevronRight, 
   ChevronLeft,
   CheckCircle2,
-  BrainCircuit
+  BrainCircuit,
+  Sparkles,
+  Rocket
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -21,7 +22,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
-const STEPS = ["Marketplaces", "Brand Details", "Growth Goals", "Connect Tools"];
+const STEPS = ["Marketplaces", "Brand Details", "Growth Goals", "Get Started"];
 
 export default function OnboardingPage() {
   const [step, setStep] = useState(1);
@@ -180,19 +181,19 @@ export default function OnboardingPage() {
           )}
 
           {step === 4 && (
-            <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
-              <h2 className="text-3xl font-headline font-bold">Connect Tools</h2>
-              <p className="text-muted-foreground">Link your preferred stacks for AI generation.</p>
-              <div className="space-y-3">
-                {['OpenAI (Copywriting)', 'DALL·E 3 (Photoshoots)', 'Meta Ads', 'Google Analytics'].map(t => (
-                   <div key={t} className="flex items-center justify-between p-4 rounded-xl bg-secondary/30 border border-white/5">
-                    <div className="flex items-center gap-3">
-                      <Settings className="text-muted-foreground" size={18} />
-                      <span className="font-medium">{t}</span>
-                    </div>
-                    <Button variant="outline" size="sm">Connect</Button>
-                   </div>
-                ))}
+            <div className="space-y-8 animate-in fade-in slide-in-from-right-4 py-12 text-center">
+              <div className="mx-auto w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-6">
+                <Rocket size={48} />
+              </div>
+              <div className="space-y-4">
+                <h2 className="text-4xl font-headline font-bold tracking-tight">Let's get started!</h2>
+                <p className="text-xl text-muted-foreground max-w-md mx-auto leading-relaxed">
+                  Your personalized AI-driven growth journey begins now. We've prepared everything based on your brand and goals.
+                </p>
+              </div>
+              <div className="flex items-center justify-center gap-2 text-primary font-bold">
+                <Sparkles size={18} />
+                <span>Ready to scale your marketplace presence</span>
               </div>
             </div>
           )}
