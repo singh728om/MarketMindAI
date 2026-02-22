@@ -19,11 +19,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 const STEPS = ["Marketplaces", "Brand Details", "Growth Goals", "Connect Tools"];
 
 export default function OnboardingPage() {
   const [step, setStep] = useState(1);
+  const [selectedMarketplaces, setSelectedMarketplaces] = useState<string[]>([]);
+  const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const { toast } = useToast();
@@ -38,6 +41,18 @@ export default function OnboardingPage() {
 
   const handleBack = () => {
     if (step > 1) setStep(step - 1);
+  };
+
+  const toggleMarketplace = (m: string) => {
+    setSelectedMarketplaces(prev => 
+      prev.includes(m) ? prev.filter(item => item !== m) : [...prev, m]
+    );
+  };
+
+  const toggleGoal = (g: string) => {
+    setSelectedGoals(prev => 
+      prev.includes(g) ? prev.filter(item => item !== g) : [...prev, g]
+    );
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -61,14 +76,18 @@ export default function OnboardingPage() {
         <div className="mb-12 flex items-center justify-between">
           {STEPS.map((s, i) => (
             <div key={s} className="flex flex-col items-center gap-2 relative">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
+              <div className={cn(
+                "w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300",
                 step > i + 1 ? 'bg-primary border-primary text-white' : 
                 step === i + 1 ? 'border-primary text-primary bg-primary/10 scale-110 shadow-lg shadow-primary/20' : 
                 'border-muted text-muted-foreground bg-secondary'
-              }`}>
+              )}>
                 {step > i + 1 ? <CheckCircle2 size={20} /> : i + 1}
               </div>
-              <span className={`text-[10px] font-bold uppercase tracking-widest ${step === i + 1 ? 'text-primary' : 'text-muted-foreground'}`}>{s}</span>
+              <span className={cn(
+                "text-[10px] font-bold uppercase tracking-widest",
+                step === i + 1 ? 'text-primary' : 'text-muted-foreground'
+              )}>{s}</span>
             </div>
           ))}
         </div>
@@ -80,10 +99,20 @@ export default function OnboardingPage() {
               <p className="text-muted-foreground">Which platforms do you currently sell on?</p>
               <div className="space-y-4">
                 {['Amazon India', 'Flipkart', 'Myntra', 'Ajio'].map(m => (
-                  <div key={m} className="flex items-center space-x-4 p-4 rounded-xl border border-white/5 hover:bg-secondary/50 transition-colors cursor-pointer group">
-                    <Checkbox id={m} />
+                  <div 
+                    key={m} 
+                    onClick={() => toggleMarketplace(m)}
+                    className={cn(
+                      "flex items-center space-x-4 p-4 rounded-xl border transition-colors cursor-pointer group",
+                      selectedMarketplaces.includes(m) ? "border-primary bg-primary/5" : "border-white/5 hover:bg-secondary/50"
+                    )}
+                  >
+                    <Checkbox id={m} checked={selectedMarketplaces.includes(m)} onCheckedChange={() => toggleMarketplace(m)} />
                     <Label htmlFor={m} className="flex-1 text-lg font-medium cursor-pointer">{m}</Label>
-                    <ShoppingBag className="text-muted-foreground group-hover:text-primary transition-colors" />
+                    <ShoppingBag className={cn(
+                      "transition-colors",
+                      selectedMarketplaces.includes(m) ? "text-primary" : "text-muted-foreground group-hover:text-primary"
+                    )} />
                   </div>
                 ))}
               </div>
@@ -128,12 +157,24 @@ export default function OnboardingPage() {
               <h2 className="text-3xl font-headline font-bold">Choose Goals</h2>
               <p className="text-muted-foreground">What do you want to achieve in the first 30 days?</p>
               <div className="grid grid-cols-2 gap-4">
-                {['Increase Sales', 'Improve CTR', 'Higher Conversion', 'Listing Quality', 'Reduce ROAS', 'Catalog Cleanup'].map(g => (
-                  <div key={g} className="p-4 rounded-xl border border-white/5 bg-secondary/20 hover:border-primary/50 transition-all cursor-pointer flex flex-col gap-2">
-                    <Target className="text-primary" size={20} />
-                    <span className="font-bold text-sm">{g}</span>
-                  </div>
-                ))}
+                {['Increase Sales', 'Improve CTR', 'Higher Conversion', 'Listing Quality', 'Reduce ROAS', 'Catalog Cleanup'].map(g => {
+                  const isSelected = selectedGoals.includes(g);
+                  return (
+                    <div 
+                      key={g} 
+                      onClick={() => toggleGoal(g)}
+                      className={cn(
+                        "p-4 rounded-xl border transition-all cursor-pointer flex flex-col gap-2",
+                        isSelected 
+                          ? "border-primary bg-primary/10 shadow-lg shadow-primary/10" 
+                          : "border-white/5 bg-secondary/20 hover:border-primary/50"
+                      )}
+                    >
+                      <Target className={cn(isSelected ? "text-primary" : "text-muted-foreground")} size={20} />
+                      <span className={cn("font-bold text-sm", isSelected ? "text-primary" : "")}>{g}</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
