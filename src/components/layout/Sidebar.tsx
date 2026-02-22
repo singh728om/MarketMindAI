@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -16,6 +15,7 @@ import {
   Ticket,
   CreditCard,
   Building2,
+  HardDrive,
   X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -27,6 +27,7 @@ const navItems = [
   { name: "AI Agents", href: "/dashboard/agents", icon: Sparkles },
   { name: "Growth Intel", href: "/dashboard/growth", icon: TrendingUp },
   { name: "Projects", href: "/dashboard/projects", icon: FolderKanban },
+  { name: "Storage Services", href: "/dashboard/storage", icon: HardDrive },
   { name: "Billing & Plans", href: "/dashboard/billing", icon: CreditCard },
   { name: "Support Tickets", href: "/dashboard/tickets", icon: Ticket },
   { name: "Brand Profile", href: "/dashboard/profile", icon: Building2 },
@@ -61,7 +62,7 @@ export function Sidebar({ onClose }: SidebarProps) {
           <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-primary-foreground">
             <BrainCircuit size={24} />
           </div>
-          <span className="font-headline text-xl font-bold tracking-tight">MarketMind AI</span>
+          <span className="font-headline text-xl font-bold tracking-tight text-white">MarketMind AI</span>
         </Link>
         {onClose && (
           <Button variant="ghost" size="icon" className="md:hidden" onClick={onClose}>
@@ -106,7 +107,7 @@ export function Sidebar({ onClose }: SidebarProps) {
             </Link>
           </div>
           <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:scale-110 transition-transform">
-            <Zap size={64} />
+            <HardDrive size={64} />
           </div>
         </div>
         <Button 
