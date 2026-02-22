@@ -16,7 +16,25 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+
+const SUPPORT_SERVICES = [
+  "Myntra Onboarding",
+  "Amazon Onboarding",
+  "Flipkart Onboarding",
+  "Listing Optimization",
+  "AI Photoshoot",
+  "AI Video Ad",
+  "Website Builder",
+  "General Support"
+];
 
 export default function SupportPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -69,6 +87,20 @@ export default function SupportPage() {
                     <Label htmlFor="support-email">Work Email</Label>
                     <Input id="support-email" type="email" placeholder="john@company.com" required className="rounded-xl h-12" />
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="support-service">Related Service</Label>
+                  <Select required>
+                    <SelectTrigger className="h-12 rounded-xl">
+                      <SelectValue placeholder="Select a service" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SUPPORT_SERVICES.map(service => (
+                        <SelectItem key={service} value={service}>{service}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 
                 <div className="space-y-2">
@@ -152,4 +184,7 @@ export default function SupportPage() {
       </div>
     </div>
   );
+}
+function Zap({ className, size }: { className?: string, size?: number }) {
+  return <svg xmlns="http://www.w3.org/2000/svg" width={size || 24} height={size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>;
 }

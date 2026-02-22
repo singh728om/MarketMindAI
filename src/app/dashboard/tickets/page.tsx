@@ -11,7 +11,11 @@ import {
   MessageSquare, 
   ChevronRight,
   MoreVertical,
-  AlertCircle
+  AlertCircle,
+  Plus,
+  Loader2,
+  Send,
+  LifeBuoy
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,6 +27,25 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription,
+  DialogFooter
+} from "@/components/ui/dialog";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 const MOCK_TICKETS = [
   {
@@ -63,8 +86,37 @@ const MOCK_TICKETS = [
   }
 ];
 
+const SUPPORT_SERVICES = [
+  "Myntra Onboarding",
+  "Amazon Onboarding",
+  "Flipkart Onboarding",
+  "Listing Optimization",
+  "AI Photoshoot",
+  "AI Video Ad",
+  "Website Builder",
+  "General Support"
+];
+
 export default function TicketsPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [isNewTicketOpen, setIsNewTicketOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+
+  const handleNewTicketSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    // Simulate API delay
+    setTimeout(() => {
+      setIsSubmitting(false);
+      setIsNewTicketOpen(false);
+      toast({
+        title: "Ticket Created Successfully",
+        description: "Your support request has been queued. Reference: #MM-" + Math.floor(Math.random() * 9000 + 1000),
+      });
+    }, 1500);
+  };
 
   const filteredTickets = MOCK_TICKETS.filter(t => 
     t.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -78,8 +130,11 @@ export default function TicketsPage() {
           <h1 className="text-3xl font-headline font-bold mb-1">Support Tickets</h1>
           <p className="text-muted-foreground">Manage and track your ongoing support requests.</p>
         </div>
-        <Button className="rounded-xl h-12 px-6 shadow-lg shadow-primary/20" onClick={() => window.location.href = '/dashboard/support'}>
-          <MessageSquare className="w-4 h-4 mr-2" /> New Ticket
+        <Button 
+          className="rounded-xl h-12 px-6 shadow-lg shadow-primary/20" 
+          onClick={() => setIsNewTicketOpen(true)}
+        >
+          <Plus className="w-4 h-4 mr-2" /> New Ticket
         </Button>
       </div>
 
@@ -167,10 +222,78 @@ export default function TicketsPage() {
           </div>
         )}
       </div>
+
+      {/* New Ticket Dialog */}
+      <Dialog open={isNewTicketOpen} onOpenChange={setIsNewTicketOpen}>
+        <DialogContent className="sm:max-w-md rounded-3xl bg-card border-white/10">
+          <DialogHeader>
+            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary mb-4">
+              <LifeBuoy size={24} />
+            </div>
+            <DialogTitle className="text-2xl font-headline font-bold">New Support Ticket</DialogTitle>
+            <DialogDescription>
+              Submit a detailed request and our specialists will assist you shortly.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleNewTicketSubmit} className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="ticket-name">Full Name</Label>
+              <Input id="ticket-name" placeholder="John Doe" required className="rounded-xl h-12" />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="ticket-service">Related Service</Label>
+              <Select required>
+                <SelectTrigger className="h-12 rounded-xl">
+                  <SelectValue placeholder="Select a service" />
+                </SelectTrigger>
+                <SelectContent>
+                  {SUPPORT_SERVICES.map(service => (
+                    <SelectItem key={service} value={service}>{service}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="ticket-subject">Subject</Label>
+              <Input id="ticket-subject" placeholder="e.g. Issues with Amazon SEO" required className="rounded-xl h-12" />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="ticket-query">How can we help?</Label>
+              <Textarea 
+                id="ticket-query" 
+                placeholder="Describe your challenge or request..." 
+                className="rounded-xl min-h-[120px]" 
+                required 
+              />
+            </div>
+
+            <DialogFooter className="pt-4 flex flex-col sm:flex-row gap-2">
+              <Button 
+                type="button" 
+                variant="ghost" 
+                className="flex-1 rounded-xl h-12" 
+                onClick={() => setIsNewTicketOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                className="flex-1 rounded-xl h-12 shadow-lg shadow-primary/20" 
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Submitting...</>
+                ) : (
+                  <><Send className="mr-2 h-4 w-4" /> Submit Ticket</>
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
-}
-
-function cn(...inputs: any[]) {
-  return inputs.filter(Boolean).join(" ");
 }
