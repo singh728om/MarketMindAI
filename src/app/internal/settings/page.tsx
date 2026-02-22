@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -91,9 +90,13 @@ export default function InternalSettingsPage() {
                     className="h-12 rounded-xl bg-slate-800 border-white/5 text-white font-mono text-sm pr-20"
                   />
                   <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-white" onClick={() => setShowKey(!showKey)}>
+                    <button 
+                      type="button"
+                      className="h-8 w-8 flex items-center justify-center text-slate-500 hover:text-white transition-colors"
+                      onClick={() => setShowKey(!showKey)}
+                    >
                       {showKey ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </Button>
+                    </button>
                   </div>
                 </div>
                 <p className="text-[10px] text-slate-500 italic">Core engine for: Listing Optimizer, Keyword Finder, and Growth Engine.</p>

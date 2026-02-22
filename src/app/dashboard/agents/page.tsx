@@ -77,17 +77,25 @@ export default function AgentsPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    const keys = localStorage.getItem("marketmind_api_keys");
-    if (keys) {
-      try {
-        const parsed = JSON.parse(keys);
-        if (parsed.gemini && parsed.gemini.trim() !== "") {
-          setIsApiActive(true);
+    const checkKeys = () => {
+      const keys = localStorage.getItem("marketmind_api_keys");
+      if (keys) {
+        try {
+          const parsed = JSON.parse(keys);
+          if (parsed.gemini && parsed.gemini.trim() !== "") {
+            setIsApiActive(true);
+            return;
+          }
+        } catch (e) {
+          console.error("Failed to check API keys", e);
         }
-      } catch (e) {
-        console.error("Failed to check API keys", e);
       }
-    }
+      setIsApiActive(false);
+    };
+
+    checkKeys();
+    window.addEventListener('storage', checkKeys);
+    return () => window.removeEventListener('storage', checkKeys);
   }, []);
 
   const handleInputChange = (field: string, value: string) => {
@@ -129,7 +137,7 @@ export default function AgentsPage() {
     try {
       if (selectedAgent.id === 'photoshoot') {
         if (!isApiActive) {
-          throw new Error("AI Agent node is offline check with admin");
+          throw new Error("AI Gent node is offline check with admin");
         }
 
         const result = await generatePhotoshoot({
