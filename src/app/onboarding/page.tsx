@@ -20,7 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 
-const STEPS = ["Marketplaces", "Product Details", "Growth Goals", "Connect Tools"];
+const STEPS = ["Marketplaces", "Brand Details", "Growth Goals", "Connect Tools"];
 
 export default function OnboardingPage() {
   const [step, setStep] = useState(1);
@@ -44,7 +44,7 @@ export default function OnboardingPage() {
     const file = e.target.files?.[0];
     if (file) {
       toast({
-        title: "Catalog Uploaded",
+        title: step === 2 ? "Logo Uploaded" : "File Uploaded",
         description: `Successfully ingested: ${file.name}`,
       });
     }
@@ -92,8 +92,8 @@ export default function OnboardingPage() {
 
           {step === 2 && (
             <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
-              <h2 className="text-3xl font-headline font-bold">Product Details</h2>
-              <p className="text-muted-foreground">Tell us about your flagship products.</p>
+              <h2 className="text-3xl font-headline font-bold">Brand Details</h2>
+              <p className="text-muted-foreground">Tell us about your brand identity.</p>
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label>Brand Name</Label>
@@ -104,6 +104,7 @@ export default function OnboardingPage() {
                   className="hidden" 
                   ref={fileInputRef} 
                   onChange={handleFileChange} 
+                  accept="image/*"
                 />
                 <div 
                   onClick={() => fileInputRef.current?.click()}
@@ -112,7 +113,10 @@ export default function OnboardingPage() {
                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
                     <Upload size={24} />
                    </div>
-                   <p className="text-sm font-medium">Drag and drop product catalog or images</p>
+                   <div className="text-center">
+                    <p className="text-sm font-medium">Upload Brand Logo</p>
+                    <p className="text-xs text-muted-foreground mt-1">Recommended size: 500x500px (PNG/SVG)</p>
+                   </div>
                    <Button variant="outline" size="sm" type="button">Browse Files</Button>
                 </div>
               </div>
