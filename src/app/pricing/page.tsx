@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { BrainCircuit, ArrowLeft, Zap, ShoppingBag, Sparkles, Check, ShoppingCart, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import LinkNext from "next/link";
@@ -21,6 +22,7 @@ interface Category {
   description: string;
   icon: any;
   items: ServiceItem[];
+  highlight?: string;
 }
 
 const PRICING_CATEGORIES: Category[] = [
@@ -28,6 +30,7 @@ const PRICING_CATEGORIES: Category[] = [
     title: "Marketplace Onboarding",
     description: "Launch your brand on premium platforms with expert setup.",
     icon: ShoppingBag,
+    highlight: "First 10 listings are free on onboarding",
     items: [
       { id: "myntra", name: "Myntra Onboarding", price: 14999, priceDisplay: "₹14,999", period: "one-time" },
       { id: "ajio", name: "Ajio Onboarding", price: 14999, priceDisplay: "₹14,999", period: "one-time" },
@@ -127,7 +130,14 @@ export default function PricingPage() {
                 key={category.title} 
                 className="rounded-3xl border-white/5 bg-card/50 backdrop-blur-sm overflow-hidden flex flex-col hover:border-white/20 transition-all duration-300 shadow-xl"
               >
-                <CardHeader className="p-8">
+                <CardHeader className="p-8 relative">
+                  {category.highlight && (
+                    <div className="absolute top-4 right-4 animate-in fade-in zoom-in duration-500">
+                      <Badge className="bg-primary text-primary-foreground text-[9px] font-bold py-1 px-2 rounded-lg border-none shadow-lg shadow-primary/20 whitespace-nowrap uppercase tracking-tighter">
+                        {category.highlight}
+                      </Badge>
+                    </div>
+                  )}
                   <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-6">
                     <category.icon size={24} />
                   </div>
