@@ -34,11 +34,20 @@ export async function findRankingKeywords(input: KeywordFinderInput): Promise<Ke
     model: 'googleai/gemini-2.5-flash',
     input: input,
     output: { schema: KeywordFinderOutputSchema },
-    prompt: `You are an expert e-commerce SEO specialist for {{marketplace}}. 
-    Analyze the search landscape for "{{productName}}" in the {{category}} segment{{#if color}} specifically in the color "{{color}}"{{/if}}.
-    Identify exactly 10 high-intent trending keywords. 
-    Focus on long-tail keywords that drive conversions. 
-    Estimate monthly search volume and competition difficulty based on current market trends.`,
+    prompt: `You are a high-performance e-commerce SEO architect specialized in the Indian market for {{marketplace}}.
+    Your task is to analyze the CURRENT search landscape for "{{productName}}" in the "{{category}}" category{{#if color}} with specific focus on the color "{{color}}"{{/if}}.
+    
+    Instructions:
+    1. Identify exactly 10 high-intent, trending long-tail keywords that are currently driving sales on {{marketplace}}.
+    2. Focus on "Golden Terms" (high volume, manageable difficulty) that Indian shoppers use.
+    3. Include a mix of broad category terms and specific product attributes.
+    4. Estimate "Search Volume" as a monthly range (e.g., "12k - 15k") and "Competition" based on latest marketplace saturation data.
+    
+    Product Context:
+    - Name: {{productName}}
+    - Category: {{category}}
+    - Color: {{color}}
+    - Marketplace: {{marketplace}}`,
   });
 
   return output!;

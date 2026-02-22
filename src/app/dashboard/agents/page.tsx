@@ -192,8 +192,16 @@ function AgentsContent() {
     const text = output.keywords.map((k: any) => k.term).join(", ");
     navigator.clipboard.writeText(text);
     toast({
-      title: "Keywords Copied",
+      title: "All Keywords Copied",
       description: "Optimized terms saved to your clipboard.",
+    });
+  };
+
+  const handleCopySingleKeyword = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast({
+      title: "Keyword Copied",
+      description: `"${text}" saved to clipboard.`,
     });
   };
 
@@ -808,15 +816,23 @@ function AgentsContent() {
                             <div className="flex items-center justify-between mb-4">
                               <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Top 10 Trending Keywords</p>
                               <Button variant="outline" size="sm" className="h-8 text-[10px] border-white/10" onClick={handleCopyKeywords}>
-                                <Copy size={12} className="mr-1" /> Copy Keywords
+                                <Copy size={12} className="mr-1" /> Copy All Keywords
                               </Button>
                             </div>
                             <div className="grid grid-cols-1 gap-2 md:gap-3">
                               {output.keywords.map((k: any, i: number) => (
-                                <div key={i} className="flex items-center justify-between p-3 md:p-4 bg-slate-900 rounded-xl border border-white/5">
+                                <div key={i} className="flex items-center justify-between p-3 md:p-4 bg-slate-900 rounded-xl border border-white/5 group/k">
                                   <div className="flex items-center gap-3 min-w-0">
                                     <BarChart3 className="text-amber-500 size-4 shrink-0" />
                                     <span className="font-bold text-xs md:text-sm truncate text-white">{k.term}</span>
+                                    <Button 
+                                      variant="ghost" 
+                                      size="icon" 
+                                      className="h-6 w-6 opacity-0 group-hover/k:opacity-100 transition-opacity"
+                                      onClick={() => handleCopySingleKeyword(k.term)}
+                                    >
+                                      <Copy size={10} className="text-slate-500 hover:text-white" />
+                                    </Button>
                                   </div>
                                   <div className="flex gap-3 md:gap-4 shrink-0">
                                     <div className="text-right">
