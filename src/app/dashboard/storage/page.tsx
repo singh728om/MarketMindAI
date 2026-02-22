@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { 
   HardDrive, 
   Cloud, 
@@ -15,7 +15,12 @@ import {
   CheckCircle2,
   AlertCircle,
   Plus,
-  Loader2
+  Loader2,
+  FileText,
+  FileArchive,
+  FileVideo,
+  FileImage,
+  X
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,7 +30,7 @@ import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
-const MOCK_FILES = [
+const INITIAL_FILES = [
   { id: 1, name: "Amazon_Sales_Report_Oct.csv", type: "CSV", size: "2.4 MB", date: "2 hours ago", status: "Synced" },
   { id: 2, name: "Product_Photos_Batch_A.zip", type: "Archive", size: "145 MB", date: "1 day ago", status: "Synced" },
   { id: 3, name: "Brand_Guidelines_v2.pdf", type: "PDF", size: "8.1 MB", date: "3 days ago", status: "Synced" },
@@ -36,6 +41,9 @@ export default function StoragePage() {
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [files, setFiles] = useState(INITIAL_FILES);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   const handleConnectDrive = () => {
@@ -51,15 +59,59 @@ export default function StoragePage() {
     }, 2000);
   };
 
-  const handleUpload = () => {
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
     setIsUploading(true);
+    setUploadProgress(0);
+
+    // Simulate upload progress
+    const interval = setInterval(() => {
+      setUploadProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          return 100;
+        }
+        return prev + 10;
+      });
+    }, 200);
+
     setTimeout(() => {
       setIsUploading(false);
+      const newFile = {
+        id: files.length + 1,
+        name: file.name,
+        type: file.name.split('.').pop()?.toUpperCase() || 'DATA',
+        size: (file.size / (1024 * 1024)).toFixed(1) + " MB",
+        date: "Just now",
+        status: "Synced"
+      };
+      setFiles([newFile, ...files]);
       toast({
-        title: "File Uploaded",
-        description: "Your asset has been securely stored in Google Drive.",
+        title: "File Synced to Drive",
+        description: `${file.name} is now securely stored.`,
       });
-    }, 1500);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }, 2500);
+  };
+
+  const getFileIcon = (type: string) => {
+    switch (type) {
+      case 'CSV':
+      case 'PDF': return <FileText size={16} />;
+      case 'ARCHIVE':
+      case 'ZIP': return <FileArchive size={16} />;
+      case 'VIDEO':
+      case 'MP4': return <FileVideo size={16} />;
+      case 'JPG':
+      case 'PNG': return <FileImage size={16} />;
+      default: return <File size={16} />;
+    }
   };
 
   return (
@@ -120,10 +172,30 @@ export default function StoragePage() {
                   className="pl-10 h-12 rounded-xl bg-card border-white/5"
                 />
               </div>
-              <Button onClick={handleUpload} disabled={isUploading} className="h-12 rounded-xl px-6 shadow-lg shadow-primary/20">
-                {isUploading ? <Loader2 className="animate-spin" /> : <><Upload size={18} className="mr-2" /> Upload Data</>}
+              <input 
+                type="file" 
+                className="hidden" 
+                ref={fileInputRef} 
+                onChange={handleFileChange} 
+              />
+              <Button onClick={triggerFileInput} disabled={isUploading} className="h-12 rounded-xl px-6 shadow-lg shadow-primary/20">
+                {isUploading ? (
+                  <><Loader2 className="animate-spin mr-2" /> {uploadProgress}%</>
+                ) : (
+                  <><Upload size={18} className="mr-2" /> Upload Data</>
+                )}
               </Button>
             </div>
+
+            {isUploading && (
+              <Card className="rounded-2xl border-primary/20 bg-primary/5 p-4 animate-in fade-in slide-in-from-top-2">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold text-primary uppercase">Uploading to Drive...</span>
+                  <span className="text-xs font-bold">{uploadProgress}%</span>
+                </div>
+                <Progress value={uploadProgress} className="h-1.5" />
+              </Card>
+            )}
 
             {/* Recent Files Table */}
             <Card className="rounded-3xl border-white/5 bg-card overflow-hidden">
@@ -139,12 +211,12 @@ export default function StoragePage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
-                    {MOCK_FILES.map((file) => (
+                    {files.map((file) => (
                       <tr key={file.id} className="group hover:bg-primary/5 transition-colors">
                         <td className="px-8 py-5">
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground">
-                              {file.type === 'Archive' ? <Folder size={16} /> : <File size={16} />}
+                              {getFileIcon(file.type)}
                             </div>
                             <span className="font-bold text-sm text-white group-hover:text-primary transition-colors">{file.name}</span>
                           </div>
@@ -159,9 +231,21 @@ export default function StoragePage() {
                           {file.date}
                         </td>
                         <td className="px-8 py-5 text-right">
-                          <Button variant="ghost" size="icon" className="rounded-full h-8 w-8 text-slate-500">
-                            <MoreVertical size={16} />
-                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="rounded-full h-8 w-8 text-slate-500">
+                                <MoreVertical size={16} />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="bg-slate-900 border-white/10 text-white">
+                              <DropdownMenuItem className="flex items-center gap-2">
+                                <ExternalLink size={14} /> Open in Drive
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="text-rose-500 flex items-center gap-2" onClick={() => setFiles(files.filter(f => f.id !== file.id))}>
+                                <X size={14} /> Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </td>
                       </tr>
                     ))}
@@ -251,3 +335,10 @@ export default function StoragePage() {
     </div>
   );
 }
+
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
