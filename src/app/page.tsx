@@ -180,22 +180,25 @@ export default function LandingPage() {
       <main className="flex-1">
         {/* Hero Section */}
         <section className="relative pt-40 pb-24 md:pt-56 md:pb-40 overflow-hidden">
-          {/* Sprinkled Graphics Layer */}
+          {/* Sprinkled Graphics Layer - Enhanced Tone & Visibility */}
           <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
-            <div className="absolute top-[15%] left-[10%] opacity-10 text-primary animate-float">
-              <ShoppingBag size={48} />
+            <div className="absolute top-[15%] left-[10%] opacity-25 text-primary drop-shadow-[0_0_15px_rgba(79,70,229,0.4)] animate-float">
+              <ShoppingBag size={56} strokeWidth={1.5} />
             </div>
-            <div className="absolute top-[25%] right-[15%] opacity-5 text-accent animate-float-delayed">
-              <ShoppingCart size={64} />
+            <div className="absolute top-[25%] right-[15%] opacity-20 text-accent drop-shadow-[0_0_15px_rgba(121,82,179,0.4)] animate-float-delayed">
+              <ShoppingCart size={72} strokeWidth={1.5} />
             </div>
-            <div className="absolute bottom-[20%] left-[20%] opacity-10 text-primary animate-float-delayed">
-              <Tag size={32} />
+            <div className="absolute bottom-[20%] left-[20%] opacity-30 text-primary drop-shadow-[0_0_10px_rgba(79,70,229,0.3)] animate-float-delayed">
+              <Tag size={40} strokeWidth={1.5} />
             </div>
-            <div className="absolute top-[40%] right-[5%] opacity-5 text-amber-500 animate-float">
-              <Package size={56} />
+            <div className="absolute top-[40%] right-[5%] opacity-20 text-amber-400 drop-shadow-[0_0_15px_rgba(251,191,36,0.4)] animate-float">
+              <Package size={64} strokeWidth={1.5} />
             </div>
-            <div className="absolute bottom-[30%] right-[25%] opacity-10 text-primary animate-float">
-              <Truck size={40} />
+            <div className="absolute bottom-[30%] right-[25%] opacity-25 text-primary drop-shadow-[0_0_10px_rgba(79,70,229,0.3)] animate-float">
+              <Truck size={48} strokeWidth={1.5} />
+            </div>
+            <div className="absolute top-[60%] left-[5%] opacity-15 text-accent drop-shadow-[0_0_15px_rgba(121,82,179,0.3)] animate-float-delayed">
+              <CreditCard size={44} strokeWidth={1.5} />
             </div>
           </div>
 
@@ -564,19 +567,5 @@ export default function LandingPage() {
         </div>
       </footer>
     </div>
-  );
-}
-
-function ServiceCard({ icon: Icon, title, desc }: { icon: any, title: string, desc: string }) {
-  return (
-    <Card className="group hover:border-primary/50 transition-all duration-300 border-white/5 bg-white/5 backdrop-blur-sm rounded-3xl overflow-hidden h-full">
-      <CardContent className="p-8 md:p-10">
-        <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-8 group-hover:scale-110 transition-transform">
-          <Icon size={28} />
-        </div>
-        <h3 className="font-headline text-2xl font-bold mb-4">{title}</h3>
-        <p className="text-slate-400 text-lg leading-relaxed">{desc}</p>
-      </CardContent>
-    </Card>
   );
 }
