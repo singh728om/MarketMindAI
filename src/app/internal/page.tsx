@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
 const STATS = [
   { title: "Active Projects", value: "24", sub: "+3 today", icon: ClipboardList, color: "text-blue-500" },
@@ -30,6 +31,8 @@ const RECENT_ORDERS = [
 ];
 
 export default function AdminDashboard() {
+  const router = useRouter();
+
   return (
     <div className="space-y-8">
       <div>
@@ -61,9 +64,11 @@ export default function AdminDashboard() {
           <CardHeader className="flex flex-row items-center justify-between border-b border-white/5 pb-6">
             <div>
               <CardTitle className="text-xl font-headline font-bold">Priority Service Queue</CardTitle>
-              <CardDescription className="text-slate-400">Client orders awaiting fulfillment or action.</CardDescription>
+              <CardDescription className="text-slate-400">Click a project to start working on its service modules.</CardDescription>
             </div>
-            <Button variant="outline" size="sm" className="bg-slate-800 border-white/5 text-xs h-8">View All Orders</Button>
+            <Button variant="outline" size="sm" className="bg-slate-800 border-white/5 text-xs h-8" onClick={() => router.push('/internal/orders')}>
+              View All Orders
+            </Button>
           </CardHeader>
           <CardContent className="p-0">
             <div className="overflow-x-auto">
@@ -79,7 +84,11 @@ export default function AdminDashboard() {
                 </thead>
                 <tbody className="divide-y divide-white/5">
                   {RECENT_ORDERS.map((order) => (
-                    <tr key={order.id} className="hover:bg-accent/5 transition-colors group">
+                    <tr 
+                      key={order.id} 
+                      className="hover:bg-accent/5 transition-colors group cursor-pointer"
+                      onClick={() => router.push(`/internal/orders?id=${order.id}`)}
+                    >
                       <td className="px-6 py-4">
                         <span className="font-mono text-xs font-bold text-accent">{order.id}</span>
                       </td>

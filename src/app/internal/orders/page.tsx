@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { 
   Search, 
   Filter, 
@@ -16,7 +17,10 @@ import {
   Video,
   ListChecks,
   ChevronRight,
-  MessageSquare
+  MessageSquare,
+  Box,
+  FileText,
+  AlertCircle
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -38,6 +42,7 @@ import {
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 const MASTER_ORDERS = [
   {
@@ -52,6 +57,11 @@ const MASTER_ORDERS = [
     orderedAt: "2 days ago",
     urgency: "High",
     icon: ShoppingBag,
+    subServices: [
+      { name: "Documentation Audit", type: "Manual", status: "Done" },
+      { name: "Brand Registry Push", type: "API", status: "In Progress" },
+      { name: "Catalog Template Selection", type: "System", status: "Pending" }
+    ],
     milestones: [
       { name: "Doc Submission", status: "Done" },
       { name: "Brand Registry", status: "Done" },
@@ -71,6 +81,11 @@ const MASTER_ORDERS = [
     orderedAt: "1 hour ago",
     urgency: "Medium",
     icon: Sparkles,
+    subServices: [
+      { name: "Raw Asset Verification", type: "Manual", status: "Pending" },
+      { name: "Style Selection", type: "AI", status: "Pending" },
+      { name: "Prompt Tuning", type: "AI", status: "Pending" }
+    ],
     milestones: [
       { name: "Asset Ingestion", status: "Pending" },
       { name: "Prompt Selection", status: "Pending" },
@@ -90,6 +105,11 @@ const MASTER_ORDERS = [
     orderedAt: "1 week ago",
     urgency: "Low",
     icon: ListChecks,
+    subServices: [
+      { name: "Listing Audit", type: "Manual", status: "Done" },
+      { name: "SEO Copywriting", type: "AI", status: "Done" },
+      { name: "A+ Content Strategy", type: "Manual", status: "Done" }
+    ],
     milestones: [
       { name: "Audit", status: "Done" },
       { name: "AI Drafting", status: "Done" },
@@ -102,11 +122,29 @@ const MASTER_ORDERS = [
 export default function InternalOrdersPage() {
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [search, setSearch] = useState("");
+  const searchParams = useSearchParams();
+  const orderIdParam = searchParams.get("id");
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (orderIdParam) {
+      const order = MASTER_ORDERS.find(o => o.id === orderIdParam);
+      if (order) setSelectedOrder(order);
+    }
+  }, [orderIdParam]);
 
   const filteredOrders = MASTER_ORDERS.filter(o => 
     o.client.toLowerCase().includes(search.toLowerCase()) || 
     o.id.toLowerCase().includes(search.toLowerCase())
   );
+
+  const handleStartWork = (order: any) => {
+    toast({
+      title: "Work Session Initiated",
+      description: `You are now processing ${order.service} for ${order.client}.`,
+    });
+    setSelectedOrder(order);
+  };
 
   return (
     <div className="space-y-8">
@@ -137,7 +175,10 @@ export default function InternalOrdersPage() {
         {filteredOrders.map((order) => (
           <Card 
             key={order.id} 
-            className="bg-slate-900 border-white/5 hover:border-accent/50 transition-all cursor-pointer overflow-hidden group"
+            className={cn(
+              "bg-slate-900 border-white/5 hover:border-accent/50 transition-all cursor-pointer overflow-hidden group",
+              order.id === orderIdParam && "border-accent/50 ring-1 ring-accent/20"
+            )}
             onClick={() => setSelectedOrder(order)}
           >
             <div className="flex flex-col lg:flex-row lg:items-center p-6 gap-6">
@@ -177,7 +218,10 @@ export default function InternalOrdersPage() {
                     {order.assignedTo}
                   </p>
                 </div>
-                <Button className="rounded-xl h-10 px-4 bg-accent hover:bg-accent/90 text-accent-foreground font-bold text-xs">
+                <Button 
+                  className="rounded-xl h-10 px-4 bg-accent hover:bg-accent/90 text-accent-foreground font-bold text-xs"
+                  onClick={(e) => { e.stopPropagation(); handleStartWork(order); }}
+                >
                   {order.assignedTo === 'Unassigned' ? "Claim Order" : "Work Order"}
                 </Button>
               </div>
@@ -188,10 +232,10 @@ export default function InternalOrdersPage() {
 
       {/* Fulfillment Dialog */}
       <Dialog open={!!selectedOrder} onOpenChange={(open) => !open && setSelectedOrder(null)}>
-        <DialogContent className="max-w-3xl bg-slate-900 border-white/10 rounded-3xl overflow-hidden p-0 text-white">
+        <DialogContent className="max-w-4xl bg-slate-900 border-white/10 rounded-3xl overflow-hidden p-0 text-white max-h-[90vh] flex flex-col">
           {selectedOrder && (
             <>
-              <DialogHeader className="p-8 pb-6 bg-accent/5 border-b border-white/5">
+              <DialogHeader className="p-8 pb-6 bg-accent/5 border-b border-white/5 shrink-0">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-xl bg-accent text-accent-foreground flex items-center justify-center">
@@ -211,9 +255,33 @@ export default function InternalOrdersPage() {
                 </div>
               </DialogHeader>
 
-              <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-6">
-                  <div className="space-y-3">
+              <div className="flex-1 overflow-y-auto p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-8">
+                  {/* Specific Services Breakdown */}
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
+                      <Box size={16} /> Service Modules
+                    </h4>
+                    <div className="space-y-3">
+                      {selectedOrder.subServices?.map((sub: any, i: number) => (
+                        <div key={i} className="p-4 rounded-xl bg-slate-800/30 border border-white/5 space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm font-bold text-slate-200">{sub.name}</span>
+                            <Badge variant="outline" className="text-[8px] h-4 border-accent/20 text-accent">{sub.type}</Badge>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-[10px] text-slate-500">Status</span>
+                            <span className={cn(
+                              "text-[10px] font-bold",
+                              sub.status === 'Done' ? "text-emerald-500" : "text-amber-500"
+                            )}>{sub.status}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
                     <h4 className="text-sm font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
                       <ListChecks size={16} /> Fulfillment Checklist
                     </h4>
@@ -231,32 +299,47 @@ export default function InternalOrdersPage() {
                   </div>
                 </div>
 
-                <div className="space-y-6">
+                <div className="space-y-8">
                   <div className="p-6 rounded-2xl bg-slate-800/50 border border-white/5 space-y-4">
-                    <h4 className="text-sm font-bold text-white">Client Instructions</h4>
+                    <div className="flex items-center gap-2 text-rose-400">
+                      <AlertCircle size={16} />
+                      <h4 className="text-sm font-bold">Critical Client Instructions</h4>
+                    </div>
                     <p className="text-xs text-slate-400 italic leading-relaxed">
-                      "Please prioritize the brand registry approval first. We need to be live by next Friday for our Diwali collection launch."
+                      "Please prioritize the brand registry approval first. We need to be live by next Friday for our Diwali collection launch. Ensure high-resolution keywords for ethnic categories."
                     </p>
                     <div className="pt-4 border-t border-white/5 flex justify-between items-center">
                       <Button variant="outline" size="sm" className="h-8 text-xs border-white/5 bg-slate-900">
                         <MessageSquare size={12} className="mr-2" /> Message Client
                       </Button>
-                      <Button variant="ghost" size="sm" className="h-8 text-xs text-slate-500">View Client Profile</Button>
+                      <Button variant="ghost" size="sm" className="h-8 text-xs text-slate-500">View Client Assets</Button>
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <h4 className="text-sm font-bold text-white">Staff Internal Notes</h4>
+                    <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                      <FileText size={16} /> Staff Internal Notes
+                    </h4>
                     <textarea 
-                      className="w-full bg-slate-800 border border-white/5 rounded-xl p-3 text-xs min-h-[80px] focus:ring-1 focus:ring-accent outline-none"
-                      placeholder="Add a private note for other staff members..."
+                      className="w-full bg-slate-800 border border-white/5 rounded-xl p-4 text-xs min-h-[120px] focus:ring-1 focus:ring-accent outline-none text-slate-300 leading-relaxed"
+                      placeholder="Add a private note for other staff members regarding progress, blockers, or AI model performance..."
                     />
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-accent/5 border border-accent/10 flex items-start gap-3">
+                    <Zap size={18} className="text-accent shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-xs font-bold text-accent">AI Assistance Available</p>
+                      <p className="text-[10px] text-slate-500 mt-1">
+                        Use the built-in Catalog Template Generator or Photoshoot Agent to expedite this order.
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <DialogFooter className="p-6 bg-slate-800/50 border-t border-white/5 flex gap-3">
-                <Button variant="outline" className="flex-1 rounded-xl border-white/5 text-white" onClick={() => setSelectedOrder(null)}>Close</Button>
+              <DialogFooter className="p-6 bg-slate-800/50 border-t border-white/5 flex gap-3 shrink-0">
+                <Button variant="outline" className="flex-1 rounded-xl border-white/5 text-white" onClick={() => setSelectedOrder(null)}>Close Workspace</Button>
                 <Button className="flex-1 rounded-xl bg-accent text-accent-foreground font-bold shadow-lg shadow-accent/20">
                   Save Fulfillment Progress
                 </Button>
