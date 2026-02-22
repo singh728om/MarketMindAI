@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef, useEffect, Suspense } from "react";
@@ -19,7 +20,11 @@ import {
   FileDown,
   Layout,
   Briefcase,
-  FileUp
+  FileUp,
+  HardDrive,
+  Download,
+  ShieldCheck,
+  CheckCircle2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -71,6 +76,7 @@ function AgentsContent() {
   const [selectedAgent, setSelectedAgent] = useState<any>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [isSavingWeb, setIsSavingWeb] = useState(false);
+  const [isVaulting, setIsVaulting] = useState(false);
   const [output, setOutput] = useState<any>(null);
   const [modelType, setModelType] = useState<string>("none");
   const [isApiActive, setIsApiActive] = useState(false);
@@ -181,19 +187,49 @@ function AgentsContent() {
     }
   };
 
+  const handleSaveToVault = () => {
+    setIsVaulting(true);
+    // Simulate encryption and upload to Brand Vault
+    setTimeout(() => {
+      setIsVaulting(false);
+      toast({
+        title: "Secured in Brand Vault",
+        description: `Output from ${selectedAgent.title} has been encrypted and archived.`,
+      });
+    }, 1500);
+  };
+
   const handleDownload = () => {
     if (!output) return;
-    const text = JSON.stringify(output, null, 2);
-    const blob = new Blob([text], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
+    
+    let downloadUrl = "";
+    let fileName = `marketmind-${selectedAgent.id}-${Date.now()}`;
+
+    if (output.imageUrl) {
+      downloadUrl = output.imageUrl;
+      fileName += ".png";
+    } else if (output.videoUrl) {
+      downloadUrl = output.videoUrl;
+      fileName += ".mp4";
+    } else {
+      const text = JSON.stringify(output, null, 2);
+      const blob = new Blob([text], { type: 'text/plain' });
+      downloadUrl = URL.createObjectURL(blob);
+      fileName += ".txt";
+    }
+
     const link = document.createElement("a");
-    link.href = url;
-    link.download = `marketmind-${selectedAgent.id}-${Date.now()}.txt`;
+    link.href = downloadUrl;
+    link.download = fileName;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    toast({ title: "Download Started" });
+    
+    if (!output.imageUrl && !output.videoUrl) {
+      URL.revokeObjectURL(downloadUrl);
+    }
+    
+    toast({ title: "Download Started", description: `Exporting ${fileName}` });
   };
 
   const handleRunAgent = async (e: React.FormEvent) => {
@@ -610,6 +646,15 @@ function AgentsContent() {
                             <video src={output.videoUrl} className="w-full h-full object-cover" autoPlay loop muted controls />
                           </div>
                         )}
+
+                        {/* Generic data display for text-based agents */}
+                        {!output.imageUrl && !output.videoUrl && output.type !== 'ceo' && (
+                          <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 scrollbar-thin">
+                            <pre className="text-[10px] md:text-xs text-slate-300 bg-slate-900/80 p-4 rounded-xl border border-white/5 whitespace-pre-wrap font-mono">
+                              {JSON.stringify(output, null, 2)}
+                            </pre>
+                          </div>
+                        )}
                       </div>
                       
                       <div className="flex flex-col sm:flex-row gap-3 pb-12">
@@ -622,12 +667,25 @@ function AgentsContent() {
                             disabled={isSavingWeb}
                           >
                             {isSavingWeb ? <Loader2 className="animate-spin mr-2" /> : <RefreshCw size={18} className="mr-2" />} 
-                            Sync to Dashboard Overview
+                            Sync Dashboard
                           </Button>
                         )}
 
-                        <Button className="flex-1 h-11 md:h-12 rounded-xl bg-primary shadow-lg shadow-primary/20 font-bold text-white" onClick={handleDownload}>
-                          <FileDown size={18} className="mr-2" /> Download Report
+                        <Button 
+                          variant="secondary"
+                          className="flex-1 h-11 md:h-12 rounded-xl bg-slate-800 hover:bg-slate-700 font-bold text-white"
+                          onClick={handleSaveToVault}
+                          disabled={isVaulting}
+                        >
+                          {isVaulting ? <Loader2 className="animate-spin mr-2" /> : <HardDrive size={18} className="mr-2" />} 
+                          Save to Brand Vault
+                        </Button>
+
+                        <Button 
+                          className="flex-1 h-11 md:h-12 rounded-xl bg-primary shadow-lg shadow-primary/20 font-bold text-white" 
+                          onClick={handleDownload}
+                        >
+                          <Download size={18} className="mr-2" /> Download Asset
                         </Button>
                       </div>
                     </div>
