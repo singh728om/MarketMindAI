@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useRef, useEffect, Suspense } from "react";
@@ -9,35 +8,17 @@ import {
   Video, 
   FileText, 
   LayoutGrid, 
-  FileSearch,
-  Users,
+  Users, 
   ChevronRight,
   Loader2,
-  Download,
   Upload,
   Zap,
-  CheckCircle2,
   Search,
   Globe,
   RefreshCw,
-  Copy,
   FileDown,
-  BarChart3,
-  Mail,
-  ExternalLink,
-  X,
   Layout,
-  Save,
-  Eye,
-  MapPin,
-  Link as LinkIcon,
-  Phone,
-  Building2,
-  Palette,
-  PlayCircle,
-  FileJson,
   Briefcase,
-  FileBarChart,
   FileUp
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
@@ -65,14 +46,13 @@ import { optimizeProductListing } from "@/ai/flows/optimize-product-listing-flow
 import { generateCatalogTemplate } from "@/ai/flows/generate-catalog-template";
 import { generateVideoAdContent } from "@/ai/flows/generate-video-ad-content";
 import { generateUgcCampaignAssets } from "@/ai/flows/generate-ugc-campaign-assets";
-import { generateClientReportNarrative } from "@/ai/flows/generate-client-report-narrative";
 import { findRankingKeywords } from "@/ai/flows/find-ranking-keywords";
 import { generateB2BLeads } from "@/ai/flows/generate-b2b-leads";
 import { generateWebsite } from "@/ai/flows/generate-website-flow";
 import { runAICeoAnalysis } from "@/ai/flows/ai-ceo-agent-flow";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { doc, collection, setDoc, query, where, getDocs, limit, orderBy } from "firebase/firestore";
+import { doc, setDoc } from "firebase/firestore";
 import { useFirestore, useUser } from "@/firebase";
 
 const AGENTS = [
@@ -82,7 +62,6 @@ const AGENTS = [
   { id: "catalog", title: "Catalog Automation", icon: LayoutGrid, desc: "Template generation + marketplace rule validation.", color: "text-emerald-500" },
   { id: "video", title: "Product to AI Video Ads", icon: Video, desc: "Transform product images into 5s cinematic UGC video ads.", color: "text-rose-500" },
   { id: "ugc", title: "UGC Script Studio", icon: Users, desc: "Creative hooks + detailed scripts.", color: "text-orange-500" },
-  { id: "report", title: "Client Report Narrator", icon: FileSearch, desc: "Weekly performance analysis into narrative.", color: "text-indigo-500" },
   { id: "ranking", title: "Ranking Keyword Finder", icon: Search, desc: "Discover 10 high-intent keywords to boost visibility.", color: "text-amber-500" },
   { id: "leads", title: "Lead Generation Agent", icon: Globe, desc: "Extract B2B leads via location or website analysis.", color: "text-cyan-500" },
   { id: "webbuilder", title: "AI Website Builder", icon: Layout, desc: "Generate a fully responsive, optimized brand landing page.", color: "text-indigo-400" },
@@ -319,17 +298,6 @@ function AgentsContent() {
             apiKey: activeKey
           });
           setOutput({ ...result, type: 'ugc' });
-          break;
-
-        case 'report':
-          result = await generateClientReportNarrative({
-            clientName: "CHIC ELAN",
-            reportPeriod: "Last 7 Days",
-            kpis: { sales: "+15%", ctr: "4.2%", conversion: "3.1%", roas: "4.5x" },
-            weeklyPerformanceData: JSON.stringify({ visits: 4500, orders: 120 }),
-            apiKey: activeKey
-          });
-          setOutput({ ...result, type: 'report' });
           break;
 
         case 'ranking':
