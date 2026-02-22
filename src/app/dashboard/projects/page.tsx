@@ -21,7 +21,10 @@ import {
   Sparkles,
   Video,
   Globe,
-  Check
+  Check,
+  ListChecks,
+  Info,
+  Building2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -71,7 +74,18 @@ const INITIAL_PROJECTS = [
     assets: 0,
     priority: "High",
     type: "Onboarding",
-    icon: ShoppingBag
+    icon: ShoppingBag,
+    details: {
+      listingsCreated: 12,
+      listingsInProgress: 8,
+      brandOnboarded: false,
+      milestones: [
+        { name: "Documentation Submission", completed: true },
+        { name: "Brand Registry Approval", completed: true },
+        { name: "Catalog Template Selection", completed: false },
+        { name: "Final QC & Live", completed: false },
+      ]
+    }
   },
   {
     id: "proj-2",
@@ -83,7 +97,18 @@ const INITIAL_PROJECTS = [
     assets: 10,
     priority: "Medium",
     type: "Onboarding",
-    icon: ShoppingBag
+    icon: ShoppingBag,
+    details: {
+      listingsCreated: 25,
+      listingsInProgress: 5,
+      brandOnboarded: true,
+      milestones: [
+        { name: "Account Setup", completed: true },
+        { name: "Brand Authorization", completed: true },
+        { name: "Inventory Syncing", completed: true },
+        { name: "Final Marketplace Sync", completed: false },
+      ]
+    }
   },
   {
     id: "proj-3",
@@ -95,7 +120,18 @@ const INITIAL_PROJECTS = [
     assets: 25,
     priority: "High",
     type: "SEO",
-    icon: Zap
+    icon: Zap,
+    details: {
+      listingsCreated: 50,
+      listingsInProgress: 0,
+      brandOnboarded: true,
+      milestones: [
+        { name: "Keyword Analysis", completed: true },
+        { name: "Copywriting Optimization", completed: true },
+        { name: "Bulk Upload Prep", completed: true },
+        { name: "Listing Audit", completed: true },
+      ]
+    }
   },
   {
     id: "proj-4",
@@ -107,7 +143,18 @@ const INITIAL_PROJECTS = [
     assets: 8,
     priority: "High",
     type: "Creative",
-    icon: Sparkles
+    icon: Sparkles,
+    details: {
+      listingsCreated: 4,
+      listingsInProgress: 16,
+      brandOnboarded: true,
+      milestones: [
+        { name: "Scene Planning", completed: true },
+        { name: "AI Background Generation", completed: false },
+        { name: "Model Integration", completed: false },
+        { name: "Post-Processing", completed: false },
+      ]
+    }
   }
 ];
 
@@ -115,6 +162,7 @@ export default function ProjectsPage() {
   const [projects, setProjects] = useState(INITIAL_PROJECTS);
   const [searchQuery, setSearchQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<any>(null);
   const { toast } = useToast();
 
   const handleAction = (action: string, projectName: string) => {
@@ -146,7 +194,18 @@ export default function ProjectsPage() {
       assets: 0,
       priority: "Medium",
       type: service.category,
-      icon: service.icon
+      icon: service.icon,
+      details: {
+        listingsCreated: 0,
+        listingsInProgress: 1,
+        brandOnboarded: false,
+        milestones: [
+          { name: "Account Activation", completed: false },
+          { name: "Milestone Documentation", completed: false },
+          { name: "Brand Verification", completed: false },
+          { name: "Initial Listing Creation", completed: false },
+        ]
+      }
     };
 
     setProjects([newProject, ...projects]);
@@ -245,7 +304,11 @@ export default function ProjectsPage() {
       {/* Projects Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {filteredProjects.map((project) => (
-          <Card key={project.id} className="rounded-2xl border-white/5 bg-card hover:border-primary/30 transition-all overflow-hidden group">
+          <Card 
+            key={project.id} 
+            className="rounded-2xl border-white/5 bg-card hover:border-primary/30 transition-all overflow-hidden group cursor-pointer"
+            onClick={() => setSelectedProject(project)}
+          >
             <CardHeader className="pb-4">
               <div className="flex justify-between items-start">
                 <div className="space-y-1">
@@ -265,7 +328,7 @@ export default function ProjectsPage() {
                   </div>
                 </div>
                 <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
+                  <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                     <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
                       <MoreVertical size={16} />
                     </Button>
@@ -303,12 +366,6 @@ export default function ProjectsPage() {
                     <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Updated</span>
                     <span className="text-sm font-bold">{project.updatedAt}</span>
                   </div>
-                  {project.assets > 0 && (
-                    <div className="flex flex-col">
-                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">AI Assets</span>
-                      <span className="text-sm font-bold">{project.assets} Files</span>
-                    </div>
-                  )}
                 </div>
                 <Button variant="ghost" size="sm" className="group-hover:text-primary transition-colors">
                   Details <ChevronRight className="ml-1 w-4 h-4" />
@@ -328,6 +385,112 @@ export default function ProjectsPage() {
           </div>
         )}
       </div>
+
+      {/* Project Details Dialog */}
+      <Dialog open={!!selectedProject} onOpenChange={(open) => !open && setSelectedProject(null)}>
+        <DialogContent className="max-w-3xl bg-card border-white/10 rounded-3xl overflow-hidden max-h-[90vh] flex flex-col p-0">
+          {selectedProject && (
+            <>
+              <DialogHeader className="p-8 pb-4 bg-primary/5">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-primary text-white flex items-center justify-center">
+                    <selectedProject.icon size={24} />
+                  </div>
+                  <div>
+                    <DialogTitle className="text-2xl font-headline font-bold">{selectedProject.name}</DialogTitle>
+                    <DialogDescription className="flex items-center gap-2 mt-1">
+                      <Badge variant="outline" className="border-primary/20 text-primary">{selectedProject.marketplace}</Badge>
+                      <span className="text-muted-foreground text-xs uppercase font-bold tracking-widest">{selectedProject.type} Service</span>
+                    </DialogDescription>
+                  </div>
+                </div>
+              </DialogHeader>
+
+              <div className="flex-1 overflow-y-auto p-8 space-y-8">
+                {/* Onboarding & Listing Metrics */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <Card className="bg-background border-white/5 p-4 rounded-2xl flex flex-col items-center text-center">
+                    <Building2 className="text-primary mb-2" size={24} />
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Brand Status</p>
+                    <Badge variant={selectedProject.details.brandOnboarded ? "default" : "secondary"} className="mt-1">
+                      {selectedProject.details.brandOnboarded ? "Onboarded" : "Pending Approval"}
+                    </Badge>
+                  </Card>
+                  
+                  <Card className="bg-background border-white/5 p-4 rounded-2xl flex flex-col items-center text-center">
+                    <ListChecks className="text-emerald-500 mb-2" size={24} />
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Listings Created</p>
+                    <p className="text-2xl font-bold">{selectedProject.details.listingsCreated}</p>
+                  </Card>
+                  
+                  <Card className="bg-background border-white/5 p-4 rounded-2xl flex flex-col items-center text-center">
+                    <Clock className="text-amber-500 mb-2" size={24} />
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">In Progress</p>
+                    <p className="text-2xl font-bold">{selectedProject.details.listingsInProgress}</p>
+                  </Card>
+                </div>
+
+                {/* Overall Progress */}
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <Label className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Service Completion</Label>
+                    <span className="text-lg font-bold text-primary">{selectedProject.progress}%</span>
+                  </div>
+                  <Progress value={selectedProject.progress} className="h-3" />
+                </div>
+
+                {/* Milestones Tracker */}
+                <div className="space-y-4">
+                  <Label className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Marketplace Milestones</Label>
+                  <div className="grid grid-cols-1 gap-3">
+                    {selectedProject.details.milestones.map((milestone: any, idx: number) => (
+                      <div key={idx} className={cn(
+                        "flex items-center justify-between p-4 rounded-xl border transition-colors",
+                        milestone.completed ? "bg-emerald-500/5 border-emerald-500/20" : "bg-muted/20 border-white/5"
+                      )}>
+                        <div className="flex items-center gap-3">
+                          {milestone.completed ? (
+                            <CheckCircle2 className="text-emerald-500" size={20} />
+                          ) : (
+                            <div className="w-5 h-5 rounded-full border-2 border-muted" />
+                          )}
+                          <span className={cn(
+                            "font-medium",
+                            milestone.completed ? "text-foreground" : "text-muted-foreground"
+                          )}>{milestone.name}</span>
+                        </div>
+                        {milestone.completed ? (
+                          <Badge variant="outline" className="text-[10px] border-emerald-500/20 text-emerald-500 bg-emerald-500/5">DONE</Badge>
+                        ) : (
+                          <Badge variant="secondary" className="text-[10px]">PENDING</Badge>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Assistance Info */}
+                <div className="bg-blue-500/5 border border-blue-500/20 rounded-2xl p-4 flex items-start gap-3">
+                  <Info size={20} className="text-blue-500 shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <p className="text-sm font-bold text-blue-500">Need Assistance?</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      Our account managers are available 24/7 to help you with marketplace specific requirements for {selectedProject.marketplace}. Click 'Contact Agent' below to start a chat.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              <DialogFooter className="p-6 bg-muted/20 border-t flex gap-2">
+                <Button variant="outline" className="flex-1 h-12 rounded-xl" onClick={() => setSelectedProject(null)}>Close</Button>
+                <Button className="flex-1 h-12 rounded-xl shadow-lg shadow-primary/20" onClick={() => handleAction("Support", selectedProject.name)}>
+                  <ExternalLink size={16} className="mr-2" /> Contact Agent
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
