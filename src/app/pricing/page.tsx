@@ -1,24 +1,38 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/navigation";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { BrainCircuit, Check, ArrowLeft, Zap, ShoppingBag, Sparkles, MapPin, Mail, Phone } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { BrainCircuit, ArrowLeft, Zap, ShoppingBag, Sparkles, Check, ShoppingCart, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import LinkNext from "next/link";
 
-const PRICING_CATEGORIES = [
+interface ServiceItem {
+  id: string;
+  name: string;
+  price: number;
+  priceDisplay: string;
+  period: string;
+}
+
+interface Category {
+  title: string;
+  description: string;
+  icon: any;
+  items: ServiceItem[];
+}
+
+const PRICING_CATEGORIES: Category[] = [
   {
     title: "Marketplace Onboarding",
     description: "Launch your brand on premium platforms with expert setup.",
     icon: ShoppingBag,
     items: [
-      { name: "Myntra Onboarding", price: "₹14,999", period: "one-time" },
-      { name: "Nykaa Onboarding", price: "₹14,999", period: "one-time" },
-      { name: "Amazon Setup", price: "₹4,999", period: "one-time" },
-      { name: "Flipkart Setup", price: "₹4,999", period: "one-time" },
+      { id: "myntra", name: "Myntra Onboarding", price: 14999, priceDisplay: "₹14,999", period: "one-time" },
+      { id: "nykaa", name: "Nykaa Onboarding", price: 14999, priceDisplay: "₹14,999", period: "one-time" },
+      { id: "amazon", name: "Amazon Setup", price: 4999, priceDisplay: "₹4,999", period: "one-time" },
+      { id: "flipkart", name: "Flipkart Setup", price: 4999, priceDisplay: "₹4,999", period: "one-time" },
     ]
   },
   {
@@ -26,10 +40,10 @@ const PRICING_CATEGORIES = [
     description: "High-converting listings optimized for discovery.",
     icon: Zap,
     items: [
-      { name: "Listing Creation & Optimization", price: "₹1,999", period: "Starting from" },
-      { name: "AI-Based Ranking Keyword Research", price: "₹999", period: "per audit" },
-      { name: "AI Listing Improvement Suggestions", price: "₹999", period: "per listing" },
-      { name: "Competitor Analysis & Market Positioning", price: "₹999", period: "per report" },
+      { id: "listing", name: "Listing Creation & Optimization", price: 1999, priceDisplay: "₹1,999", period: "Starting from" },
+      { id: "keyword", name: "AI-Based Ranking Keyword Research", price: 999, priceDisplay: "₹999", period: "per audit" },
+      { id: "suggestions", name: "AI Listing Improvement Suggestions", price: 999, priceDisplay: "₹999", period: "per listing" },
+      { id: "competitor", name: "Competitor Analysis & Market Positioning", price: 999, priceDisplay: "₹999", period: "per report" },
     ]
   },
   {
@@ -37,24 +51,43 @@ const PRICING_CATEGORIES = [
     description: "Next-gen visual assets powered by proprietary AI.",
     icon: Sparkles,
     items: [
-      { name: "AI Photoshoot", price: "₹100", period: "per style" },
-      { name: "AI Video Ad (15s)", price: "₹499", period: "per video" },
-      { name: "Ethnic Model Fit", price: "₹150", period: "per style" },
+      { id: "photoshoot", name: "AI Photoshoot", price: 100, priceDisplay: "₹100", period: "per style" },
+      { id: "video", name: "AI Video Ad (15s)", price: 499, priceDisplay: "₹499", period: "per video" },
+      { id: "ethnic", name: "Ethnic Model Fit", price: 150, priceDisplay: "₹150", period: "per style" },
     ]
   }
 ];
 
 export default function PricingPage() {
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedServiceIds, setSelectedServiceIds] = useState<Set<string>>(new Set());
   const router = useRouter();
 
-  const handlePlanSelection = (categoryTitle: string) => {
-    setSelectedCategory(categoryTitle);
-    router.push(`/checkout?plan=${encodeURIComponent(categoryTitle)}`);
+  const toggleService = (id: string) => {
+    const newSelected = new Set(selectedServiceIds);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedServiceIds(newSelected);
+  };
+
+  const selectedServices = useMemo(() => {
+    return PRICING_CATEGORIES.flatMap(cat => cat.items).filter(item => selectedServiceIds.has(item.id));
+  }, [selectedServiceIds]);
+
+  const totalPrice = useMemo(() => {
+    return selectedServices.reduce((sum, item) => sum + item.price, 0);
+  }, [selectedServices]);
+
+  const handleCheckout = () => {
+    if (selectedServices.length === 0) return;
+    const itemNames = selectedServices.map(s => s.name).join("|");
+    router.push(`/checkout?items=${encodeURIComponent(itemNames)}&total=${totalPrice}`);
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-background">
       {/* Navbar */}
       <header className="fixed top-0 w-full z-50 border-b border-white/5 bg-background/80 backdrop-blur-xl">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
@@ -75,14 +108,14 @@ export default function PricingPage() {
         </div>
       </header>
 
-      <main className="flex-1 pt-32 pb-20">
+      <main className="flex-1 pt-32 pb-32">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16 max-w-2xl mx-auto">
             <h1 className="font-headline text-4xl md:text-6xl font-bold mb-6 tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-white to-white/60">
-              Transparent Pricing
+              Select Your Services
             </h1>
             <p className="text-muted-foreground text-lg">
-              No hidden fees. Scale your marketplace presence with pay-per-use AI agents and expert onboarding services.
+              Customize your growth plan. Choose one or more AI agents and expert onboarding services to build your custom package.
             </p>
           </div>
 
@@ -90,113 +123,76 @@ export default function PricingPage() {
             {PRICING_CATEGORIES.map((category) => (
               <Card 
                 key={category.title} 
-                onClick={() => handlePlanSelection(category.title)}
-                className={cn(
-                  "rounded-3xl border-white/5 bg-card/50 backdrop-blur-sm overflow-hidden flex flex-col cursor-pointer transition-all duration-300",
-                  selectedCategory === category.title 
-                    ? "ring-2 ring-primary border-primary/50 scale-[1.02] shadow-2xl shadow-primary/20" 
-                    : "hover:border-white/20 hover:bg-card/70"
-                )}
+                className="rounded-3xl border-white/5 bg-card/50 backdrop-blur-sm overflow-hidden flex flex-col hover:border-white/20 transition-all duration-300 shadow-xl"
               >
                 <CardHeader className="p-8">
-                  <div className={cn(
-                    "w-12 h-12 rounded-2xl flex items-center justify-center transition-colors mb-6",
-                    selectedCategory === category.title ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary"
-                  )}>
+                  <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-6">
                     <category.icon size={24} />
                   </div>
                   <CardTitle className="font-headline text-2xl">{category.title}</CardTitle>
                   <CardDescription className="text-muted-foreground">{category.description}</CardDescription>
                 </CardHeader>
-                <CardContent className="px-8 pb-8 flex-1">
-                  <div className="space-y-6">
-                    {category.items.map((item) => (
-                      <div key={item.name} className="flex items-center justify-between group">
-                        <div className="space-y-1">
-                          <p className="font-medium text-sm group-hover:text-primary transition-colors">{item.name}</p>
-                          <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">{item.period}</p>
+                <CardContent className="px-8 pb-8 space-y-4">
+                  {category.items.map((item) => {
+                    const isSelected = selectedServiceIds.has(item.id);
+                    return (
+                      <div 
+                        key={item.id} 
+                        className={cn(
+                          "flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer group",
+                          isSelected ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-white/5 bg-white/5 hover:bg-white/10"
+                        )}
+                        onClick={() => toggleService(item.id)}
+                      >
+                        <div className="space-y-1 pr-4">
+                          <p className="font-bold text-sm leading-tight">{item.name}</p>
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">
+                            {item.priceDisplay} • {item.period}
+                          </p>
                         </div>
-                        <div className="text-right">
-                          <p className="text-xl font-bold font-headline text-foreground">{item.price}</p>
+                        <div className={cn(
+                          "w-8 h-8 rounded-full flex items-center justify-center transition-all shrink-0",
+                          isSelected ? "bg-primary text-white" : "bg-white/10 text-muted-foreground group-hover:bg-white/20"
+                        )}>
+                          {isSelected ? <Check size={16} /> : <ShoppingCart size={14} />}
                         </div>
                       </div>
-                    ))}
-                  </div>
+                    );
+                  })}
                 </CardContent>
-                <CardFooter className="p-8 pt-0 mt-auto">
-                  <Button 
-                    className="w-full rounded-xl h-12 font-bold" 
-                    variant={selectedCategory === category.title ? "default" : "secondary"}
-                  >
-                    {selectedCategory === category.title ? "Plan Selected" : `Choose ${category.title.split(' ')[0]}`}
-                  </Button>
-                </CardFooter>
               </Card>
             ))}
           </div>
 
-          <div className="mt-20 p-12 rounded-3xl bg-primary/5 border border-primary/20 text-center">
-            <h2 className="text-2xl font-bold font-headline mb-4">Need an Enterprise Plan?</h2>
-            <p className="text-muted-foreground max-w-xl mx-auto mb-8">
-              Managing 500+ SKUs? Get custom workflows, priority AI processing, and a dedicated account strategist.
-            </p>
-            <Button size="lg" className="rounded-full px-8 h-14 text-lg">Contact Enterprise Sales</Button>
-          </div>
+          {/* Sticky Checkout Bar */}
+          {selectedServiceIds.size > 0 && (
+            <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-full max-w-2xl px-4 animate-in slide-in-from-bottom-10 fade-in duration-500 z-50">
+              <div className="bg-primary p-6 rounded-3xl shadow-2xl shadow-primary/40 flex items-center justify-between border border-white/20 backdrop-blur-md">
+                <div className="text-white">
+                  <p className="text-xs font-bold uppercase tracking-widest opacity-80">{selectedServiceIds.size} Services Selected</p>
+                  <h3 className="text-2xl font-headline font-bold">Total: ₹{totalPrice.toLocaleString()}</h3>
+                </div>
+                <div className="flex gap-2">
+                   <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="text-white hover:bg-white/10 rounded-xl"
+                    onClick={() => setSelectedServiceIds(new Set())}
+                   >
+                    <X size={20} />
+                   </Button>
+                   <Button 
+                    onClick={handleCheckout} 
+                    className="bg-white text-primary hover:bg-white/90 rounded-2xl px-8 font-bold h-12"
+                   >
+                    Proceed to Checkout
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </main>
-
-      {/* Footer */}
-      <footer className="border-t py-16 bg-background">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
-            <div className="col-span-1 md:col-span-1">
-              <LinkNext href="/" className="flex items-center gap-2 mb-6 hover:opacity-80 transition-opacity">
-                <BrainCircuit className="text-primary w-6 h-6" />
-                <span className="font-headline font-bold text-lg">MarketMind AI</span>
-              </LinkNext>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Leading e-commerce growth agency scaling brands on India's biggest marketplaces with AI.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-bold mb-4">Services</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>AI Photoshoots</li>
-                <li>Listing Optimization</li>
-                <li>Video Ad Creation</li>
-                <li>Catalog Automation</li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold mb-4">Contact</h4>
-              <ul className="space-y-4 text-sm text-muted-foreground">
-                <li className="flex gap-2">
-                  <MapPin size={16} className="text-primary shrink-0" />
-                  <span>Udyog Vihar Phase-1 Gurgaon 122016</span>
-                </li>
-                <li className="flex gap-2 items-center">
-                  <Mail size={16} className="text-primary shrink-0" />
-                  <span>info@mastermindai.com</span>
-                </li>
-                <li className="flex gap-2 items-center">
-                  <Phone size={16} className="text-primary shrink-0" />
-                  <span>+918882130155</span>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold mb-4">Legal</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><LinkNext href="#" className="hover:text-primary transition-colors">Privacy Policy</LinkNext></li>
-                <li><LinkNext href="#" className="hover:text-primary transition-colors">Terms of Service</LinkNext></li>
-              </ul>
-            </div>
-          </div>
-          <div className="pt-8 border-t flex flex-col md:flex-row justify-between items-center gap-6">
-            <p className="text-muted-foreground text-xs text-center md:text-left">© 2024 MarketMind. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

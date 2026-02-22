@@ -7,13 +7,13 @@ import {
   BrainCircuit, 
   ArrowLeft, 
   CreditCard, 
-  Wallet, 
   Smartphone, 
   Truck,
   ShieldCheck,
   Loader2,
   CheckCircle2,
-  Tag
+  Tag,
+  Package
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
@@ -30,11 +30,15 @@ export default function CheckoutPage() {
   const [isPromoApplied, setIsPromoApplied] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const planName = searchParams.get("plan") || "Growth Strategy Plan";
+  
+  const itemsString = searchParams.get("items") || "Growth Strategy Plan";
+  const selectedItems = itemsString.split("|");
+  const passedTotal = parseInt(searchParams.get("total") || "8474");
+
   const { toast } = useToast();
 
-  const basePrice = 8474;
-  const gst = 1525;
+  const basePrice = passedTotal;
+  const gst = Math.round(basePrice * 0.18);
   const discount = isPromoApplied ? 500 : 0;
   const totalPrice = basePrice + gst - discount;
 
@@ -115,7 +119,7 @@ export default function CheckoutPage() {
           <div className="space-y-8">
             <div>
               <h1 className="text-3xl font-headline font-bold mb-2">Checkout</h1>
-              <p className="text-muted-foreground">Complete your purchase for {planName}</p>
+              <p className="text-muted-foreground">Complete your purchase for {selectedItems.length} items</p>
             </div>
 
             <form onSubmit={handlePayment} className="space-y-6">
@@ -207,35 +211,33 @@ export default function CheckoutPage() {
                   </Label>
                 </RadioGroup>
 
-                {/* Conditional Promo Code Input for COD */}
-                {paymentMode === "cod" && (
-                  <div className="mt-4 p-4 rounded-2xl bg-primary/5 border border-primary/20 space-y-4 animate-in fade-in slide-in-from-top-2">
-                    <Label className="text-sm font-bold flex items-center gap-2">
-                      <Tag size={16} className="text-primary" /> Have a Promo Code?
-                    </Label>
-                    <div className="flex gap-2">
-                      <Input 
-                        placeholder="Enter Code (e.g., MARKET10)" 
-                        className="rounded-xl h-11 bg-background"
-                        value={promoCode}
-                        onChange={(e) => setPromoCode(e.target.value)}
-                      />
-                      <Button 
-                        type="button" 
-                        variant="secondary" 
-                        className="rounded-xl h-11 px-6 font-bold"
-                        onClick={handleApplyPromo}
-                      >
-                        Apply
-                      </Button>
-                    </div>
-                    {isPromoApplied && (
-                      <p className="text-xs text-emerald-500 font-bold flex items-center gap-1">
-                        <CheckCircle2 size={12} /> Promo code applied successfully!
-                      </p>
-                    )}
+                {/* Conditional Promo Code Input */}
+                <div className="mt-4 p-4 rounded-2xl bg-primary/5 border border-primary/20 space-y-4 animate-in fade-in slide-in-from-top-2">
+                  <Label className="text-sm font-bold flex items-center gap-2">
+                    <Tag size={16} className="text-primary" /> Have a Promo Code?
+                  </Label>
+                  <div className="flex gap-2">
+                    <Input 
+                      placeholder="Enter Code (e.g., MARKET10)" 
+                      className="rounded-xl h-11 bg-background"
+                      value={promoCode}
+                      onChange={(e) => setPromoCode(e.target.value)}
+                    />
+                    <Button 
+                      type="button" 
+                      variant="secondary" 
+                      className="rounded-xl h-11 px-6 font-bold"
+                      onClick={handleApplyPromo}
+                    >
+                      Apply
+                    </Button>
                   </div>
-                )}
+                  {isPromoApplied && (
+                    <p className="text-xs text-emerald-500 font-bold flex items-center gap-1">
+                      <CheckCircle2 size={12} /> Promo code applied successfully!
+                    </p>
+                  )}
+                </div>
               </div>
 
               <Button 
@@ -264,41 +266,43 @@ export default function CheckoutPage() {
                 <CardDescription>Review your selection before paying.</CardDescription>
               </CardHeader>
               <CardContent className="p-8 space-y-6">
-                <div className="flex justify-between items-start pb-6 border-b border-white/5">
-                  <div className="space-y-1">
-                    <p className="font-bold text-lg">{planName}</p>
-                    <p className="text-sm text-muted-foreground">MarketMind AI Premium Access</p>
-                  </div>
-                  <p className="font-bold text-xl text-primary">₹{basePrice + gst}</p>
+                <div className="space-y-4 pb-6 border-b border-white/5">
+                  <p className="text-xs font-bold uppercase tracking-widest text-primary mb-2">Selected Services</p>
+                  {selectedItems.map((item, idx) => (
+                    <div key={idx} className="flex items-center gap-3">
+                       <Package size={14} className="text-muted-foreground" />
+                       <span className="text-sm font-medium">{item}</span>
+                    </div>
+                  ))}
                 </div>
                 
                 <div className="space-y-4">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Base Price</span>
-                    <span>₹{basePrice}</span>
+                    <span>₹{basePrice.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">GST (18%)</span>
-                    <span>₹{gst}</span>
+                    <span>₹{gst.toLocaleString()}</span>
                   </div>
                   {isPromoApplied && (
                     <div className="flex justify-between text-sm text-emerald-500 font-bold">
                       <span>Promo Discount</span>
-                      <span>-₹{discount}</span>
+                      <span>-₹{discount.toLocaleString()}</span>
                     </div>
                   )}
                   <div className="pt-4 flex justify-between font-bold text-xl border-t border-white/5">
                     <span>Total Pay</span>
-                    <span className="text-primary">₹{totalPrice}</span>
+                    <span className="text-primary">₹{totalPrice.toLocaleString()}</span>
                   </div>
                 </div>
 
                 <div className="bg-secondary/20 p-4 rounded-xl space-y-3">
                   <p className="text-xs font-bold uppercase tracking-widest text-primary">Instant Benefits</p>
                   <ul className="text-xs space-y-2 text-muted-foreground">
-                    <li className="flex items-center gap-2"><CheckCircle2 size={12} className="text-primary" /> Unlimited AI Photoshoots</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 size={12} className="text-primary" /> Full Growth Intelligence Reports</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 size={12} className="text-primary" /> Multi-marketplace Automation</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 size={12} className="text-primary" /> Priority AI processing</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 size={12} className="text-primary" /> Dedicated account manager</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 size={12} className="text-primary" /> Multi-marketplace support</li>
                   </ul>
                 </div>
               </CardContent>
