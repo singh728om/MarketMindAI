@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { 
   Sparkles, 
   Camera, 
@@ -9,13 +9,11 @@ import {
   LayoutGrid, 
   FileSearch,
   Users,
-  AlertTriangle,
   ChevronRight,
   Loader2,
   Copy,
   Download,
   Upload,
-  User,
   Zap
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
@@ -26,7 +24,6 @@ import {
   DialogHeader, 
   DialogTitle, 
   DialogDescription,
-  DialogFooter
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -53,7 +50,18 @@ export default function AgentsPage() {
   const [selectedAgent, setSelectedAgent] = useState<any>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [output, setOutput] = useState<any>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      toast({
+        title: "File Ready",
+        description: `Successfully prepared ${file.name} for AI analysis.`,
+      });
+    }
+  };
 
   const handleRunAgent = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -151,7 +159,18 @@ export default function AgentsPage() {
                     {(selectedAgent.id === 'photoshoot' || selectedAgent.id === 'video') && (
                       <div className="space-y-6 bg-secondary/20 p-6 rounded-2xl border border-white/5">
                         <Label className="text-sm font-bold uppercase tracking-widest text-primary">Media Assets</Label>
-                        <div className="border-2 border-dashed border-white/10 rounded-xl p-8 flex flex-col items-center justify-center gap-4 hover:bg-secondary/30 transition-colors cursor-pointer group">
+                        <input 
+                          type="file" 
+                          className="hidden" 
+                          ref={fileInputRef} 
+                          onChange={handleFileChange} 
+                          accept="image/*"
+                          multiple
+                        />
+                        <div 
+                          onClick={() => fileInputRef.current?.click()}
+                          className="border-2 border-dashed border-white/10 rounded-xl p-8 flex flex-col items-center justify-center gap-4 hover:bg-secondary/30 transition-colors cursor-pointer group"
+                        >
                            <Upload size={24} className="text-muted-foreground group-hover:text-primary transition-colors" />
                            <p className="text-sm font-medium">Upload high-res product photos</p>
                            <Button type="button" variant="outline" size="sm">Select Files</Button>

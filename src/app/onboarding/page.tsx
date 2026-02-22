@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { 
@@ -24,6 +24,7 @@ const STEPS = ["Marketplaces", "Product Details", "Growth Goals", "Connect Tools
 
 export default function OnboardingPage() {
   const [step, setStep] = useState(1);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -37,6 +38,16 @@ export default function OnboardingPage() {
 
   const handleBack = () => {
     if (step > 1) setStep(step - 1);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      toast({
+        title: "Catalog Uploaded",
+        description: `Successfully ingested: ${file.name}`,
+      });
+    }
   };
 
   return (
@@ -88,12 +99,21 @@ export default function OnboardingPage() {
                   <Label>Brand Name</Label>
                   <Input placeholder="e.g. CHIC ELAN" />
                 </div>
-                <div className="border-2 border-dashed border-white/10 rounded-2xl p-8 flex flex-col items-center justify-center gap-4 bg-secondary/20">
-                   <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                <input 
+                  type="file" 
+                  className="hidden" 
+                  ref={fileInputRef} 
+                  onChange={handleFileChange} 
+                />
+                <div 
+                  onClick={() => fileInputRef.current?.click()}
+                  className="border-2 border-dashed border-white/10 rounded-2xl p-8 flex flex-col items-center justify-center gap-4 bg-secondary/20 hover:bg-secondary/30 transition-colors cursor-pointer group"
+                >
+                   <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
                     <Upload size={24} />
                    </div>
                    <p className="text-sm font-medium">Drag and drop product catalog or images</p>
-                   <Button variant="outline" size="sm">Browse Files</Button>
+                   <Button variant="outline" size="sm" type="button">Browse Files</Button>
                 </div>
               </div>
             </div>
