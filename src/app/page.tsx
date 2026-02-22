@@ -163,7 +163,7 @@ export default function LandingPage() {
       <main className="flex-1">
         {/* Hero Section */}
         <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 overflow-hidden hero-gradient">
-          {/* Sprinkled Graphics */}
+          {/* Sprinkled Graphics - Background Layer */}
           <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
             <div className="absolute top-[15%] left-[10%] opacity-20 text-primary animate-float">
               <ShoppingBag size={48} />
@@ -186,23 +186,14 @@ export default function LandingPage() {
           </div>
 
           <div className="container mx-auto px-4 text-center relative z-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary border border-primary/20 text-[10px] font-bold mb-6 animate-fade-in">
-              <Sparkles size={12} />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary border border-primary/20 text-xs font-bold mb-6 animate-fade-in mx-auto">
+              <Sparkles size={14} />
               <span>Next-Gen E-commerce Intelligence</span>
             </div>
             
-            <div className="relative inline-block">
-              <h1 className="font-headline text-4xl md:text-7xl font-bold mb-6 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-amber-200 via-yellow-500 to-amber-600 leading-[1.1]">
-                Grow Faster on Amazon, <br className="hidden md:block" /> Flipkart & Myntra with AI
-              </h1>
-              {/* Subtle accent graphics around text */}
-              <div className="hidden lg:block absolute -top-8 -left-8 text-amber-500/20 animate-pulse">
-                <Star size={32} fill="currentColor" />
-              </div>
-              <div className="hidden lg:block absolute -bottom-4 -right-8 text-primary/20 animate-bounce">
-                <Sparkles size={32} />
-              </div>
-            </div>
+            <h1 className="font-headline text-4xl md:text-7xl font-bold mb-6 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-amber-200 via-yellow-500 to-amber-600 leading-[1.1] max-w-5xl mx-auto">
+              Grow Faster on Amazon, <br className="hidden md:block" /> Flipkart & Myntra with AI
+            </h1>
 
             <p className="text-muted-foreground text-base md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed px-4">
               Automate your marketplace operations with expert-trained AI agents for photoshoots, listings, video ads, and growth intelligence.
@@ -224,7 +215,8 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] opacity-30 pointer-events-none">
+          {/* Background Decorative Blurs */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] opacity-30 pointer-events-none -z-10">
             <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/30 rounded-full blur-[128px]" />
             <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/30 rounded-full blur-[128px]" />
           </div>
