@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import Link from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { BrainCircuit, Check, ArrowLeft, Zap, ShoppingBag, Sparkles, MapPin, Mail, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
+import LinkNext from "next/link";
 
 const PRICING_CATEGORIES = [
   {
@@ -44,25 +46,31 @@ const PRICING_CATEGORIES = [
 
 export default function PricingPage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const router = useRouter();
+
+  const handlePlanSelection = (categoryTitle: string) => {
+    setSelectedCategory(categoryTitle);
+    router.push(`/checkout?plan=${encodeURIComponent(categoryTitle)}`);
+  };
 
   return (
     <div className="flex flex-col min-h-screen">
       {/* Navbar */}
       <header className="fixed top-0 w-full z-50 border-b border-white/5 bg-background/80 backdrop-blur-xl">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+          <LinkNext href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <BrainCircuit className="text-primary w-8 h-8" />
             <span className="font-headline font-bold text-xl tracking-tight">MarketMind AI</span>
-          </Link>
+          </LinkNext>
           <div className="flex items-center gap-4">
-            <Link href="/">
+            <LinkNext href="/">
               <Button variant="ghost" size="sm" className="hidden sm:inline-flex">
                 <ArrowLeft className="w-4 h-4 mr-2" /> Back to Home
               </Button>
-            </Link>
-            <Link href="/onboarding">
+            </LinkNext>
+            <LinkNext href="/onboarding">
               <Button className="rounded-full px-6">Start Free Audit</Button>
-            </Link>
+            </LinkNext>
           </div>
         </div>
       </header>
@@ -82,7 +90,7 @@ export default function PricingPage() {
             {PRICING_CATEGORIES.map((category) => (
               <Card 
                 key={category.title} 
-                onClick={() => setSelectedCategory(category.title)}
+                onClick={() => handlePlanSelection(category.title)}
                 className={cn(
                   "rounded-3xl border-white/5 bg-card/50 backdrop-blur-sm overflow-hidden flex flex-col cursor-pointer transition-all duration-300",
                   selectedCategory === category.title 
@@ -142,10 +150,10 @@ export default function PricingPage() {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
             <div className="col-span-1 md:col-span-1">
-              <Link href="/" className="flex items-center gap-2 mb-6 hover:opacity-80 transition-opacity">
+              <LinkNext href="/" className="flex items-center gap-2 mb-6 hover:opacity-80 transition-opacity">
                 <BrainCircuit className="text-primary w-6 h-6" />
                 <span className="font-headline font-bold text-lg">MarketMind AI</span>
-              </Link>
+              </LinkNext>
               <p className="text-sm text-muted-foreground leading-relaxed">
                 Leading e-commerce growth agency scaling brands on India's biggest marketplaces with AI.
               </p>
@@ -179,8 +187,8 @@ export default function PricingPage() {
             <div>
               <h4 className="font-bold mb-4">Legal</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="#" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
-                <li><Link href="#" className="hover:text-primary transition-colors">Terms of Service</Link></li>
+                <li><LinkNext href="#" className="hover:text-primary transition-colors">Privacy Policy</LinkNext></li>
+                <li><LinkNext href="#" className="hover:text-primary transition-colors">Terms of Service</LinkNext></li>
               </ul>
             </div>
           </div>
