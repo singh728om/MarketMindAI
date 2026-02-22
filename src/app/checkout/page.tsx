@@ -12,7 +12,8 @@ import {
   Truck,
   ShieldCheck,
   Loader2,
-  CheckCircle2
+  CheckCircle2,
+  Tag
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
@@ -24,10 +25,34 @@ import { useToast } from "@/hooks/use-toast";
 export default function CheckoutPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [paymentMode, setPaymentMode] = useState("card");
+  const [promoCode, setPromoCode] = useState("");
+  const [isPromoApplied, setIsPromoApplied] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const planName = searchParams.get("plan") || "Growth Strategy Plan";
   const { toast } = useToast();
+
+  const basePrice = 8474;
+  const gst = 1525;
+  const discount = isPromoApplied ? 500 : 0;
+  const totalPrice = basePrice + gst - discount;
+
+  const handleApplyPromo = () => {
+    if (promoCode.toUpperCase() === "MARKET10") {
+      setIsPromoApplied(true);
+      toast({
+        title: "Promo Applied!",
+        description: "You've received a discount of ₹500.",
+      });
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Invalid Code",
+        description: "Please enter a valid promo code.",
+      });
+    }
+  };
 
   const handlePayment = (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,8 +63,10 @@ export default function CheckoutPage() {
       setIsProcessing(false);
       setIsSuccess(true);
       toast({
-        title: "Payment Successful",
-        description: "Your plan has been activated. Welcome to MarketMind AI!",
+        title: "Order Placed Successfully",
+        description: paymentMode === "cod" 
+          ? "Your offline request has been received. Our team will contact you shortly."
+          : "Your plan has been activated. Welcome to MarketMind AI!",
       });
     }, 3000);
   };
@@ -51,9 +78,13 @@ export default function CheckoutPage() {
           <div className="mx-auto w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-6">
             <CheckCircle2 size={48} />
           </div>
-          <h2 className="text-3xl font-headline font-bold mb-4">Transaction Complete</h2>
+          <h2 className="text-3xl font-headline font-bold mb-4">
+            {paymentMode === "cod" ? "Order Received" : "Transaction Complete"}
+          </h2>
           <p className="text-muted-foreground mb-8">
-            Thank you for choosing MarketMind AI. Your dashboard is now updated with your premium features.
+            {paymentMode === "cod" 
+              ? "Your request for offline payment is being processed. An agent will reach out to you within 24 hours."
+              : "Thank you for choosing MarketMind AI. Your dashboard is now updated with your premium features."}
           </p>
           <Button className="w-full h-12 rounded-xl font-bold" onClick={() => router.push("/dashboard")}>
             Go to Dashboard
@@ -133,24 +164,28 @@ export default function CheckoutPage() {
                   <div className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs">3</div>
                   Payment Mode
                 </h3>
-                <RadioGroup defaultValue="card" className="grid grid-cols-1 gap-3">
+                <RadioGroup 
+                  defaultValue="card" 
+                  onValueChange={(val) => setPaymentMode(val)}
+                  className="grid grid-cols-1 gap-3"
+                >
                   <Label
                     htmlFor="card"
-                    className="flex items-center justify-between p-4 rounded-xl border border-white/5 bg-white/5 hover:bg-white/10 cursor-pointer transition-colors"
+                    className={`flex items-center justify-between p-4 rounded-xl border cursor-pointer transition-colors ${
+                      paymentMode === 'card' ? 'border-primary bg-primary/5' : 'border-white/5 bg-white/5 hover:bg-white/10'
+                    }`}
                   >
                     <div className="flex items-center gap-3">
                       <RadioGroupItem value="card" id="card" />
                       <CreditCard size={20} className="text-primary" />
                       <span className="font-medium">Credit / Debit Card</span>
                     </div>
-                    <div className="flex gap-1">
-                      <div className="w-6 h-4 bg-muted rounded-sm opacity-50" />
-                      <div className="w-6 h-4 bg-muted rounded-sm opacity-50" />
-                    </div>
                   </Label>
                   <Label
                     htmlFor="upi"
-                    className="flex items-center justify-between p-4 rounded-xl border border-white/5 bg-white/5 hover:bg-white/10 cursor-pointer transition-colors"
+                    className={`flex items-center justify-between p-4 rounded-xl border cursor-pointer transition-colors ${
+                      paymentMode === 'upi' ? 'border-primary bg-primary/5' : 'border-white/5 bg-white/5 hover:bg-white/10'
+                    }`}
                   >
                     <div className="flex items-center gap-3">
                       <RadioGroupItem value="upi" id="upi" />
@@ -159,18 +194,10 @@ export default function CheckoutPage() {
                     </div>
                   </Label>
                   <Label
-                    htmlFor="netbanking"
-                    className="flex items-center justify-between p-4 rounded-xl border border-white/5 bg-white/5 hover:bg-white/10 cursor-pointer transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <RadioGroupItem value="netbanking" id="netbanking" />
-                      <Wallet size={20} className="text-primary" />
-                      <span className="font-medium">Net Banking</span>
-                    </div>
-                  </Label>
-                  <Label
                     htmlFor="cod"
-                    className="flex items-center justify-between p-4 rounded-xl border border-white/5 bg-white/5 hover:bg-white/10 cursor-pointer transition-colors"
+                    className={`flex items-center justify-between p-4 rounded-xl border cursor-pointer transition-colors ${
+                      paymentMode === 'cod' ? 'border-primary bg-primary/5' : 'border-white/5 bg-white/5 hover:bg-white/10'
+                    }`}
                   >
                     <div className="flex items-center gap-3">
                       <RadioGroupItem value="cod" id="cod" />
@@ -179,6 +206,36 @@ export default function CheckoutPage() {
                     </div>
                   </Label>
                 </RadioGroup>
+
+                {/* Conditional Promo Code Input for COD */}
+                {paymentMode === "cod" && (
+                  <div className="mt-4 p-4 rounded-2xl bg-primary/5 border border-primary/20 space-y-4 animate-in fade-in slide-in-from-top-2">
+                    <Label className="text-sm font-bold flex items-center gap-2">
+                      <Tag size={16} className="text-primary" /> Have a Promo Code?
+                    </Label>
+                    <div className="flex gap-2">
+                      <Input 
+                        placeholder="Enter Code (e.g., MARKET10)" 
+                        className="rounded-xl h-11 bg-background"
+                        value={promoCode}
+                        onChange={(e) => setPromoCode(e.target.value)}
+                      />
+                      <Button 
+                        type="button" 
+                        variant="secondary" 
+                        className="rounded-xl h-11 px-6 font-bold"
+                        onClick={handleApplyPromo}
+                      >
+                        Apply
+                      </Button>
+                    </div>
+                    {isPromoApplied && (
+                      <p className="text-xs text-emerald-500 font-bold flex items-center gap-1">
+                        <CheckCircle2 size={12} /> Promo code applied successfully!
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
 
               <Button 
@@ -189,7 +246,7 @@ export default function CheckoutPage() {
                 {isProcessing ? (
                   <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Authorizing...</>
                 ) : (
-                  <>Complete Purchase</>
+                  <>{paymentMode === 'cod' ? 'Place Order' : 'Complete Purchase'}</>
                 )}
               </Button>
               
@@ -212,21 +269,27 @@ export default function CheckoutPage() {
                     <p className="font-bold text-lg">{planName}</p>
                     <p className="text-sm text-muted-foreground">MarketMind AI Premium Access</p>
                   </div>
-                  <p className="font-bold text-xl text-primary">₹9,999</p>
+                  <p className="font-bold text-xl text-primary">₹{basePrice + gst}</p>
                 </div>
                 
                 <div className="space-y-4">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Base Price</span>
-                    <span>₹8,474</span>
+                    <span>₹{basePrice}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">GST (18%)</span>
-                    <span>₹1,525</span>
+                    <span>₹{gst}</span>
                   </div>
+                  {isPromoApplied && (
+                    <div className="flex justify-between text-sm text-emerald-500 font-bold">
+                      <span>Promo Discount</span>
+                      <span>-₹{discount}</span>
+                    </div>
+                  )}
                   <div className="pt-4 flex justify-between font-bold text-xl border-t border-white/5">
                     <span>Total Pay</span>
-                    <span className="text-primary">₹9,999</span>
+                    <span className="text-primary">₹{totalPrice}</span>
                   </div>
                 </div>
 
@@ -240,7 +303,7 @@ export default function CheckoutPage() {
                 </div>
               </CardContent>
               <CardFooter className="p-8 pt-0 text-[10px] text-muted-foreground leading-relaxed">
-                By completing the purchase, you agree to MarketMind AI's Terms of Service and Refund Policy. You will be redirected to the secure payment portal.
+                By completing the purchase, you agree to MarketMind AI's Terms of Service and Refund Policy. {paymentMode !== 'cod' && "You will be redirected to the secure payment portal."}
               </CardFooter>
             </Card>
           </div>
