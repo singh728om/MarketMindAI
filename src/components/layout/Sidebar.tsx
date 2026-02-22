@@ -95,7 +95,7 @@ export function Sidebar() {
         <Button 
           variant="ghost" 
           onClick={handleSignOut}
-          className="w-full justify-start text-muted-foreground hover:text-destructive transition-colors"
+          className="w-full justify-start text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
         >
           <LogOut size={20} className="mr-2" />
           Sign Out
