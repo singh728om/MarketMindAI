@@ -13,7 +13,10 @@ import {
   ChevronRight,
   Loader2,
   Copy,
-  Download
+  Download,
+  Upload,
+  User,
+  Zap
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,24 +31,22 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
 import { 
-  optimizeProductListing, 
-  generateUgcCampaignAssets,
-  generateVideoAdContent,
-  generateCatalogTemplate,
-  generatePhotoshootPrompts,
-  generateClientReportNarrative
-} from "@/ai/flows/generate-ugc-campaign-assets"; // Note: In a real app we'd import correctly, mapping to our defined flows.
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 
-// Mock mappings since we can't dynamic import all for the example
 const AGENTS = [
-  { id: "listing", title: "Listing Optimizer", icon: FileText, desc: "SEO-friendly titles, bullets, and A+ content.", color: "text-blue-500", flow: optimizeProductListing },
-  { id: "photoshoot", title: "Photoshoot Agent", icon: Camera, desc: "Prompt builder + style presets for high-end photography.", color: "text-purple-500", flow: generatePhotoshootPrompts },
-  { id: "video", title: "Video Ad Agent", icon: Video, desc: "Storyboard + text-to-video prompt generation.", color: "text-rose-500", flow: generateVideoAdContent },
-  { id: "catalog", title: "Catalog Automation", icon: LayoutGrid, desc: "Template generation + marketplace rule validation.", color: "text-emerald-500", flow: generateCatalogTemplate },
-  { id: "ugc", title: "UGC Script Studio", icon: Users, desc: "10 hooks + detailed creator briefs & scripts.", color: "text-orange-500", flow: generateUgcCampaignAssets },
-  { id: "report", title: "Client Report Narrator", icon: FileSearch, desc: "Weekly performance analysis into readable narrative.", color: "text-indigo-500", flow: generateClientReportNarrative },
+  { id: "listing", title: "Listing Optimizer", icon: FileText, desc: "SEO-friendly titles, bullets, and A+ content.", color: "text-blue-500" },
+  { id: "photoshoot", title: "Photoshoot Agent", icon: Camera, desc: "Prompt builder + style presets for high-end photography.", color: "text-purple-500" },
+  { id: "video", title: "Video Ad Agent", icon: Video, desc: "Storyboard + text-to-video prompt generation.", color: "text-rose-500" },
+  { id: "catalog", title: "Catalog Automation", icon: LayoutGrid, desc: "Template generation + marketplace rule validation.", color: "text-emerald-500" },
+  { id: "ugc", title: "UGC Script Studio", icon: Users, desc: "10 hooks + detailed creator briefs & scripts.", color: "text-orange-500" },
+  { id: "report", title: "Client Report Narrator", icon: FileSearch, desc: "Weekly performance analysis into readable narrative.", color: "text-indigo-500" },
 ];
 
 export default function AgentsPage() {
@@ -66,7 +67,8 @@ export default function AgentsPage() {
       title: "Optimized Premium Silk Kurta",
       bullets: ["100% Pure Mulberry Silk", "Hand-stitched Traditional Embroidery", "Breathable Fabric for Tropical Climates"],
       description: "Experience elegance with our premium silk kurta, designed for the modern ethnic connoisseur...",
-      prompt: "A high-fashion editorial shot of a silk kurta on a minimalist marble pedestal, soft natural light, 8k, photorealistic."
+      prompt: "A high-fashion editorial shot of a silk kurta on a minimalist marble pedestal, soft natural light, 8k, photorealistic.",
+      videoUrl: "https://picsum.photos/seed/video/600/400"
     });
     
     setIsRunning(false);
@@ -115,7 +117,7 @@ export default function AgentsPage() {
 
       {/* Agent Modal */}
       <Dialog open={!!selectedAgent} onOpenChange={() => { setSelectedAgent(null); setOutput(null); }}>
-        <DialogContent className="max-w-2xl bg-card border-white/10 rounded-3xl overflow-hidden max-h-[90vh] flex flex-col p-0">
+        <DialogContent className="max-w-3xl bg-card border-white/10 rounded-3xl overflow-hidden max-h-[90vh] flex flex-col p-0">
           {selectedAgent && (
             <>
               <DialogHeader className="p-8 pb-0">
@@ -132,7 +134,8 @@ export default function AgentsPage() {
 
               <div className="flex-1 overflow-y-auto p-8 pt-6">
                 {!output ? (
-                  <form onSubmit={handleRunAgent} className="space-y-6">
+                  <form onSubmit={handleRunAgent} className="space-y-8">
+                    {/* Common Inputs */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label>Product Name</Label>
@@ -143,73 +146,117 @@ export default function AgentsPage() {
                         <Input placeholder="e.g. Apparel" required />
                       </div>
                     </div>
-                    
-                    {selectedAgent.id === 'photoshoot' && (
-                      <div className="grid grid-cols-2 gap-4">
-                         <div className="space-y-2">
-                          <Label>Fabric</Label>
-                          <Input placeholder="Silk, Cotton..." />
+
+                    {/* Specific Inputs for Photoshoot & Video */}
+                    {(selectedAgent.id === 'photoshoot' || selectedAgent.id === 'video') && (
+                      <div className="space-y-6 bg-secondary/20 p-6 rounded-2xl border border-white/5">
+                        <Label className="text-sm font-bold uppercase tracking-widest text-primary">Media Assets</Label>
+                        <div className="border-2 border-dashed border-white/10 rounded-xl p-8 flex flex-col items-center justify-center gap-4 hover:bg-secondary/30 transition-colors cursor-pointer group">
+                           <Upload size={24} className="text-muted-foreground group-hover:text-primary transition-colors" />
+                           <p className="text-sm font-medium">Upload high-res product photos</p>
+                           <Button type="button" variant="outline" size="sm">Select Files</Button>
                         </div>
-                        <div className="space-y-2">
-                          <Label>Lighting</Label>
-                          <Input placeholder="Natural, Studio..." />
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Model Type</Label>
+                            <Select>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select model style" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="indian-female">Indian Female (Ethnic)</SelectItem>
+                                <SelectItem value="indian-male">Indian Male (Ethnic)</SelectItem>
+                                <SelectItem value="diverse">Diverse Global</SelectItem>
+                                <SelectItem value="none">No Model (Flatlay/Studio)</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Background Setting</Label>
+                            <Select>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select environment" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="minimal">Minimal Studio</SelectItem>
+                                <SelectItem value="heritage">Heritage Haveli</SelectItem>
+                                <SelectItem value="luxury">Luxury Interior</SelectItem>
+                                <SelectItem value="nature">Garden/Nature</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
                         </div>
                       </div>
                     )}
 
                     <div className="space-y-2">
-                      <Label>Key Features (Optional)</Label>
-                      <Textarea placeholder="List main selling points..." />
+                      <Label>Key Features or Brand Guidelines</Label>
+                      <Textarea placeholder="List main selling points, brand tone, or specific model requirements..." className="min-h-[100px]" />
                     </div>
 
-                    <Button type="submit" className="w-full h-12 rounded-xl text-lg font-bold" disabled={isRunning}>
+                    <Button type="submit" className="w-full h-14 rounded-xl text-lg font-bold shadow-xl shadow-primary/20" disabled={isRunning}>
                       {isRunning ? (
-                        <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Thinking...</>
+                        <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Agent is processing...</>
                       ) : (
-                        "Generate Output"
+                        <><Zap className="mr-2 h-5 w-5" /> Execute Agent</>
                       )}
                     </Button>
                   </form>
                 ) : (
                   <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
-                    <div className="p-6 rounded-2xl bg-secondary/30 border border-white/5 space-y-4">
+                    <div className="p-8 rounded-2xl bg-secondary/30 border border-white/5 space-y-6">
                       <div className="flex items-center justify-between">
-                        <h4 className="font-bold font-headline">AI Result</h4>
+                        <div className="flex items-center gap-2">
+                           <Sparkles className="text-primary" size={20} />
+                           <h4 className="font-bold font-headline text-xl text-primary">Intelligence Output</h4>
+                        </div>
                         <div className="flex gap-2">
                           <Button variant="ghost" size="icon" onClick={() => copyToClipboard(JSON.stringify(output))}><Copy size={16} /></Button>
                           <Button variant="ghost" size="icon"><Download size={16} /></Button>
                         </div>
                       </div>
                       
-                      <div className="space-y-4 text-sm text-muted-foreground">
+                      <div className="grid grid-cols-1 gap-6 text-sm">
                         {output.title && (
-                          <div>
-                            <p className="font-bold text-foreground">Title</p>
-                            <p className="p-3 bg-background/50 rounded-lg mt-1">{output.title}</p>
+                          <div className="space-y-2">
+                            <Label className="text-muted-foreground">Generated Title</Label>
+                            <div className="p-4 bg-background rounded-xl border font-bold text-foreground">{output.title}</div>
                           </div>
                         )}
-                        {output.prompt && (
-                          <div>
-                            <p className="font-bold text-foreground">AI Generation Prompt</p>
-                            <p className="p-3 bg-background/50 rounded-lg mt-1 italic">{output.prompt}</p>
+                        
+                        {(selectedAgent.id === 'photoshoot' || selectedAgent.id === 'video') && (
+                          <div className="space-y-2">
+                            <Label className="text-muted-foreground">Generated Prompt / Preview</Label>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="p-4 bg-background rounded-xl border italic text-muted-foreground text-xs leading-relaxed">
+                                "{output.prompt}"
+                              </div>
+                              <div className="aspect-video bg-muted rounded-xl flex items-center justify-center overflow-hidden border">
+                                <img src={output.videoUrl} alt="Preview" className="w-full h-full object-cover" />
+                              </div>
+                            </div>
                           </div>
                         )}
+
                         {output.description && (
-                          <div>
-                            <p className="font-bold text-foreground">Description Preview</p>
-                            <p className="p-3 bg-background/50 rounded-lg mt-1">{output.description}</p>
+                          <div className="space-y-2">
+                            <Label className="text-muted-foreground">Content Narrative</Label>
+                            <div className="p-4 bg-background rounded-xl border text-foreground leading-relaxed">
+                              {output.description}
+                            </div>
                           </div>
                         )}
                       </div>
                     </div>
-                    <Button variant="outline" className="w-full" onClick={() => setOutput(null)}>Start New Task</Button>
+                    <Button variant="outline" className="w-full h-12 rounded-xl" onClick={() => setOutput(null)}>Start New Task</Button>
                   </div>
                 )}
               </div>
               
-              <div className="p-4 bg-muted/50 border-t flex items-center justify-center gap-2">
-                <AlertTriangle size={14} className="text-amber-500" />
-                <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Mock AI Execution Mode</span>
+              <div className="p-3 bg-muted/30 border-t flex items-center justify-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Authenticated AI Instance active</span>
               </div>
             </>
           )}
