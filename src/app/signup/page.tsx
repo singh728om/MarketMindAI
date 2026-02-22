@@ -95,7 +95,7 @@ export default function SignupPage() {
               {isLoading ? (
                 <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating Account...</>
               ) : (
-                "Start Free Trial"
+                "Get Started Now"
               )}
             </Button>
 
