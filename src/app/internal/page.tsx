@@ -1,3 +1,4 @@
+
 "use client";
 
 import { 
@@ -8,7 +9,8 @@ import {
   TrendingUp, 
   AlertCircle,
   ArrowUpRight,
-  Activity
+  Activity,
+  ShoppingBag
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -35,9 +37,17 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-headline font-bold mb-1">Operations Overview</h1>
-        <p className="text-slate-400">Welcome back, Admin. Here's what needs your attention today.</p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-headline font-bold mb-1 text-white">Operations Overview</h1>
+          <p className="text-slate-400">Welcome back, Admin. Here's what needs your attention today.</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="border-accent/20 bg-accent/5 text-accent px-4 py-1.5 flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
+            Staff Node: AS-SOUTH-1
+          </Badge>
+        </div>
       </div>
 
       {/* High Level Stats */}
@@ -63,10 +73,10 @@ export default function AdminDashboard() {
         <Card className="lg:col-span-2 bg-slate-900 border-white/5">
           <CardHeader className="flex flex-row items-center justify-between border-b border-white/5 pb-6">
             <div>
-              <CardTitle className="text-xl font-headline font-bold">Priority Service Queue</CardTitle>
-              <CardDescription className="text-slate-400">Click a project to start working on its service modules.</CardDescription>
+              <CardTitle className="text-xl font-headline font-bold text-white">Priority Service Queue</CardTitle>
+              <CardDescription className="text-slate-400">Manage fulfillment modules for active brand engagements.</CardDescription>
             </div>
-            <Button variant="outline" size="sm" className="bg-slate-800 border-white/5 text-xs h-8" onClick={() => router.push('/internal/orders')}>
+            <Button variant="outline" size="sm" className="bg-slate-800 border-white/5 text-xs h-8 text-white" onClick={() => router.push('/internal/orders')}>
               View All Orders
             </Button>
           </CardHeader>
@@ -100,16 +110,16 @@ export default function AdminDashboard() {
                       </td>
                       <td className="px-6 py-4">
                         <Badge className={cn(
-                          "text-[10px] font-bold uppercase",
-                          order.urgency === 'High' ? "bg-rose-500/10 text-rose-500 border-rose-500/20" : 
-                          order.urgency === 'Medium' ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : 
+                          "text-[10px] font-bold uppercase border-none",
+                          order.urgency === 'High' ? "bg-rose-500/10 text-rose-500" : 
+                          order.urgency === 'Medium' ? "bg-amber-500/10 text-amber-500" : 
                           "bg-slate-800 text-slate-400"
                         )}>
                           {order.urgency}
                         </Badge>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <Button variant="ghost" size="sm" className="h-8 w-8 rounded-full hover:bg-accent hover:text-accent-foreground">
+                        <Button variant="ghost" size="sm" className="h-8 w-8 rounded-full hover:bg-accent hover:text-accent-foreground text-slate-500">
                           <ArrowUpRight size={14} />
                         </Button>
                       </td>
@@ -125,12 +135,12 @@ export default function AdminDashboard() {
         <div className="space-y-6">
           <Card className="bg-slate-900 border-white/5">
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg font-headline font-bold">AI Node Status</CardTitle>
+              <CardTitle className="text-lg font-headline font-bold text-white">AI Engine Status</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-3">
                 <div className="flex justify-between items-center text-xs">
-                  <span className="text-slate-400">Gemini 1.5 API Quota</span>
+                  <span className="text-slate-400">Google Gemini API Quota</span>
                   <span className="text-accent font-bold">72% Available</span>
                 </div>
                 <Progress value={72} className="h-1.5 bg-slate-800" />
@@ -149,21 +159,21 @@ export default function AdminDashboard() {
 
           <Card className="bg-slate-900 border-white/5">
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg font-headline font-bold">Staff Broadcast</CardTitle>
+              <CardTitle className="text-lg font-headline font-bold text-white">Staff Broadcast</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex gap-3">
                 <div className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0 mt-1.5 shadow-[0_0_8px_rgba(244,63,94,0.5)]" />
                 <div className="space-y-1">
-                  <p className="text-xs font-bold text-white">Myntra Maintenance</p>
-                  <p className="text-[10px] text-slate-500">API sync will be down from 2 AM to 4 AM IST.</p>
+                  <p className="text-xs font-bold text-white">Myntra API Maintenance</p>
+                  <p className="text-[10px] text-slate-500">Scheduled downtime tonight from 2 AM to 4 AM IST.</p>
                 </div>
               </div>
               <div className="flex gap-3">
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0 mt-1.5" />
                 <div className="space-y-1">
-                  <p className="text-xs font-bold text-white">New AI Model Deployed</p>
-                  <p className="text-[10px] text-slate-500">Photoshoot v3 is now active for all Ethnic wear.</p>
+                  <p className="text-xs font-bold text-white">AI Vision Update</p>
+                  <p className="text-[10px] text-slate-500">Photoshoot v3.1 now supports heritage palace backgrounds.</p>
                 </div>
               </div>
             </CardContent>
