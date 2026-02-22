@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { BrainCircuit, Check, ArrowLeft, Zap, ShoppingBag, Sparkles } from "lucide-react";
+import { BrainCircuit, Check, ArrowLeft, Zap, ShoppingBag, Sparkles, MapPin, Mail, Phone } from "lucide-react";
 
 const PRICING_CATEGORIES = [
   {
@@ -22,9 +22,7 @@ const PRICING_CATEGORIES = [
     description: "High-converting listings optimized for discovery.",
     icon: Zap,
     items: [
-      { name: "Listing Creation", price: "₹1,999", period: "per SKU" },
-      { name: "Listing Optimization", price: "₹1,499", period: "per SKU" },
-      { name: "A+ Content Design", price: "₹2,999", period: "per SKU" },
+      { name: "Listing Creation & Optimization", price: "₹1,999", period: "Starting from" },
     ]
   },
   {
@@ -117,16 +115,55 @@ export default function PricingPage() {
         </div>
       </main>
 
-      <footer className="border-t py-12 bg-background">
-        <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-6">
-          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <BrainCircuit className="text-primary w-6 h-6" />
-            <span className="font-headline font-bold text-lg">MarketMind AI</span>
-          </Link>
-          <p className="text-muted-foreground text-sm">© 2024 MarketMind. All rights reserved.</p>
-          <div className="flex items-center gap-6">
-            <Link href="#" className="text-muted-foreground hover:text-foreground text-sm">Privacy</Link>
-            <Link href="#" className="text-muted-foreground hover:text-foreground text-sm">Terms</Link>
+      {/* Footer */}
+      <footer className="border-t py-16 bg-background">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+            <div className="col-span-1 md:col-span-1">
+              <Link href="/" className="flex items-center gap-2 mb-6 hover:opacity-80 transition-opacity">
+                <BrainCircuit className="text-primary w-6 h-6" />
+                <span className="font-headline font-bold text-lg">MarketMind AI</span>
+              </Link>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Leading e-commerce growth agency scaling brands on India's biggest marketplaces with AI.
+              </p>
+            </div>
+            <div>
+              <h4 className="font-bold mb-4">Services</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>AI Photoshoots</li>
+                <li>Listing Optimization</li>
+                <li>Video Ad Creation</li>
+                <li>Catalog Automation</li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-bold mb-4">Contact</h4>
+              <ul className="space-y-4 text-sm text-muted-foreground">
+                <li className="flex gap-2">
+                  <MapPin size={16} className="text-primary shrink-0" />
+                  <span>Udyog Vihar Phase-1 Gurgaon 122016</span>
+                </li>
+                <li className="flex gap-2 items-center">
+                  <Mail size={16} className="text-primary shrink-0" />
+                  <span>info@mastermindai.com</span>
+                </li>
+                <li className="flex gap-2 items-center">
+                  <Phone size={16} className="text-primary shrink-0" />
+                  <span>+918882130155</span>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-bold mb-4">Legal</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><Link href="#" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
+                <li><Link href="#" className="hover:text-primary transition-colors">Terms of Service</Link></li>
+              </ul>
+            </div>
+          </div>
+          <div className="pt-8 border-t flex flex-col md:flex-row justify-between items-center gap-6">
+            <p className="text-muted-foreground text-xs text-center md:text-left">© 2024 MarketMind. All rights reserved.</p>
           </div>
         </div>
       </footer>

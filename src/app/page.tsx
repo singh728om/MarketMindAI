@@ -15,7 +15,9 @@ import {
   Star,
   Upload,
   CheckCircle2,
-  X
+  MapPin,
+  Mail,
+  Phone
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { 
@@ -107,6 +109,7 @@ export default function LandingPage() {
             <Link href="#services" className="hover:text-primary transition-colors">Services</Link>
             <Link href="#how-it-works" className="hover:text-primary transition-colors">How it works</Link>
             <Link href="/pricing" className="hover:text-primary transition-colors">Pricing</Link>
+            <Link href="#about" className="hover:text-primary transition-colors">About</Link>
           </nav>
           <div className="flex items-center gap-4">
             <Link href="/login">
@@ -200,6 +203,57 @@ export default function LandingPage() {
                 <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary mx-auto text-2xl font-bold">3</div>
                 <h3 className="text-xl font-bold font-headline">Scale ROAS</h3>
                 <p className="text-muted-foreground">Apply AI recommendations instantly to boost conversion and reduce ad spend.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* About & Contact Section */}
+        <section id="about" className="py-24 bg-secondary/10">
+          <div className="container mx-auto px-4">
+            <div className="max-w-4xl mx-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+                <div>
+                  <h2 className="font-headline text-3xl md:text-4xl font-bold mb-6">About MarketMind AI</h2>
+                  <p className="text-muted-foreground mb-6 leading-relaxed text-lg">
+                    We are a next-generation e-commerce growth agency powered by proprietary AI intelligence. Our mission is to democratize high-end creative production and strategic growth for brands selling on India's premier marketplaces.
+                  </p>
+                  <p className="text-muted-foreground leading-relaxed text-lg">
+                    By combining expert marketplace knowledge with cutting-edge GenAI, we deliver results that were previously only accessible to enterprise brands with massive budgets.
+                  </p>
+                </div>
+                <div className="space-y-8 bg-card border p-8 rounded-3xl shadow-xl">
+                  <h3 className="text-2xl font-bold font-headline mb-4">Get In Touch</h3>
+                  <div className="space-y-6">
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                        <MapPin size={20} />
+                      </div>
+                      <div>
+                        <p className="font-bold mb-1">Office Address</p>
+                        <p className="text-muted-foreground text-sm">Udyog Vihar Phase-1 Gurgaon 122016 Haryana India</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                        <Mail size={20} />
+                      </div>
+                      <div>
+                        <p className="font-bold mb-1">Email Support</p>
+                        <p className="text-muted-foreground text-sm">info@mastermindai.com</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                        <Phone size={20} />
+                      </div>
+                      <div>
+                        <p className="font-bold mb-1">Mobile</p>
+                        <p className="text-muted-foreground text-sm">+918882130155</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -320,17 +374,66 @@ export default function LandingPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Simple Footer */}
-      <footer className="border-t py-12 bg-background">
-        <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-6">
-          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <BrainCircuit className="text-primary w-6 h-6" />
-            <span className="font-headline font-bold text-lg">MarketMind AI</span>
-          </Link>
-          <p className="text-muted-foreground text-sm">© 2024 MarketMind. All rights reserved.</p>
-          <div className="flex items-center gap-6">
-            <Link href="#" className="text-muted-foreground hover:text-foreground text-sm">Privacy</Link>
-            <Link href="#" className="text-muted-foreground hover:text-foreground text-sm">Terms</Link>
+      {/* Footer */}
+      <footer className="border-t py-16 bg-background">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+            <div className="col-span-1 md:col-span-1">
+              <Link href="/" className="flex items-center gap-2 mb-6 hover:opacity-80 transition-opacity">
+                <BrainCircuit className="text-primary w-6 h-6" />
+                <span className="font-headline font-bold text-lg">MarketMind AI</span>
+              </Link>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Leading e-commerce growth agency scaling brands on India's biggest marketplaces with AI.
+              </p>
+            </div>
+            <div>
+              <h4 className="font-bold mb-4">Services</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>AI Photoshoots</li>
+                <li>Listing Optimization</li>
+                <li>Video Ad Creation</li>
+                <li>Catalog Automation</li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-bold mb-4">Contact</h4>
+              <ul className="space-y-4 text-sm text-muted-foreground">
+                <li className="flex gap-2">
+                  <MapPin size={16} className="text-primary shrink-0" />
+                  <span>Udyog Vihar Phase-1 Gurgaon 122016</span>
+                </li>
+                <li className="flex gap-2 items-center">
+                  <Mail size={16} className="text-primary shrink-0" />
+                  <span>info@mastermindai.com</span>
+                </li>
+                <li className="flex gap-2 items-center">
+                  <Phone size={16} className="text-primary shrink-0" />
+                  <span>+918882130155</span>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-bold mb-4">Legal</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><Link href="#" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
+                <li><Link href="#" className="hover:text-primary transition-colors">Terms of Service</Link></li>
+              </ul>
+            </div>
+          </div>
+          <div className="pt-8 border-t flex flex-col md:flex-row justify-between items-center gap-6">
+            <p className="text-muted-foreground text-xs text-center md:text-left">© 2024 MarketMind. All rights reserved.</p>
+            <div className="flex items-center gap-4">
+              <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center cursor-pointer hover:bg-primary transition-colors">
+                <span className="text-[10px] font-bold">LI</span>
+              </div>
+              <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center cursor-pointer hover:bg-primary transition-colors">
+                <span className="text-[10px] font-bold">X</span>
+              </div>
+              <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center cursor-pointer hover:bg-primary transition-colors">
+                <span className="text-[10px] font-bold">IG</span>
+              </div>
+            </div>
           </div>
         </div>
       </footer>
