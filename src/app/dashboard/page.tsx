@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -57,9 +58,15 @@ export default function Dashboard() {
   const [ceoAnalysis, setCeoAnalysis] = useState<any>(null);
   const [isLoadingAnalysis, setIsLoadingAnalysis] = useState(true);
   const [orderStats, setOrderStats] = useState({ enrolled: 0, canceled: 0, active: 0 });
+  const [hasMounted, setHasMounted] = useState(false);
+  
   const router = useRouter();
   const db = useFirestore();
   const { user, isUserLoading } = useUser();
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   // Load Real Order Stats from localStorage
   useEffect(() => {
@@ -133,7 +140,7 @@ export default function Dashboard() {
     ];
   }, [ceoAnalysis]);
 
-  if (isLoadingAnalysis && isUserLoading) {
+  if (!hasMounted || (isLoadingAnalysis && isUserLoading)) {
     return <div className="flex items-center justify-center min-h-[60vh]"><Loader2 className="animate-spin text-primary w-12 h-12" /></div>;
   }
 
@@ -332,7 +339,7 @@ export default function Dashboard() {
                     <AlertCircle size={14} className="text-rose-500" /> Critical Leakage Identified
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {ceoAnalysis.leakageInsights && ceoAnalysis.leakageInsights.map((leak: any, i: number) => (
+                    {(ceoAnalysis.leakageInsights || []).map((leak: any, i: number) => (
                       <div key={i} className="flex flex-col p-4 bg-rose-500/10 rounded-2xl border border-rose-500/20">
                         <span className="text-xs font-bold text-rose-500 uppercase mb-1">{leak.reason}</span>
                         <span className="text-sm text-slate-200 font-medium">{leak.impact}</span>
@@ -346,7 +353,7 @@ export default function Dashboard() {
                     <Target size={14} className="text-emerald-500" /> High-Impact Recommendations
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {ceoAnalysis.recommendations?.map((rec: string, i: number) => (
+                    {(ceoAnalysis.recommendations || []).map((rec: string, i: number) => (
                       <div key={i} className="flex gap-3 p-4 bg-slate-900/50 rounded-2xl text-xs border border-white/5 hover:border-amber-500/30 transition-colors">
                         <CheckCircle2 className="text-amber-500 size-4 shrink-0 mt-0.5" />
                         <span className="text-slate-200">{rec}</span>

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -50,11 +51,16 @@ export default function CEOHubPage() {
   const [isAuditing, setIsAuditing] = useState(false);
   const [marketplace, setMarketplace] = useState("Amazon");
   const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
+  const [hasMounted, setHasMounted] = useState(false);
   
   const db = useFirestore();
   const auth = useAuth();
   const { user, isUserLoading } = useUser();
   const { toast } = useToast();
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   // Background Auth Stabilization
   useEffect(() => {
@@ -175,9 +181,21 @@ export default function CEOHubPage() {
     }
   };
 
+  const handleApprovePillar = (pillarName: string) => {
+    toast({
+      title: "Action Approved",
+      description: `CEO instructions for ${pillarName} sent to fulfillment node.`,
+    });
+  };
+
   const metrics = useMemo(() => analysis?.metrics || null, [analysis]);
 
-  if (isLoading || isUserLoading) {
+  const formatINR = (val: number) => {
+    if (!val && val !== 0) return "0";
+    return val.toLocaleString('en-IN');
+  };
+
+  if (!hasMounted || isLoading || isUserLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
         <Loader2 className="animate-spin text-amber-500 w-12 h-12" />
@@ -375,9 +393,7 @@ export default function CEOHubPage() {
                       <TrendingUp size={14} /> Revenue Accelerators
                     </h4>
                     {(analysis.pillars?.revenueGrowth || []).map((rec: string, i: number) => (
-                      <div key={i} className="p-4 rounded-2xl bg-white/5 border border-white/5 text-sm font-medium hover:border-primary/30 transition-colors">
-                        {rec}
-                      </div>
+                      <PillarItem key={i} text={rec} onApprove={() => handleApprovePillar('Revenue')} />
                     ))}
                   </div>
                   <div className="space-y-4">
@@ -385,9 +401,7 @@ export default function CEOHubPage() {
                       <TrendingDown size={14} /> Efficiency Risks
                     </h4>
                     {(analysis.pillars?.costOptimization || []).map((rec: string, i: number) => (
-                      <div key={i} className="p-4 rounded-2xl bg-rose-500/5 border border-rose-500/10 text-sm font-medium hover:border-rose-500/30 transition-colors">
-                        {rec}
-                      </div>
+                      <PillarItem key={i} text={rec} onApprove={() => handleApprovePillar('Cost')} />
                     ))}
                   </div>
                 </div>
@@ -418,7 +432,7 @@ export default function CEOHubPage() {
                       </div>
                       <div className="flex flex-col items-end shrink-0">
                         <span className="text-[10px] font-bold text-slate-500 uppercase">Est. Monthly Leakage</span>
-                        <span className="text-xl font-headline font-bold text-rose-500">₹{(metrics ? (metrics.loss * 0.3) : 0).toLocaleString()}</span>
+                        <span className="text-xl font-headline font-bold text-rose-500">₹{formatINR(metrics ? Math.round(metrics.loss * 0.3) : 0)}</span>
                       </div>
                     </div>
                   )) : (
@@ -533,6 +547,27 @@ export default function CEOHubPage() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function PillarItem({ text, onApprove, isWide }: { text: string, onApprove: () => void, isWide?: boolean }) {
+  return (
+    <div className={cn(
+      "flex items-start justify-between gap-4 p-4 rounded-xl bg-slate-900 border border-white/5 hover:border-white/10 transition-colors group",
+      isWide && "w-full"
+    )}>
+      <div className="flex-1 min-w-0">
+        <p className="text-xs font-medium text-slate-200 leading-relaxed">{text}</p>
+      </div>
+      <Button 
+        size="sm" 
+        variant="ghost" 
+        className="h-7 text-[9px] font-bold uppercase tracking-widest text-emerald-500 hover:bg-emerald-500/10 hover:text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity"
+        onClick={onApprove}
+      >
+        Approve
+      </Button>
     </div>
   );
 }
