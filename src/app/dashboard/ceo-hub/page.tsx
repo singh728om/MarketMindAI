@@ -92,6 +92,7 @@ export default function CommandHubPage() {
   const handleRunAudit = async () => {
     if (!user || !db) {
       if (auth) initiateAnonymousSignIn(auth);
+      toast({ title: "Securing Node", description: "Establishing a secure session with Astra AS-S1-V4..." });
       return;
     }
     
@@ -101,7 +102,7 @@ export default function CommandHubPage() {
       const activeKey = keys ? JSON.parse(keys).gemini : "";
 
       if (!activeKey) {
-        toast({ variant: "destructive", title: "Astra Offline", description: "API Key missing in System Config." });
+        toast({ variant: "destructive", title: "Astra Offline", description: "API Key missing in System Config. Visit Ops Console." });
         setIsAuditing(false);
         return;
       }
@@ -122,8 +123,17 @@ export default function CommandHubPage() {
         createdAt: new Date().toISOString()
       };
 
-      await setDoc(analysisRef, data);
-      toast({ title: "Boardroom Updated", description: "Astra Intelligence Node: AS-S1-V4 has synchronized strategic data." });
+      setDoc(analysisRef, data)
+        .then(() => {
+          toast({ title: "Boardroom Updated", description: "Astra Intelligence Node: AS-S1-V4 has synchronized strategic data." });
+        })
+        .catch(async (serverError) => {
+          errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: analysisRef.path,
+            operation: 'write',
+            requestResourceData: data,
+          }));
+        });
     } catch (err: any) {
       toast({ variant: "destructive", title: "Synthesis Error", description: err.message });
     } finally {
@@ -147,7 +157,11 @@ export default function CommandHubPage() {
   };
 
   if (!hasMounted) {
-    return <div className="min-h-[60vh] flex items-center justify-center"><Loader2 className="animate-spin text-primary w-12 h-12" /></div>;
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <Loader2 className="animate-spin text-primary w-12 h-12" />
+      </div>
+    );
   }
 
   return (
