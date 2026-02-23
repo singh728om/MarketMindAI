@@ -26,6 +26,27 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
+// Price mapping for tier calculation logic
+const PRICE_MAP: Record<string, number> = {
+  "Myntra Onboarding": 14999,
+  "Amazon Onboarding": 4999,
+  "Flipkart Onboarding": 4999,
+  "Ajio Onboarding": 14999,
+  "Nykaa Onboarding": 14999,
+  "Listing Creation": 1999,
+  "Listing Optimization": 1999,
+  "Keyword Research": 999,
+  "AI Photoshoot": 999,
+  "AI Video Ad (15s)": 1499,
+  "Website Store Builder": 11999,
+  "Shopify Store": 14999,
+  "AI CEO & Strategist": 24999,
+  "AI Social Media Manager": 9999,
+  "AI Listing Architect": 7999,
+  "AI Customer Success Lead": 5999,
+  "AI Creative Director": 12999
+};
+
 const navItems = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "AI Agents", href: "/dashboard/agents", icon: Sparkles },
@@ -56,8 +77,15 @@ export function Sidebar({ onClose }: SidebarProps) {
         const projectsStr = localStorage.getItem("marketmind_projects");
         if (projectsStr) {
           const projects = JSON.parse(projectsStr);
-          if (projects.length > 0) {
-            const hasHighValue = projects.some((p: any) => (Number(p.price) || 0) >= 10000);
+          const activeProjects = projects.filter((p: any) => p.status !== 'Canceled');
+          
+          if (activeProjects.length > 0) {
+            // Check if any active project is >= 10k using metadata price or mapping
+            const hasHighValue = activeProjects.some((p: any) => {
+              const price = Number(p.price) || PRICE_MAP[p.name] || 0;
+              return price >= 10000;
+            });
+
             if (hasHighValue) {
               setCurrentPlan({ name: "Pro Plan", color: "text-amber-500" });
             } else {

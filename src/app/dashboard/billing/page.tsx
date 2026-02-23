@@ -34,6 +34,27 @@ import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
+// Price mapping for fallback calculation if metadata is missing
+const PRICE_MAP: Record<string, number> = {
+  "Myntra Onboarding": 14999,
+  "Amazon Onboarding": 4999,
+  "Flipkart Onboarding": 4999,
+  "Ajio Onboarding": 14999,
+  "Nykaa Onboarding": 14999,
+  "Listing Creation": 1999,
+  "Listing Optimization": 1999,
+  "Keyword Research": 999,
+  "AI Photoshoot": 999,
+  "AI Video Ad (15s)": 1499,
+  "Website Store Builder": 11999,
+  "Shopify Store": 14999,
+  "AI CEO & Strategist": 24999,
+  "AI Social Media Manager": 9999,
+  "AI Listing Architect": 7999,
+  "AI Customer Success Lead": 5999,
+  "AI Creative Director": 12999
+};
+
 export default function BillingPage() {
   const [isInvoiceOpen, setIsInvoiceOpen] = useState(false);
   const [projects, setProjects] = useState<any[]>([]);
@@ -53,25 +74,56 @@ export default function BillingPage() {
     return () => window.removeEventListener('storage', loadProjects);
   }, []);
 
-  const billingSummary = useMemo(() => {
-    return projects.map(p => ({
-      name: p.name,
-      price: Number(p.price) || 0,
-      type: p.type || "Service",
-      date: p.updatedAt || "Activated"
-    }));
+  // Filter for billable services (exclude Canceled)
+  const activeProjects = useMemo(() => {
+    return projects.filter(p => p.status !== 'Canceled');
   }, [projects]);
+
+  const billingSummary = useMemo(() => {
+    return activeProjects.map(p => {
+      // Get price from project metadata or fallback to PRICE_MAP
+      const price = Number(p.price) || PRICE_MAP[p.name] || 0;
+      return {
+        name: p.name,
+        price: price,
+        type: p.type || "Service",
+        date: p.updatedAt || "Activated",
+        status: p.status
+      };
+    });
+  }, [activeProjects]);
 
   const totalInvestment = useMemo(() => {
     return billingSummary.reduce((sum, s) => sum + s.price, 0);
   }, [billingSummary]);
 
   const currentPlan = useMemo(() => {
-    if (projects.length === 0) return { name: "Free Trial", badge: "Trial Tier", color: "bg-primary", desc: "You have 7 days remaining in your high-performance agency trial." };
-    const hasHighValue = projects.some(p => (Number(p.price) || 0) >= 10000);
-    if (hasHighValue) return { name: "Pro Plan", badge: "Professional", color: "bg-amber-500", desc: "Unlimited AI orchestration and dedicated priority node access." };
-    return { name: "Plus Plan", badge: "Accelerated", color: "bg-emerald-500", desc: "Core agency services active with enhanced growth intelligence." };
-  }, [projects]);
+    if (activeProjects.length === 0) return { 
+      name: "Free Trial", 
+      badge: "Trial Tier", 
+      color: "bg-primary", 
+      desc: "You have 7 days remaining in your high-performance agency trial." 
+    };
+    
+    const hasHighValue = activeProjects.some(p => {
+      const pPrice = Number(p.price) || PRICE_MAP[p.name] || 0;
+      return pPrice >= 10000;
+    });
+
+    if (hasHighValue) return { 
+      name: "Pro Plan", 
+      badge: "Professional", 
+      color: "bg-amber-500", 
+      desc: "Unlimited AI orchestration and dedicated priority node access." 
+    };
+
+    return { 
+      name: "Plus Plan", 
+      badge: "Accelerated", 
+      color: "bg-emerald-500", 
+      desc: "Core agency services active with enhanced growth intelligence." 
+    };
+  }, [activeProjects]);
 
   const gst = Math.round(totalInvestment * 0.18);
   const grandTotal = totalInvestment + gst;
@@ -120,10 +172,10 @@ export default function BillingPage() {
             <div className="space-y-2">
               <div className="flex justify-between text-xs font-bold">
                 <span className="text-muted-foreground uppercase tracking-widest">Usage Logic</span>
-                <span className="text-primary">{projects.length > 0 ? 'Account Active' : 'Initial Tier'}</span>
+                <span className="text-primary">{activeProjects.length > 0 ? 'Account Active' : 'Initial Tier'}</span>
               </div>
-              <Progress value={projects.length > 0 ? 100 : 24} className="h-2" />
-              <p className="text-[10px] text-muted-foreground">{projects.length} active agency enrollments</p>
+              <Progress value={activeProjects.length > 0 ? 100 : 24} className="h-2" />
+              <p className="text-[10px] text-muted-foreground">{activeProjects.length} active agency enrollments</p>
             </div>
             
             <div className="space-y-3 pt-4">
@@ -156,7 +208,7 @@ export default function BillingPage() {
             <CardTitle className="font-headline flex items-center gap-2">
               <ReceiptText size={20} className="text-primary" /> Service Billing Ledger
             </CardTitle>
-            <CardDescription>Real-time audit of your marketplace service investments.</CardDescription>
+            <CardDescription>Real-time audit of your active marketplace service investments.</CardDescription>
           </CardHeader>
           <CardContent className="flex-1 p-0">
              <div className="overflow-x-auto">
@@ -174,7 +226,10 @@ export default function BillingPage() {
                        <td className="px-8 py-5">
                          <div className="flex flex-col">
                            <span className="font-bold text-sm">{service.name}</span>
-                           <span className="text-[10px] text-muted-foreground">Activated {service.date}</span>
+                           <div className="flex items-center gap-2">
+                             <span className="text-[10px] text-muted-foreground">Activated {service.date}</span>
+                             <Badge variant="outline" className="text-[8px] border-none bg-primary/10 text-primary py-0 h-3">{service.status}</Badge>
+                           </div>
                          </div>
                        </td>
                        <td className="px-8 py-5">
@@ -187,7 +242,7 @@ export default function BillingPage() {
                    )) : (
                      <tr>
                        <td colSpan={3} className="px-8 py-20 text-center text-slate-500 italic text-sm">
-                         No billed services yet. Your 7-day trial is currently offset by our promotional grant.
+                         No active billed services. Your account is currently in the introductory trial phase.
                        </td>
                      </tr>
                    )}
@@ -197,11 +252,11 @@ export default function BillingPage() {
           </CardContent>
           <CardFooter className="bg-primary/5 p-8 border-t border-white/5 flex items-center justify-between">
             <div className="space-y-1">
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Consolidated Investment</p>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Active Investment (Subtotal)</p>
               <h3 className="text-3xl font-headline font-bold text-primary">₹{totalInvestment.toLocaleString()}</h3>
             </div>
             <Button variant="outline" className="rounded-xl h-12 px-6" onClick={() => setIsInvoiceOpen(true)}>
-              View Detailed Invoice
+              View Final Bill
             </Button>
           </CardFooter>
         </Card>
@@ -256,15 +311,15 @@ export default function BillingPage() {
 
             <div className="space-y-3 pt-4 border-t border-white/5">
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Subtotal</span>
+                <span className="text-muted-foreground">Subtotal (Active Services)</span>
                 <span className="font-mono">₹{totalInvestment.toLocaleString()}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">GST (18%)</span>
                 <span className="font-mono">₹{gst.toLocaleString()}</span>
               </div>
-              <div className="flex justify-between font-bold text-xl pt-4 border-t border-white/5">
-                <span className="text-primary font-headline">Total Pay</span>
+              <div className="flex justify-between font-bold text-2xl pt-4 border-t border-white/5">
+                <span className="text-primary font-headline">Final Bill</span>
                 <span className="text-primary font-mono">₹{grandTotal.toLocaleString()}</span>
               </div>
             </div>
@@ -276,7 +331,7 @@ export default function BillingPage() {
                   {currentPlan.name === 'Free Trial' ? "Payment Status: Free Tier Offset" : "Plan Activation: Verified"}
                 </p>
                 <p className="text-[10px] text-muted-foreground leading-relaxed">
-                  Your current {currentPlan.name} status was automatically calculated based on your marketplace activity and engagement value.
+                  Your billing amount is dynamically updated based on your active service enrollments. All charges include proprietary AI node access and expert fulfillment oversight.
                 </p>
               </div>
             </div>
