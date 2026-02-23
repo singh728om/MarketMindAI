@@ -3,6 +3,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import { 
   LayoutDashboard, 
   Sparkles, 
@@ -47,6 +48,34 @@ export function Sidebar({ onClose }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { toast } = useToast();
+  const [currentPlan, setCurrentPlan] = useState({ name: "Free Trial", color: "text-primary" });
+
+  useEffect(() => {
+    const calculatePlan = () => {
+      try {
+        const projectsStr = localStorage.getItem("marketmind_projects");
+        if (projectsStr) {
+          const projects = JSON.parse(projectsStr);
+          if (projects.length > 0) {
+            const hasHighValue = projects.some((p: any) => (p.price || 0) >= 10000);
+            if (hasHighValue) {
+              setCurrentPlan({ name: "Pro Plan", color: "text-amber-500" });
+            } else {
+              setCurrentPlan({ name: "Plus Plan", color: "text-emerald-500" });
+            }
+          } else {
+            setCurrentPlan({ name: "Free Trial", color: "text-primary" });
+          }
+        }
+      } catch (e) {
+        console.error("Plan calc error", e);
+      }
+    };
+
+    calculatePlan();
+    window.addEventListener('storage', calculatePlan);
+    return () => window.removeEventListener('storage', calculatePlan);
+  }, []);
 
   const handleSignOut = () => {
     toast({
@@ -99,15 +128,25 @@ export function Sidebar({ onClose }: SidebarProps) {
       </nav>
 
       <div className="p-4 border-t border-border/50 space-y-4">
-        <div className="bg-primary/10 p-4 rounded-xl border border-primary/20 relative overflow-hidden group">
+        <div className={cn(
+          "p-4 rounded-xl border relative overflow-hidden group",
+          currentPlan.name === 'Pro Plan' ? "bg-amber-500/10 border-amber-500/20" : 
+          currentPlan.name === 'Plus Plan' ? "bg-emerald-500/10 border-emerald-500/20" : 
+          "bg-primary/10 border-primary/20"
+        )}>
           <div className="relative z-10">
-            <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-1">Current Plan</p>
+            <p className={cn("text-[10px] font-bold uppercase tracking-widest mb-1", currentPlan.color)}>Subscription Status</p>
             <p className="text-sm font-bold text-foreground flex items-center gap-2 mb-3">
-              7-Day Free Trial <Zap size={10} className="text-primary" />
+              {currentPlan.name} <Zap size={10} className={currentPlan.color} />
             </p>
             <Link href="/pricing" onClick={handleLinkClick}>
-              <Button size="sm" className="w-full h-8 text-[10px] font-bold uppercase tracking-wider rounded-lg shadow-lg shadow-primary/20">
-                Upgrade Plan
+              <Button size="sm" className={cn(
+                "w-full h-8 text-[10px] font-bold uppercase tracking-wider rounded-lg shadow-lg",
+                currentPlan.name === 'Pro Plan' ? "bg-amber-500 hover:bg-amber-600 text-black shadow-amber-500/20" : 
+                currentPlan.name === 'Plus Plan' ? "bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/20" :
+                "bg-primary shadow-primary/20"
+              )}>
+                {currentPlan.name === 'Pro Plan' ? "Manage Account" : "Upgrade Plan"}
               </Button>
             </Link>
           </div>

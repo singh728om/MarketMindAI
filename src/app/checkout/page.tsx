@@ -31,13 +31,13 @@ import { useToast } from "@/hooks/use-toast";
 
 // Helper to map names to icons
 const getIconForService = (name: string) => {
-  if (name.includes("Onboarding")) return ShoppingBag;
-  if (name.includes("Listing")) return ListChecks;
-  if (name.includes("Keyword")) return Zap;
-  if (name.includes("Photoshoot")) return Sparkles;
-  if (name.includes("Video")) return Video;
-  if (name.includes("Website")) return Globe;
-  return Package;
+  if (name.includes("Onboarding")) return "ShoppingBag";
+  if (name.includes("Listing")) return "ListChecks";
+  if (name.includes("Keyword")) return "Zap";
+  if (name.includes("Photoshoot")) return "Sparkles";
+  if (name.includes("Video")) return "Video";
+  if (name.includes("Website")) return "Globe";
+  return "Package";
 };
 
 // Helper to map names to categories
@@ -107,11 +107,12 @@ function CheckoutContent() {
                            itemName.includes("Flipkart") ? "Flipkart" : "Multi-channel",
               status: "Initial Setup",
               progress: 5,
+              price: basePrice / selectedItems.length, // Distribute total base price
               updatedAt: "Just now",
               assets: 0,
               priority: "Medium",
               type: getCategoryForService(itemName),
-              icon: null, // Icons can't be stringified, will be re-mapped in UI
+              iconKey: getIconForService(itemName),
               details: {
                 listingsCreated: 0,
                 listingsInProgress: 1,
@@ -129,6 +130,8 @@ function CheckoutContent() {
         });
 
         localStorage.setItem("marketmind_projects", JSON.stringify(projects));
+        // Trigger event for listeners
+        window.dispatchEvent(new Event('storage'));
       } catch (err) {
         console.error("Failed to provision services", err);
       }
