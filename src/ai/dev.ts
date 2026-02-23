@@ -1,6 +1,7 @@
 import { config } from 'dotenv';
 config();
 
+import '@/ai/flows/ai-ceo-agent-flow.ts';
 import '@/ai/flows/generate-ugc-campaign-assets.ts';
 import '@/ai/flows/generate-catalog-template.ts';
 import '@/ai/flows/generate-video-ad-content.ts';

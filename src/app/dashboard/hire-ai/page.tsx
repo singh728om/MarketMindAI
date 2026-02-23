@@ -16,7 +16,8 @@ import {
   Video,
   FileText,
   ExternalLink,
-  Loader2
+  Loader2,
+  Activity
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,21 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
 const AI_EMPLOYEES = [
+  {
+    id: "ai-ceo",
+    name: "Astra",
+    role: "AI CEO & Chief Strategist",
+    agentId: "ceo-board",
+    description: "The supreme intelligence of the agency. Handles financial orchestration, risk audit, and strategic expansion planning.",
+    skills: ["Financial Audit", "Strategic Growth", "Risk Monitoring"],
+    icon: Activity,
+    color: "text-amber-500",
+    bg: "bg-amber-500/10",
+    price: 24999,
+    availability: "Immediate",
+    rating: 5.0,
+    longDesc: "Astra is trained on high-level executive data to act as your brand's autonomous CEO. She synthesizes reports across 5 business pillars to ensure capital efficiency."
+  },
   {
     id: "ai-smm",
     name: "Nova",
@@ -123,7 +139,11 @@ export default function HireAIPage() {
 
   const handleHire = (employee: any) => {
     if (hiredRoles.includes(employee.role)) {
-      router.push(`/dashboard/agents?agent=${employee.agentId}`);
+      if (employee.agentId === 'ceo-board') {
+        router.push('/dashboard/ceo-board');
+      } else {
+        router.push(`/dashboard/agents?agent=${employee.agentId}`);
+      }
       return;
     }
     toast({ title: "Initiating Recruitment", description: `Redirecting for ${employee.name}...` });
@@ -180,7 +200,7 @@ export default function HireAIPage() {
               <CardFooter className="pt-0 gap-2">
                 <Button variant="outline" className="flex-1 rounded-xl h-11 border-white/5 bg-slate-800/50 hover:bg-slate-800 text-white" onClick={(e) => { e.stopPropagation(); setSelectedEmployee(emp); }}>View Profile</Button>
                 <Button className={cn("flex-1 rounded-xl h-11 font-bold shadow-lg transition-all", isHired ? "bg-emerald-500" : "bg-primary")} onClick={(e) => { e.stopPropagation(); handleHire(emp); }}>
-                  {isHired ? "Open Studio" : "Hire Now"}
+                  {isHired ? (emp.id === 'ai-ceo' ? "Enter Boardroom" : "Open Studio") : "Hire Now"}
                 </Button>
               </CardFooter>
             </Card>
@@ -212,7 +232,7 @@ export default function HireAIPage() {
                     <p className="text-xl font-bold">₹{selectedEmployee.price.toLocaleString()}/mo</p>
                   </div>
                   <Button className={cn("rounded-xl h-12 px-8 font-bold", hiredRoles.includes(selectedEmployee.role) ? "bg-emerald-500" : "bg-primary")} onClick={() => handleHire(selectedEmployee)}>
-                    {hiredRoles.includes(selectedEmployee.role) ? "Open Studio" : "Recruit"}
+                    {hiredRoles.includes(selectedEmployee.role) ? (selectedEmployee.id === 'ai-ceo' ? "Enter Boardroom" : "Open Studio") : "Recruit"}
                   </Button>
                 </div>
               </div>

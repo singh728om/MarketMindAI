@@ -18,7 +18,8 @@ import {
   HardDrive,
   History,
   X,
-  UserPlus
+  UserPlus,
+  Activity
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -26,10 +27,12 @@ import { useToast } from "@/hooks/use-toast";
 
 const navItems = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { name: "CEO Board", href: "/dashboard/ceo-board", icon: Activity },
   { name: "AI Studio", href: "/dashboard/agents", icon: Sparkles },
   { name: "Growth Intel", href: "/dashboard/growth", icon: TrendingUp },
   { name: "Projects", href: "/dashboard/projects", icon: FolderKanban },
   { name: "Hire Talent", href: "/dashboard/hire-ai", icon: UserPlus },
+  { name: "Storage", href: "/dashboard/storage", icon: HardDrive },
   { name: "Order History", href: "/dashboard/orders", icon: History },
   { name: "Billing", href: "/dashboard/billing", icon: CreditCard },
   { name: "Brand Profile", href: "/dashboard/profile", icon: Building2 },
