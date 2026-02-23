@@ -28,7 +28,10 @@ import {
   Search,
   ArrowRight,
   ShieldCheck,
-  Activity
+  Activity,
+  MousePointer2,
+  ZapOff,
+  Flame
 } from "lucide-react";
 import { 
   AreaChart, 
@@ -48,6 +51,7 @@ import { useFirestore, useUser } from "@/firebase";
 import { KPI_DATA as STATIC_KPI, PERFORMANCE_CHART, ACTIVITY_FEED } from "@/lib/mock-data";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError, type SecurityRuleContext } from "@/firebase/errors";
+import { cn } from "@/lib/utils";
 
 export default function Dashboard() {
   const [showTrialBanner, setShowTrialBanner] = useState(true);
@@ -153,7 +157,7 @@ export default function Dashboard() {
             
             <div className="flex items-center gap-3 shrink-0">
               <Link href="/pricing">
-                <Button size="lg" className="rounded-xl px-8 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25 font-bold">
+                <Button size="lg" className="rounded-xl px-8 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25 font-bold text-white">
                   <Sparkles size={14} className="mr-2" /> Upgrade to Premium
                 </Button>
               </Link>
@@ -176,12 +180,12 @@ export default function Dashboard() {
         </div>
         <div className="flex items-center gap-3">
           <Link href="/dashboard/agents?agent=ceo">
-            <Button size="sm" className="bg-amber-500 hover:bg-amber-600 text-black font-bold">
+            <Button size="sm" className="bg-amber-500 hover:bg-amber-600 text-black font-bold border-none shadow-lg shadow-amber-500/20">
               <RefreshCw className="w-4 h-4 mr-2" /> Re-run CEO Analysis
             </Button>
           </Link>
           <Link href="/dashboard/projects">
-            <Button size="sm" className="bg-primary hover:bg-primary/90">
+            <Button size="sm" className="bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20">
               <Plus className="w-4 h-4 mr-2" /> New Project
             </Button>
           </Link>
@@ -299,6 +303,7 @@ export default function Dashboard() {
             </Card>
           </div>
 
+          {/* Conditional Strategic Section */}
           {ceoAnalysis ? (
             <Card className="rounded-3xl border-amber-500/20 bg-amber-500/5 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700">
               <CardHeader className="bg-amber-500/10 border-b border-amber-500/10">
@@ -344,20 +349,91 @@ export default function Dashboard() {
               </CardContent>
             </Card>
           ) : (
-            <Card className="rounded-3xl border-dashed border-2 border-white/10 bg-transparent p-12 text-center space-y-6">
-              <div className="mx-auto w-16 h-16 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center mb-4">
-                <Briefcase size={32} className="animate-float" />
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-headline font-bold text-white flex items-center gap-2">
+                  <Flame size={20} className="text-orange-500" /> Market Intelligence Stream
+                </h3>
+                <Badge variant="outline" className="bg-slate-900 text-[10px] font-bold border-white/5 uppercase tracking-widest text-slate-500">Live Feed</Badge>
               </div>
-              <div className="max-w-md mx-auto space-y-2">
-                <h3 className="text-2xl font-headline font-bold">Activate AI Strategic Briefing</h3>
-                <p className="text-muted-foreground">
-                  Upload your Sales & Returns reports in the AI Studio to generate a boardroom-level analysis of your brand's health and margin leakage.
-                </p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card className="rounded-2xl border-white/5 bg-slate-900/50 hover:border-primary/30 transition-all cursor-pointer group">
+                  <CardHeader className="pb-3">
+                    <div className="flex justify-between items-start">
+                      <Badge className="bg-emerald-500/10 text-emerald-500 border-none text-[8px] px-2 py-0.5 uppercase mb-2">Pricing Gap</Badge>
+                      <MousePointer2 size={12} className="text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                    <CardTitle className="text-base font-headline">Ethnic Wear Arbitrage</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pb-4">
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      Competitors in <span className="text-white font-bold">"Designer Kurtas"</span> have raised prices by 15%. Adjusting your entry-level SKU by ₹150 could yield <span className="text-emerald-500 font-bold">+₹24k/mo</span>.
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="rounded-2xl border-white/5 bg-slate-900/50 hover:border-primary/30 transition-all cursor-pointer group">
+                  <CardHeader className="pb-3">
+                    <div className="flex justify-between items-start">
+                      <Badge className="bg-primary/10 text-primary border-none text-[8px] px-2 py-0.5 uppercase mb-2">Search Trend</Badge>
+                      <MousePointer2 size={12} className="text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                    <CardTitle className="text-base font-headline">Keyword Dominance</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pb-4">
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      High volume identified for <span className="text-white font-bold">"Eco-friendly Cotton"</span> on Myntra. Current listings are missing this attribute. SEO update recommended for <span className="text-primary font-bold">+12% Visibility</span>.
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="rounded-2xl border-white/5 bg-slate-900/50 hover:border-primary/30 transition-all cursor-pointer group">
+                  <CardHeader className="pb-3">
+                    <div className="flex justify-between items-start">
+                      <Badge className="bg-rose-500/10 text-rose-500 border-none text-[8px] px-2 py-0.5 uppercase mb-2">Inventory Alert</Badge>
+                      <MousePointer2 size={12} className="text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                    <CardTitle className="text-base font-headline">Velocity stock-out</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pb-4">
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      Your <span className="text-white font-bold">"Velvet Lehenga - Maroon"</span> is selling 2.4x faster than predicted. Stock-out expected in <span className="text-rose-500 font-bold">4 days</span>. Urgent restock required.
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="rounded-2xl border-white/5 bg-slate-900/50 hover:border-primary/30 transition-all cursor-pointer group">
+                  <CardHeader className="pb-3">
+                    <div className="flex justify-between items-start">
+                      <Badge className="bg-amber-500/10 text-amber-500 border-none text-[8px] px-2 py-0.5 uppercase mb-2">Ad Tuning</Badge>
+                      <MousePointer2 size={12} className="text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                    <CardTitle className="text-base font-headline">Creative Sentiment</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pb-4">
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      UGC-style ads are seeing <span className="text-white font-bold">35% higher CTR</span> than studio shots in your niche. Use the <span className="text-amber-500 font-bold">AI Video Agent</span> to refresh your campaign assets.
+                    </p>
+                  </CardContent>
+                </Card>
               </div>
-              <Button size="lg" className="rounded-xl px-8 bg-amber-500 hover:bg-amber-600 text-black font-bold shadow-xl shadow-amber-500/20" asChild>
-                <Link href="/dashboard/agents?agent=ceo">Run CEO Analysis Now</Link>
-              </Button>
-            </Card>
+
+              <Card className="rounded-2xl border-primary/20 bg-primary/5 p-6 border-dashed border-2 flex flex-col items-center text-center space-y-4">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                  <ShieldCheck size={24} />
+                </div>
+                <div>
+                  <h4 className="font-bold text-white mb-1">Deep Strategic Analysis Available</h4>
+                  <p className="text-xs text-slate-400 max-w-sm mx-auto">
+                    For boardroom-level reporting and profit/loss leakage detection, connect your marketplace reports.
+                  </p>
+                </div>
+                <Button size="sm" className="bg-primary text-white rounded-lg px-6 font-bold shadow-lg shadow-primary/20" asChild>
+                  <Link href="/dashboard/agents?agent=ceo">Run Comprehensive Audit</Link>
+                </Button>
+              </Card>
+            </div>
           )}
         </div>
 
