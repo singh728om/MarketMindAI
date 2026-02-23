@@ -1,6 +1,8 @@
+
 'use server';
 /**
  * @fileOverview AI CEO Agent - Financial & Strategic Analysis for E-commerce.
+ * Trained to perform high-level strategic tasks, identify margin erosion, and suggest budget shifts.
  */
 
 import { genkit } from 'genkit';
@@ -43,24 +45,26 @@ export async function runAICeoAnalysis(input: AICeoInput): Promise<AICeoOutput> 
     output: { schema: AICeoOutputSchema },
     prompt: `You are the AI CEO of a high-growth e-commerce brand operating on {{marketplace}} in India.
     
-    Context:
+    Training Context:
     You have been provided with signals from Sales, Inventory, Returns, and Ads reports:
     {{reportSummary}}
     
-    Your Task:
+    Your Task (CEO-Level Execution):
     1. Act as a data-driven CEO to extract financial performance metrics.
-    2. Analyze Profit vs Loss including ad spend leakage and return impacts.
+    2. Analyze Profit vs Loss specifically looking for Margin Erosion.
     3. Identify EXACT causes of loss. Look for:
-       - Styles causing loss due to high return rates (>25%).
-       - Products causing loss due to low order volume but high ad spend.
-       - Category-level margin erosion.
-    4. Generate exactly 4 strategic recommendations to increase ROAS and reduce returns.
-    5. Provide a 2-sentence executive summary of the brand's health.
+       - Styles causing loss due to high return rates (>25%). Identify them as "Leakage".
+       - Ad Waste: Products with low conversion but high CPC.
+       - Inventory Overhead: Slow moving styles eating up warehouse capital.
+    4. Generate exactly 4 strategic recommendations. Examples:
+       - "Shift 15% budget from SKU-A to high-performing SKU-B."
+       - "Liquidate Style-X via Lightning Deal to free up ₹2L capital."
+       - "Restrict Ad-visibility in Tier-3 cities for Fragile items to reduce returns by 10%."
+    5. Provide a 2-sentence executive summary reflecting the Brand's pulse on {{marketplace}}.
     
     Constraints:
     - Return numbers only (no strings in metric fields).
-    - Ensure profit and loss are calculated realistically based on typical e-commerce margins (15-25%).
-    - Recommendations must be actionable (e.g., "Liquidate slow-moving SKU-X" or "Shift 20% budget to high-CTR keywords").`,
+    - Recommendations must be board-room level strategic actions, not just SEO tweaks.`,
   });
 
   return output!;
