@@ -18,7 +18,8 @@ import {
   Building2,
   HardDrive,
   History,
-  X
+  X,
+  UserPlus
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,7 @@ const navItems = [
   { name: "AI Agents", href: "/dashboard/agents", icon: Sparkles },
   { name: "Growth Intel", href: "/dashboard/growth", icon: TrendingUp },
   { name: "Projects", href: "/dashboard/projects", icon: FolderKanban },
+  { name: "Hire AI Employee", href: "/dashboard/hire-ai", icon: UserPlus },
   { name: "Storage Services", href: "/dashboard/storage", icon: HardDrive },
   { name: "Order History", href: "/dashboard/orders", icon: History },
   { name: "Billing & Plans", href: "/dashboard/billing", icon: CreditCard },
