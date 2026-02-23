@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
@@ -74,7 +73,12 @@ export default function GrowthPage() {
   const [lastUpdated, setLastUpdated] = useState("42m ago");
   const [recalcSeed, setRecalcSeed] = useState(1);
   const [selectedRec, setSelectedRec] = useState<any>(null);
+  const [hasMounted, setHasMounted] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   const handleBusinessChange = (val: string) => {
     setSelectedBusiness(val);
@@ -156,6 +160,8 @@ export default function GrowthPage() {
   ];
 
   const categories = BUSINESS_CATEGORIES[selectedBusiness] || [];
+
+  if (!hasMounted) return <div className="flex items-center justify-center min-h-[60vh]"><Loader2 className="animate-spin text-primary w-12 h-12" /></div>;
 
   return (
     <div className="space-y-8">

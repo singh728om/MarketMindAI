@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { 
@@ -55,9 +54,15 @@ function CheckoutContent() {
   const [paymentMode, setPaymentMode] = useState("card");
   const [promoCode, setPromoCode] = useState("");
   const [isPromoApplied, setIsPromoApplied] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
+  
   const router = useRouter();
   const searchParams = useSearchParams();
   
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
   const itemsString = searchParams.get("items") || "Growth Strategy Plan";
   const selectedItems = itemsString.split("|");
   const passedTotal = parseInt(searchParams.get("total") || "8474");
@@ -146,6 +151,10 @@ function CheckoutContent() {
       });
     }, 3000);
   };
+
+  if (!hasMounted) {
+    return <div className="min-h-screen flex items-center justify-center bg-background hero-gradient"><Loader2 className="animate-spin text-primary w-12 h-12" /></div>;
+  }
 
   if (isSuccess) {
     return (

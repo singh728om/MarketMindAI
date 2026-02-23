@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -96,7 +95,7 @@ export default function Dashboard() {
 
   // Fetch latest AI CEO Analysis from Firestore
   useEffect(() => {
-    if (isUserLoading) return;
+    if (isUserLoading || !hasMounted) return;
     
     if (!user || !db) {
       setIsLoadingAnalysis(false);
@@ -127,7 +126,7 @@ export default function Dashboard() {
     });
 
     return () => unsubscribe();
-  }, [db, user, isUserLoading]);
+  }, [db, user, isUserLoading, hasMounted]);
 
   const kpis = useMemo(() => {
     if (!ceoAnalysis) return STATIC_KPI;
@@ -141,7 +140,11 @@ export default function Dashboard() {
   }, [ceoAnalysis]);
 
   if (!hasMounted || (isLoadingAnalysis && isUserLoading)) {
-    return <div className="flex items-center justify-center min-h-[60vh]"><Loader2 className="animate-spin text-primary w-12 h-12" /></div>;
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="animate-spin text-primary w-12 h-12" />
+      </div>
+    );
   }
 
   return (
@@ -171,11 +174,11 @@ export default function Dashboard() {
             </div>
             
             <div className="flex items-center gap-3 shrink-0">
-              <Link href="/pricing">
-                <Button size="lg" className="rounded-xl px-8 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25 font-bold text-white">
+              <Button size="lg" className="rounded-xl px-8 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25 font-bold text-white" asChild>
+                <Link href="/pricing">
                   <Sparkles size={14} className="mr-2" /> Upgrade to Premium
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             </div>
           </div>
         </div>
@@ -194,16 +197,16 @@ export default function Dashboard() {
           <p className="text-muted-foreground">Welcome back. Performance is {ceoAnalysis ? `calibrated for ${ceoAnalysis.marketplace}` : 'up 12% this week'}.</p>
         </div>
         <div className="flex items-center gap-3">
-          <Link href="/dashboard/agents?agent=ceo">
-            <Button size="sm" className="bg-amber-500 hover:bg-amber-600 text-black font-bold border-none shadow-lg shadow-amber-500/20">
+          <Button size="sm" className="bg-amber-500 hover:bg-amber-600 text-black font-bold border-none shadow-lg shadow-amber-500/20" asChild>
+            <Link href="/dashboard/agents?agent=ceo">
               <RefreshCw className="w-4 h-4 mr-2" /> Re-run CEO Analysis
-            </Button>
-          </Link>
-          <Link href="/dashboard/projects">
-            <Button size="sm" className="bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20">
+            </Link>
+          </Button>
+          <Button size="sm" className="bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20" asChild>
+            <Link href="/dashboard/projects">
               <Plus className="w-4 h-4 mr-2" /> New Project
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </div>
       </div>
 

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -70,7 +69,7 @@ export default function CEOHubPage() {
   }, [isUserLoading, user, auth]);
 
   useEffect(() => {
-    if (isUserLoading) return;
+    if (isUserLoading || !hasMounted) return;
     
     if (!user || !db) {
       setIsLoading(false);
@@ -91,7 +90,6 @@ export default function CEOHubPage() {
       }
       setIsLoading(false);
     }, (err) => {
-      console.error(err);
       const permissionError = new FirestorePermissionError({
         path: analysesRef.path,
         operation: 'list',
@@ -101,7 +99,7 @@ export default function CEOHubPage() {
     });
 
     return () => unsubscribe();
-  }, [db, user, isUserLoading]);
+  }, [db, user, isUserLoading, hasMounted]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -170,7 +168,6 @@ export default function CEOHubPage() {
       toast({ title: "Synthesis Complete", description: "Strategic insights mirrored to Hub." });
       setUploadedFiles([]);
     } catch (err: any) {
-      console.error(err);
       toast({ 
         variant: "destructive", 
         title: "Synthesis Error", 
@@ -209,11 +206,11 @@ export default function CEOHubPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
-          <Link href="/dashboard/hire-ai">
-            <Button variant="ghost" size="icon" className="rounded-full text-slate-400 hover:text-white">
+          <Button variant="ghost" size="icon" className="rounded-full text-slate-400 hover:text-white" asChild>
+            <Link href="/dashboard/hire-ai">
               <ArrowLeft size={24} />
-            </Button>
-          </Link>
+            </Link>
+          </Button>
           <div className="w-16 h-16 rounded-3xl bg-amber-500/10 flex items-center justify-center text-amber-500 border border-amber-500/20 shadow-2xl">
             <Briefcase size={32} />
           </div>
