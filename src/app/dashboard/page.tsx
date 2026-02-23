@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -125,7 +124,7 @@ export default function Dashboard() {
                 <h2 className="text-xl font-headline font-bold text-white">7 Days Remaining in Your Free Trial</h2>
               </div>
               <p className="text-slate-400 max-w-2xl text-sm">
-                Experience the full power of MarketMind AI. Upgrade now to unlock unlimited AI Photoshoots and growth intelligence.
+                Experience the power of Astra Intelligence Node: AS-S1-V4. Upgrade now to unlock unlimited AI Photoshoots and growth intelligence.
               </p>
             </div>
             

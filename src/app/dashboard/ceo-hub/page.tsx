@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -18,7 +17,9 @@ import {
   FileUp,
   CheckCircle2,
   ArrowUpRight,
-  HardDrive
+  HardDrive,
+  History,
+  Boxes
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -57,13 +58,6 @@ export default function CommandHubPage() {
     setHasMounted(true);
   }, []);
 
-  // Sync session
-  useEffect(() => {
-    if (!isUserLoading && !user && auth) {
-      initiateAnonymousSignIn(auth);
-    }
-  }, [isUserLoading, user, auth]);
-
   // Load intelligence
   useEffect(() => {
     if (!hasMounted || isUserLoading || !user || !db) {
@@ -96,7 +90,10 @@ export default function CommandHubPage() {
   }, [db, user, isUserLoading, hasMounted]);
 
   const handleRunAudit = async () => {
-    if (!user || !db) return;
+    if (!user || !db) {
+      if (auth) initiateAnonymousSignIn(auth);
+      return;
+    }
     
     setIsAuditing(true);
     try {
@@ -126,7 +123,7 @@ export default function CommandHubPage() {
       };
 
       await setDoc(analysisRef, data);
-      toast({ title: "Boardroom Updated", description: "Astra Core v4 has synchronized strategic data." });
+      toast({ title: "Boardroom Updated", description: "Astra Intelligence Node: AS-S1-V4 has synchronized strategic data." });
     } catch (err: any) {
       toast({ variant: "destructive", title: "Synthesis Error", description: err.message });
     } finally {
@@ -142,12 +139,19 @@ export default function CommandHubPage() {
     }
   };
 
+  const handleApprovePillar = (pillarName: string) => {
+    toast({
+      title: "Action Approved",
+      description: `Astra v4 instructions for ${pillarName} sent to fulfillment node.`,
+    });
+  };
+
   if (!hasMounted) {
     return <div className="min-h-[60vh] flex items-center justify-center"><Loader2 className="animate-spin text-primary w-12 h-12" /></div>;
   }
 
   return (
-    <div className="space-y-8 pb-24">
+    <div className="space-y-8 pb-24 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" className="rounded-full text-slate-400 hover:text-white" asChild>
@@ -163,23 +167,29 @@ export default function CommandHubPage() {
               <h1 className="text-3xl font-headline font-bold text-white">Strategic Hub</h1>
               <Badge className="bg-emerald-500 text-white font-bold text-[10px] uppercase tracking-widest border-none">Astra Online</Badge>
             </div>
-            <p className="text-slate-400 text-sm">Mission-critical marketplace monitoring.</p>
+            <p className="text-slate-400 text-sm">Astra Intelligence Node: AS-S1-V4</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="outline" className="border-white/5 bg-slate-900 text-white h-12 px-6 rounded-xl" onClick={() => setAnalysis(null)}>
-            <RefreshCw className="mr-2 w-4 h-4" /> Reset Workspace
+          <Button variant="outline" className="border-white/5 bg-slate-900 text-white h-12 px-6 rounded-xl">
+            <History className="mr-2 w-4 h-4" /> Audit Logs
+          </Button>
+          <Button 
+            className="bg-amber-500 hover:bg-amber-600 text-black font-bold h-12 px-8 rounded-xl shadow-xl shadow-amber-500/20"
+            onClick={() => setAnalysis(null)}
+          >
+            Reset Workspace
           </Button>
         </div>
       </div>
 
       {!analysis ? (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-in fade-in slide-in-from-bottom-4">
           <Card className="rounded-[2.5rem] border-white/5 bg-slate-900/50 p-10 space-y-8">
             <div className="space-y-2">
-              <Badge variant="outline" className="text-primary border-primary/20 bg-primary/5 uppercase font-bold tracking-widest text-[10px]">Step 1: Configuration</Badge>
-              <h2 className="text-3xl font-headline font-bold text-white">Audit Parameters</h2>
-              <p className="text-slate-400">Configure the strategic scope for Astra Intelligence.</p>
+              <Badge variant="outline" className="text-primary border-primary/20 bg-primary/5 uppercase font-bold tracking-widest text-[10px]">Audit Configuration</Badge>
+              <h2 className="text-3xl font-headline font-bold text-white">Boardroom Parameters</h2>
+              <p className="text-slate-400">Configure the strategic scope for Astra Core v4.</p>
             </div>
 
             <div className="space-y-6">
@@ -199,7 +209,7 @@ export default function CommandHubPage() {
               </div>
 
               <div className="space-y-4">
-                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Ingest Intelligence Reports</label>
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Ingest Reports</label>
                 <div className="grid grid-cols-2 gap-4">
                   {[
                     { id: "sales", label: "Sales & Rev", icon: BarChart3 },
@@ -238,7 +248,7 @@ export default function CommandHubPage() {
               disabled={isAuditing || uploadedFiles.length === 0}
               onClick={handleRunAudit}
             >
-              {isAuditing ? <><RefreshCw className="mr-2 animate-spin" /> Astra Core Processing...</> : <><Sparkles className="mr-2" /> Initiate Boardroom Audit</>}
+              {isAuditing ? <><RefreshCw className="mr-2 animate-spin" /> Astra Processing...</> : <><Sparkles className="mr-2" /> Start Boardroom Audit</>}
             </Button>
           </Card>
 
@@ -251,23 +261,13 @@ export default function CommandHubPage() {
             </div>
             <div className="space-y-2 relative z-10">
               <h3 className="text-2xl font-headline font-bold text-white">Node: Astra Core v4</h3>
-              <p className="text-slate-500 max-w-sm mx-auto">Proprietary e-commerce intelligence active. Ingest reports to begin boardroom synthesis.</p>
-            </div>
-            <div className="grid grid-cols-2 gap-4 w-full max-w-xs relative z-10">
-              <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
-                <p className="text-[8px] font-bold text-slate-500 uppercase">Latency</p>
-                <p className="text-sm font-bold text-white">12ms</p>
-              </div>
-              <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
-                <p className="text-[8px] font-bold text-slate-500 uppercase">Status</p>
-                <p className="text-sm font-bold text-emerald-500">READY</p>
-              </div>
+              <p className="text-slate-500 max-w-sm mx-auto">Proprietary intelligence active. Ingest reports to begin boardroom synthesis.</p>
             </div>
           </Card>
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-8 animate-in fade-in slide-in-from-left-4 duration-500">
+          <div className="lg:col-span-2 space-y-8">
             <Card className="rounded-3xl border-white/5 bg-slate-900/50 overflow-hidden">
               <CardHeader className="p-8 pb-4">
                 <div className="flex items-center gap-3 mb-2">
@@ -286,20 +286,16 @@ export default function CommandHubPage() {
                     <h4 className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest flex items-center gap-2">
                       <TrendingUp size={14} /> Revenue Accelerators
                     </h4>
-                    {(analysis.pillars?.revenueGrowth || []).map((rec: string, i: number) => (
-                      <div key={i} className="p-4 rounded-xl bg-slate-800 border border-white/5 text-xs text-slate-300">
-                        {rec}
-                      </div>
+                    {(analysis.pillars?.revenueGrowth || []).map((item: string, i: number) => (
+                      <PillarItem key={i} text={item} onApprove={() => handleApprovePillar('Revenue')} />
                     ))}
                   </div>
                   <div className="space-y-4">
                     <h4 className="text-[10px] font-bold text-rose-500 uppercase tracking-widest flex items-center gap-2">
                       <ShieldAlert size={14} /> Risk & Efficiency
                     </h4>
-                    {(analysis.pillars?.costOptimization || []).map((rec: string, i: number) => (
-                      <div key={i} className="p-4 rounded-xl bg-slate-800 border border-white/5 text-xs text-slate-300">
-                        {rec}
-                      </div>
+                    {(analysis.pillars?.costOptimization || []).map((item: string, i: number) => (
+                      <PillarItem key={i} text={item} onApprove={() => handleApprovePillar('Risk')} />
                     ))}
                   </div>
                 </div>
@@ -320,7 +316,7 @@ export default function CommandHubPage() {
                   {(analysis.leakageInsights || []).map((leak: any, i: number) => (
                     <div key={i} className="p-8 flex items-center justify-between gap-6 hover:bg-white/5 transition-colors group">
                       <div className="flex gap-6 items-start">
-                        <div className="w-12 h-12 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-500 shrink-0 group-hover:scale-110 transition-transform">
+                        <div className="w-12 h-12 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-500 shrink-0">
                           <AlertCircle size={24} />
                         </div>
                         <div className="space-y-1">
@@ -339,7 +335,7 @@ export default function CommandHubPage() {
             </Card>
           </div>
 
-          <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+          <div className="space-y-8">
             <Card className="rounded-3xl border-white/5 bg-slate-900 overflow-hidden shadow-xl">
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg font-headline flex items-center gap-2 text-white">
@@ -365,43 +361,48 @@ export default function CommandHubPage() {
             </Card>
 
             <Card className="rounded-3xl border-white/5 bg-slate-900 p-8 space-y-6">
-              <h4 className="text-xs font-bold text-primary uppercase tracking-[0.2em]">Internal Node Health</h4>
+              <h4 className="text-xs font-bold text-primary uppercase tracking-[0.2em]">Node Health</h4>
               <div className="space-y-6">
                 {[
-                  { icon: HardDrive, title: "Astra Core v4", desc: "Uptime: 99.99% • Priority Node" },
-                  { icon: Target, title: "Marketplace API", desc: "Sync active: AS-SOUTH-1" }
+                  { icon: HardDrive, title: "Astra Core v4", desc: "Uptime: 99.99% • Active" },
+                  { icon: Target, title: "Marketplace API", desc: "Sync: Regional-AS" }
                 ].map((item, i) => (
                   <div key={i} className="flex gap-4 group">
-                    <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-primary shrink-0 group-hover:bg-primary/10 transition-colors">
+                    <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-primary shrink-0">
                       <item.icon size={20} />
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-white group-hover:text-primary transition-colors">{item.title}</p>
-                      <p className="text-[10px] text-slate-500 leading-relaxed">{item.desc}</p>
+                      <p className="text-sm font-bold text-white">{item.title}</p>
+                      <p className="text-[10px] text-slate-500">{item.desc}</p>
                     </div>
                   </div>
                 ))}
               </div>
             </Card>
-
-            <div className="p-6 rounded-[2rem] bg-primary/5 border border-primary/20 space-y-4">
-              <h4 className="text-[10px] font-bold text-primary uppercase flex items-center gap-2 tracking-[0.2em]">Quick Actions</h4>
-              <div className="grid grid-cols-1 gap-2">
-                <Button className="w-full justify-start h-12 bg-white/5 border-white/5 hover:bg-white/10 text-white rounded-xl group transition-all">
-                  <TrendingUp className="mr-3 w-4 h-4 text-emerald-500" /> 
-                  <span className="text-sm font-bold">Export PDF Briefing</span>
-                </Button>
-                <Button className="w-full justify-start h-12 bg-white/5 border-white/5 hover:bg-white/10 text-white rounded-xl group transition-all" asChild>
-                  <Link href="/dashboard/growth">
-                    <Activity className="mr-3 w-4 h-4 text-primary" /> 
-                    <span className="text-sm font-bold">Market Share Intel</span>
-                  </Link>
-                </Button>
-              </div>
-            </div>
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function PillarItem({ text, onApprove, isWide }: { text: string, onApprove: () => void, isWide?: boolean }) {
+  return (
+    <div className={cn(
+      "flex items-start justify-between gap-4 p-4 rounded-xl bg-slate-900 border border-white/5 hover:border-white/10 transition-colors group",
+      isWide && "w-full"
+    )}>
+      <div className="flex-1 min-w-0">
+        <p className="text-xs font-medium text-slate-200 leading-relaxed">{text}</p>
+      </div>
+      <Button 
+        size="sm" 
+        variant="ghost" 
+        className="h-7 text-[9px] font-bold uppercase tracking-widest text-emerald-500 hover:bg-emerald-500/10 hover:text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity"
+        onClick={onApprove}
+      >
+        Approve
+      </Button>
     </div>
   );
 }

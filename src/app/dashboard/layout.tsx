@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -46,7 +45,7 @@ export default function DashboardLayout({
 
   if (!hasMounted || isChecking || isExpired) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background hero-gradient text-white">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0c] text-white">
         <div className="text-center space-y-4">
           <Loader2 className="w-12 h-12 text-primary animate-spin mx-auto" />
           <h2 className="text-xl font-headline font-bold">Initializing Brand Workspace...</h2>
