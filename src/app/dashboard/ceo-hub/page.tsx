@@ -89,6 +89,7 @@ export default function CEOHubPage() {
       }
       setIsLoading(false);
     }, async (err) => {
+      // Index errors are common in prototypes, handle silently or via emitter
       const permissionError = new FirestorePermissionError({
         path: analysesRef.path,
         operation: 'list',
@@ -111,7 +112,7 @@ export default function CEOHubPage() {
   const handleRunAudit = async () => {
     if (!user) {
       initiateAnonymousSignIn(auth);
-      toast({ title: "Establishing Connection", description: "Securing boardroom node access..." });
+      toast({ title: "Securing Node", description: "Establishing Astra encrypted session..." });
       return;
     }
     
@@ -125,8 +126,8 @@ export default function CEOHubPage() {
       if (!apiKey) {
         toast({
           variant: "destructive",
-          title: "Astra Core Offline",
-          description: "Internal node requires configuration. Update API keys in System Config."
+          title: "Node Offline",
+          description: "Astra Core requires an API key. Update in Ops Console."
         });
         setIsAuditing(false);
         return;
@@ -146,12 +147,16 @@ export default function CEOHubPage() {
         marketplace: marketplace,
         metrics: result.metrics,
         pillars: result.pillars,
-        recommendations: [...(result.pillars?.revenueGrowth || []), ...(result.pillars?.costOptimization || [])],
+        recommendations: [
+          ...(result.pillars?.revenueGrowth || []), 
+          ...(result.pillars?.costOptimization || [])
+        ],
         summary: result.narrative,
         leakageInsights: result.leakageInsights || [],
         createdAt: new Date().toISOString()
       };
 
+      // Non-blocking save
       setDoc(analysisRef, data).catch(async (serverError) => {
         const permissionError = new FirestorePermissionError({
           path: analysisRef.path,
@@ -165,7 +170,11 @@ export default function CEOHubPage() {
       setUploadedFiles([]);
     } catch (err: any) {
       console.error(err);
-      toast({ variant: "destructive", title: "Synthesis Error", description: err.message || "Astra node busy. Retry in 10s." });
+      toast({ 
+        variant: "destructive", 
+        title: "Synthesis Error", 
+        description: err.message || "Astra node busy. Retry in 10s." 
+      });
     } finally {
       setIsAuditing(false);
     }
@@ -206,7 +215,7 @@ export default function CEOHubPage() {
         {analysis && (
           <div className="flex items-center gap-3">
             <Button variant="outline" className="border-white/5 bg-slate-900 text-white h-12 px-6 rounded-xl">
-              <History className="mr-2 w-4 h-4" /> History
+              <History className="mr-2 w-4 h-4" /> Audit Logs
             </Button>
             <Button 
               className="bg-amber-500 hover:bg-amber-600 text-black font-bold h-12 px-8 rounded-xl shadow-xl shadow-amber-500/20"
@@ -250,7 +259,7 @@ export default function CEOHubPage() {
                 </div>
 
                 <div className="space-y-4">
-                  <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Ingest Reports</Label>
+                  <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Ingest Signals (Reports)</Label>
                   <div className="grid grid-cols-2 gap-3">
                     <ReportUploadButton id="r1" label="Sales & GMV" onFile={handleFileChange} />
                     <ReportUploadButton id="r2" label="Ad Performance" onFile={handleFileChange} />
@@ -321,8 +330,11 @@ export default function CEOHubPage() {
                 <CardTitle className="text-2xl md:text-3xl font-headline">Intelligence Briefing</CardTitle>
               </CardHeader>
               <CardContent className="p-8 pt-4">
-                <p className="text-slate-300 text-lg leading-relaxed italic">"{analysis.summary}"</p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10 pt-8 border-t border-white/5">
+                <div className="p-6 rounded-2xl bg-black/20 border border-white/5 mb-8">
+                  <p className="text-slate-300 text-lg leading-relaxed italic">"{analysis.summary}"</p>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-8 border-t border-white/5">
                   <div className="space-y-4">
                     <h4 className="text-[10px] font-bold text-primary uppercase tracking-widest flex items-center gap-2">
                       <TrendingUp size={14} /> Revenue Accelerators
@@ -358,7 +370,7 @@ export default function CEOHubPage() {
               </CardHeader>
               <CardContent className="p-0">
                 <div className="divide-y divide-white/5">
-                  {analysis.leakageInsights && analysis.leakageInsights.length > 0 ? analysis.leakageInsights.map((leak: any, i: number) => (
+                  {(analysis.leakageInsights || []).length > 0 ? (analysis.leakageInsights || []).map((leak: any, i: number) => (
                     <div key={i} className="p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:bg-white/5 transition-colors group">
                       <div className="flex gap-6 items-start">
                         <div className="w-12 h-12 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-500 shrink-0 group-hover:scale-110 transition-transform">
@@ -375,7 +387,7 @@ export default function CEOHubPage() {
                       </div>
                     </div>
                   )) : (
-                    <div className="p-12 text-center text-slate-500 italic">No critical leakage identified.</div>
+                    <div className="p-12 text-center text-slate-500 italic">No critical leakage identified in current cycle.</div>
                   )}
                 </div>
               </CardContent>
@@ -413,7 +425,7 @@ export default function CEOHubPage() {
           </div>
 
           <div className="space-y-8">
-            <Card className="rounded-3xl border-white/5 bg-card overflow-hidden">
+            <Card className="rounded-3xl border-white/5 bg-card overflow-hidden shadow-2xl">
               <CardContent className="p-8 text-center space-y-4">
                 <div className="mx-auto w-24 h-24 rounded-full bg-amber-500/10 border-4 border-slate-800 flex items-center justify-center relative">
                   <Briefcase size={40} className="text-amber-500" />
@@ -441,7 +453,7 @@ export default function CEOHubPage() {
             <Card className="rounded-3xl border-white/5 bg-slate-900 overflow-hidden shadow-xl">
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg font-headline flex items-center gap-2 text-white">
-                  <BarChart3 className="text-primary" size={18} /> Boardroom Pulse
+                  <BarChart3 className="text-primary" size={18} /> Boardroom Pulse (HUD)
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-8 pt-4 space-y-6">
@@ -459,12 +471,18 @@ export default function CEOHubPage() {
                   </div>
                   <Progress value={metrics ? metrics.roas * 10 : 0} className="h-1.5 bg-slate-800" />
                 </div>
+                <div className="space-y-2 pt-4 border-t border-white/5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase">Active Intelligence Node</span>
+                    <Badge variant="outline" className="bg-emerald-500/10 text-emerald-500 border-none text-[8px] font-bold uppercase">AS-S1-V4</Badge>
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
             <div className="p-6 rounded-[2rem] bg-primary/5 border border-primary/20 space-y-4">
               <h4 className="text-[10px] font-bold text-primary uppercase flex items-center gap-2 tracking-[0.2em]">
-                <PieChart size={14} /> Global Actions
+                <PieChart size={14} /> Global Boardroom Actions
               </h4>
               <div className="grid grid-cols-1 gap-2">
                 <Button className="w-full justify-start h-12 bg-white/5 border-white/5 hover:bg-white/10 text-white rounded-xl group transition-all">
