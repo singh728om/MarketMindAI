@@ -80,7 +80,6 @@ export default function CEOHubPage() {
       }
       setIsLoading(false);
     }, async (err) => {
-      // If error is code missing-index, we fallback to simple list
       const permissionError = new FirestorePermissionError({
         path: analysesRef.path,
         operation: 'list',
@@ -202,7 +201,7 @@ export default function CEOHubPage() {
           <div className="flex items-center gap-3">
             <Button variant="outline" className="border-white/5 bg-slate-900 text-white h-12 px-6 rounded-xl">
               <History className="mr-2 w-4 h-4" /> Audit Logs
-            </History>
+            </Button>
             <Button 
               className="bg-amber-500 hover:bg-amber-600 text-black font-bold h-12 px-8 rounded-xl shadow-xl shadow-amber-500/20"
               onClick={() => setAnalysis(null)}
