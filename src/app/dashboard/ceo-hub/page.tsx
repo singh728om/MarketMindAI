@@ -106,9 +106,20 @@ export default function CEOHubPage() {
     setIsAuditing(true);
 
     try {
-      // Fetch API Key from localStorage (Internal Portal sets this)
+      // Fetch API Key safely from localStorage
       const keysStr = localStorage.getItem("marketmind_api_keys");
-      const apiKey = keysStr ? JSON.parse(keysStr).gemini : undefined;
+      const keys = keysStr ? JSON.parse(keysStr) : null;
+      const apiKey = keys?.gemini;
+
+      if (!apiKey) {
+        toast({
+          variant: "destructive",
+          title: "System Node Offline",
+          description: "Astra's intelligence core requires a Gemini API Key. Please visit System Config in the Ops Console."
+        });
+        setIsAuditing(false);
+        return;
+      }
 
       const result = await runAICeoAnalysis({
         marketplace: marketplace as any,
@@ -130,14 +141,22 @@ export default function CEOHubPage() {
         createdAt: new Date().toISOString()
       };
 
-      // Save to Firestore - will trigger the local onSnapshot
-      await setDoc(analysisRef, data);
+      // Save to Firestore using non-blocking pattern
+      setDoc(analysisRef, data)
+        .catch(async (serverError) => {
+          const permissionError = new FirestorePermissionError({
+            path: analysisRef.path,
+            operation: 'write',
+            requestResourceData: data,
+          });
+          errorEmitter.emit('permission-error', permissionError);
+        });
       
       toast({ title: "Audit Complete", description: "Strategic data has been synced to your hub." });
       setUploadedFiles([]);
     } catch (err: any) {
       console.error(err);
-      toast({ variant: "destructive", title: "Audit Failed", description: err.message });
+      toast({ variant: "destructive", title: "Audit Failed", description: err.message || "The AI node is busy. Please try again." });
     } finally {
       setIsAuditing(false);
     }
@@ -242,12 +261,14 @@ export default function CEOHubPage() {
                 </div>
 
                 <Button 
-                  className="w-full h-16 rounded-2xl text-xl font-bold bg-amber-500 text-black hover:bg-amber-600 shadow-xl shadow-amber-500/20"
+                  className="w-full h-16 rounded-2xl text-xl font-bold bg-amber-500 text-black hover:bg-amber-600 shadow-xl shadow-amber-500/20 disabled:opacity-50 disabled:grayscale"
                   disabled={isAuditing || uploadedFiles.length === 0}
                   onClick={handleRunAudit}
                 >
                   {isAuditing ? (
                     <><RefreshCw className="mr-2 h-6 w-6 animate-spin" /> Synchronizing Intelligence...</>
+                  ) : uploadedFiles.length === 0 ? (
+                    <><FileUp className="mr-2 h-6 w-6" /> Upload Reports to Begin</>
                   ) : (
                     <><Zap className="mr-2 h-6 w-6" /> Start Boardroom Audit</>
                   )}
@@ -338,7 +359,7 @@ export default function CEOHubPage() {
                       </div>
                       <div className="flex flex-col items-end shrink-0">
                         <span className="text-[10px] font-bold text-slate-500 uppercase">Est. Monthly Loss</span>
-                        <span className="text-xl font-headline font-bold text-rose-500">₹{(metrics.loss * 0.3).toLocaleString()}</span>
+                        <span className="text-xl font-headline font-bold text-rose-500">₹{metrics ? (metrics.loss * 0.3).toLocaleString() : '0'}</span>
                       </div>
                     </div>
                   )) : (
@@ -351,7 +372,7 @@ export default function CEOHubPage() {
               <CardFooter className="bg-rose-500/5 p-6 border-t border-white/5">
                 <div className="flex items-center gap-3 text-xs text-rose-400">
                   <Info size={14} />
-                  <span>Astra suggests running the **Ad Tuning Flow** to recapture ~₹{(metrics.loss * 0.4 / 1000).toFixed(1)}k this week.</span>
+                  <span>Astra suggests running the **Ad Tuning Flow** to recapture ~₹{metrics ? (metrics.loss * 0.4 / 1000).toFixed(1) : '0'}k this week.</span>
                 </div>
               </CardFooter>
             </Card>
@@ -431,16 +452,16 @@ export default function CEOHubPage() {
                 <div className="space-y-2">
                   <div className="flex justify-between text-xs font-bold uppercase tracking-widest">
                     <span className="text-slate-500">Margin Health</span>
-                    <span className="text-emerald-500">{analysis ? ((metrics.profit / metrics.totalSales) * 100).toFixed(1) : 0}%</span>
+                    <span className="text-emerald-500">{metrics ? ((metrics.profit / metrics.totalSales) * 100).toFixed(1) : 0}%</span>
                   </div>
-                  <Progress value={analysis ? (metrics.profit / metrics.totalSales) * 100 : 0} className="h-1.5 bg-slate-800" />
+                  <Progress value={metrics ? (metrics.profit / metrics.totalSales) * 100 : 0} className="h-1.5 bg-slate-800" />
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between text-xs font-bold uppercase tracking-widest">
                     <span className="text-slate-500">ROAS Efficiency</span>
-                    <span className="text-primary">{analysis ? metrics.roas : 0}x</span>
+                    <span className="text-primary">{metrics ? metrics.roas : 0}x</span>
                   </div>
-                  <Progress value={analysis ? metrics.roas * 10 : 0} className="h-1.5 bg-slate-800" />
+                  <Progress value={metrics ? metrics.roas * 10 : 0} className="h-1.5 bg-slate-800" />
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between text-xs font-bold uppercase tracking-widest">

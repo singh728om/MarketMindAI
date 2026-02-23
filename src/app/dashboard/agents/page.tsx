@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef, useEffect, Suspense } from "react";
@@ -183,6 +184,7 @@ function AgentsContent() {
       userProfileId: user.uid,
       marketplace: formData.marketplace,
       metrics: output.metrics,
+      pillars: output.pillars, // Synchronized pillars data
       recommendations: [...output.pillars.revenueGrowth, ...output.pillars.costOptimization],
       summary: output.narrative,
       leakageInsights: output.leakageInsights || [],
