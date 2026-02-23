@@ -57,7 +57,7 @@ export function Sidebar({ onClose }: SidebarProps) {
         if (projectsStr) {
           const projects = JSON.parse(projectsStr);
           if (projects.length > 0) {
-            const hasHighValue = projects.some((p: any) => (p.price || 0) >= 10000);
+            const hasHighValue = projects.some((p: any) => (Number(p.price) || 0) >= 10000);
             if (hasHighValue) {
               setCurrentPlan({ name: "Pro Plan", color: "text-amber-500" });
             } else {

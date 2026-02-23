@@ -56,7 +56,7 @@ export default function BillingPage() {
   const billingSummary = useMemo(() => {
     return projects.map(p => ({
       name: p.name,
-      price: p.price || 0,
+      price: Number(p.price) || 0,
       type: p.type || "Service",
       date: p.updatedAt || "Activated"
     }));
@@ -68,7 +68,7 @@ export default function BillingPage() {
 
   const currentPlan = useMemo(() => {
     if (projects.length === 0) return { name: "Free Trial", badge: "Trial Tier", color: "bg-primary", desc: "You have 7 days remaining in your high-performance agency trial." };
-    const hasHighValue = projects.some(p => (p.price || 0) >= 10000);
+    const hasHighValue = projects.some(p => (Number(p.price) || 0) >= 10000);
     if (hasHighValue) return { name: "Pro Plan", badge: "Professional", color: "bg-amber-500", desc: "Unlimited AI orchestration and dedicated priority node access." };
     return { name: "Plus Plan", badge: "Accelerated", color: "bg-emerald-500", desc: "Core agency services active with enhanced growth intelligence." };
   }, [projects]);
