@@ -1,8 +1,7 @@
-
 'use server';
 /**
- * @fileOverview AI CEO Agent - Financial & Strategic Analysis for E-commerce.
- * Trained to perform high-level strategic tasks, identify margin erosion, and suggest budget shifts.
+ * @fileOverview AI CEO Agent - Comprehensive Strategic & Financial Orchestration.
+ * Trained to perform autonomous CEO tasks across 5 pillars: Growth, Profit, Inventory, Risk, and Strategy.
  */
 
 import { genkit } from 'genkit';
@@ -25,11 +24,17 @@ const AICeoOutputSchema = z.object({
     ctr: z.number().describe('Click-through rate.'),
     roas: z.number().describe('Return on Ad Spend.'),
   }),
-  recommendations: z.array(z.string()).describe('Top 3-5 high-impact CEO-level strategic actions.'),
-  narrative: z.string().describe('A professional summary of the current business health.'),
+  pillars: z.object({
+    revenueGrowth: z.array(z.string()).describe('Revenue growth strategies for approval.'),
+    costOptimization: z.array(z.string()).describe('Cost and profit optimization tasks.'),
+    inventoryPlanning: z.array(z.string()).describe('Inventory and supply chain actions.'),
+    riskMonitoring: z.array(z.string()).describe('Risk and compliance alerts.'),
+    strategicPlanning: z.array(z.string()).describe('Top-level strategic roadmap items.'),
+  }),
+  narrative: z.string().describe('Executive summary of business health.'),
   leakageInsights: z.array(z.object({
-    reason: z.string().describe('The cause of loss (e.g., "High Returns", "Low Orders", "Ad Waste").'),
-    impact: z.string().describe('The financial impact or specific style identifier.'),
+    reason: z.string(),
+    impact: z.string(),
   })).describe('Specific style-level or operational loss identifiers.'),
 });
 export type AICeoOutput = z.infer<typeof AICeoOutputSchema>;
@@ -43,28 +48,22 @@ export async function runAICeoAnalysis(input: AICeoInput): Promise<AICeoOutput> 
     model: 'googleai/gemini-2.5-flash',
     input: input,
     output: { schema: AICeoOutputSchema },
-    prompt: `You are the AI CEO of a high-growth e-commerce brand operating on {{marketplace}} in India.
+    prompt: `You are the AI CEO of a premier e-commerce brand operating on {{marketplace}} in India. 
+    You act autonomously but require user approval for all strategic shifts.
     
-    Training Context:
-    You have been provided with signals from Sales, Inventory, Returns, and Ads reports:
+    Training Context (Report Signals):
     {{reportSummary}}
     
-    Your Task (CEO-Level Execution):
-    1. Act as a data-driven CEO to extract financial performance metrics.
-    2. Analyze Profit vs Loss specifically looking for Margin Erosion.
-    3. Identify EXACT causes of loss. Look for:
-       - Styles causing loss due to high return rates (>25%). Identify them as "Leakage".
-       - Ad Waste: Products with low conversion but high CPC.
-       - Inventory Overhead: Slow moving styles eating up warehouse capital.
-    4. Generate exactly 4 strategic recommendations. Examples:
-       - "Shift 15% budget from SKU-A to high-performing SKU-B."
-       - "Liquidate Style-X via Lightning Deal to free up ₹2L capital."
-       - "Restrict Ad-visibility in Tier-3 cities for Fragile items to reduce returns by 10%."
-    5. Provide a 2-sentence executive summary reflecting the Brand's pulse on {{marketplace}}.
+    Your Mission:
+    Perform a deep-dive analysis across 5 Business Pillars and output exactly 2 actionable items for each for user approval.
     
-    Constraints:
-    - Return numbers only (no strings in metric fields).
-    - Recommendations must be board-room level strategic actions, not just SEO tweaks.`,
+    1. REVENUE GROWTH: Identify scaling opportunities. (e.g., "Increase budget by 20% for SKU-X showing 4x ROAS").
+    2. COST & PROFIT OPTIMIZATION: Identify margin erosion. (e.g., "Pause ads for Style-Y where returns are eating 100% of profit").
+    3. INVENTORY & SUPPLY PLANNING: Capital efficiency. (e.g., "Liquidate 500 units of slow-moving Style-Z to free up ₹5L capital").
+    4. RISK & COMPLIANCE: Marketplace health. (e.g., "Address 3 negative reviews on Amazon listing to prevent Buy Box loss").
+    5. STRATEGIC PLANNING: Prioritization. (e.g., "Shift focus to Nykaa for the 'Silk' category as competition is 30% lower than Myntra").
+    
+    Return professional financial metrics and a concise executive narrative.`,
   });
 
   return output!;

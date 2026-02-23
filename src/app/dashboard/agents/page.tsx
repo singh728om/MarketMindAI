@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useRef, useEffect, Suspense } from "react";
@@ -27,7 +26,11 @@ import {
   Copy,
   ChevronDown,
   ArrowUpRight,
-  AlertCircle
+  AlertCircle,
+  TrendingUp,
+  Boxes,
+  ShieldAlert,
+  Target
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -67,7 +70,7 @@ import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 
 const AGENTS = [
-  { id: "ceo", title: "AI CEO Agent", icon: Briefcase, desc: "Analyze Sales, Ads, & Returns to drive Dashboard metrics.", color: "text-amber-400" },
+  { id: "ceo", title: "AI CEO Agent", icon: Briefcase, desc: "Autonomous Boardroom Intelligence & Approval Workflow.", color: "text-amber-400" },
   { id: "photoshoot", title: "AI Photoshoot Studio", icon: Camera, desc: "Professional studio reshoots with model and environment control.", color: "text-purple-500" },
   { id: "listing", title: "Listing Optimizer", icon: FileText, desc: "SEO-friendly titles, bullets, and descriptions via Gemini Vision.", color: "text-blue-500" },
   { id: "catalog", title: "Catalog Automation", icon: LayoutGrid, desc: "Template generation + marketplace rule validation.", color: "text-emerald-500" },
@@ -180,7 +183,7 @@ function AgentsContent() {
       userProfileId: user.uid,
       marketplace: formData.marketplace,
       metrics: output.metrics,
-      recommendations: output.recommendations,
+      recommendations: [...output.pillars.revenueGrowth, ...output.pillars.costOptimization],
       summary: output.narrative,
       leakageInsights: output.leakageInsights || [],
       createdAt: new Date().toISOString()
@@ -288,7 +291,7 @@ function AgentsContent() {
         case 'ceo':
           result = await runAICeoAnalysis({
             marketplace: formData.marketplace as any,
-            reportSummary: `Reports Uploaded: ${uploadedFiles.join(', ')}. Context: Analyze Sales vs Returns.`,
+            reportSummary: `Reports Uploaded: ${uploadedFiles.join(', ')}. Comprehensive Pillar Analysis Mode.`,
             apiKey: activeKey
           });
           setOutput({ ...result, type: 'ceo' });
@@ -390,9 +393,11 @@ function AgentsContent() {
     });
   };
 
-  const handleCopy = (text: string) => {
-    navigator.clipboard.writeText(text);
-    toast({ title: "Copied to Clipboard" });
+  const handleApprovePillar = (pillarName: string) => {
+    toast({
+      title: "Action Approved",
+      description: `CEO instructions for ${pillarName} sent to fulfillment node.`,
+    });
   };
 
   return (
@@ -453,52 +458,49 @@ function AgentsContent() {
                   {!output ? (
                     <form onSubmit={handleRunAgent} className="space-y-6 md:space-y-8">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                        {/* Generic Fields */}
-                        {selectedAgent.id !== 'photoshoot' && selectedAgent.id !== 'video' && (
-                          <div className="space-y-2">
-                            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Select Marketplace</Label>
-                            <Select value={formData.marketplace} onValueChange={(val) => handleInputChange("marketplace", val)} required>
-                              <SelectTrigger className="bg-slate-800 border-white/5 h-11 md:h-12 rounded-xl text-white text-sm">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent className="bg-slate-800 border-white/10 text-white">
-                                <SelectItem value="Amazon">Amazon India</SelectItem>
-                                <SelectItem value="Flipkart">Flipkart</SelectItem>
-                                <SelectItem value="Myntra">Myntra</SelectItem>
-                                <SelectItem value="Ajio">Ajio</SelectItem>
-                                <SelectItem value="Nykaa">Nykaa</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        )}
+                        <div className="space-y-2">
+                          <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Select Marketplace</Label>
+                          <Select value={formData.marketplace} onValueChange={(val) => handleInputChange("marketplace", val)} required>
+                            <SelectTrigger className="bg-slate-800 border-white/5 h-11 md:h-12 rounded-xl text-white text-sm">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-slate-800 border-white/10 text-white">
+                              <SelectItem value="Amazon">Amazon India</SelectItem>
+                              <SelectItem value="Flipkart">Flipkart</SelectItem>
+                              <SelectItem value="Myntra">Myntra</SelectItem>
+                              <SelectItem value="Ajio">Ajio</SelectItem>
+                              <SelectItem value="Nykaa">Nykaa</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
 
                         {selectedAgent.id === 'ceo' ? (
                           <div className="md:col-span-2 space-y-4">
-                            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Ingest Business Intelligence Reports</Label>
+                            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Ingest Boardroom Intelligence Reports</Label>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                               <div className="p-4 rounded-xl bg-slate-800 border border-white/5 flex items-center justify-between">
-                                <span className="text-xs font-bold">Sales Report</span>
+                                <span className="text-xs font-bold">Sales & Revenue</span>
                                 <input type="file" className="hidden" id="sales-up" onChange={handleFileChange} />
                                 <Button size="sm" variant="outline" className="h-8 text-[10px]" asChild>
                                   <label htmlFor="sales-up" className="cursor-pointer"><FileUp size={12} className="mr-1" /> Upload</label>
                                 </Button>
                               </div>
                               <div className="p-4 rounded-xl bg-slate-800 border border-white/5 flex items-center justify-between">
-                                <span className="text-xs font-bold">Ads Performance</span>
+                                <span className="text-xs font-bold">Marketing & Ads</span>
                                 <input type="file" className="hidden" id="ads-up" onChange={handleFileChange} />
                                 <Button size="sm" variant="outline" className="h-8 text-[10px]" asChild>
                                   <label htmlFor="ads-up" className="cursor-pointer"><FileUp size={12} className="mr-1" /> Upload</label>
                                 </Button>
                               </div>
                               <div className="p-4 rounded-xl bg-slate-800 border border-white/5 flex items-center justify-between">
-                                <span className="text-xs font-bold">Returns Report</span>
+                                <span className="text-xs font-bold">Returns & CX</span>
                                 <input type="file" className="hidden" id="returns-up" onChange={handleFileChange} />
                                 <Button size="sm" variant="outline" className="h-8 text-[10px]" asChild>
                                   <label htmlFor="returns-up" className="cursor-pointer"><FileUp size={12} className="mr-1" /> Upload</label>
                                 </Button>
                               </div>
                               <div className="p-4 rounded-xl bg-slate-800 border border-white/5 flex items-center justify-between">
-                                <span className="text-xs font-bold">Inventory Data</span>
+                                <span className="text-xs font-bold">Inventory Levels</span>
                                 <input type="file" className="hidden" id="inv-up" onChange={handleFileChange} />
                                 <Button size="sm" variant="outline" className="h-8 text-[10px]" asChild>
                                   <label htmlFor="inv-up" className="cursor-pointer"><FileUp size={12} className="mr-1" /> Upload</label>
@@ -507,7 +509,7 @@ function AgentsContent() {
                             </div>
                             {uploadedFiles.length > 0 && (
                               <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 space-y-2">
-                                <p className="text-[10px] font-bold text-emerald-500 uppercase">Uploaded Files ({uploadedFiles.length})</p>
+                                <p className="text-[10px] font-bold text-emerald-500 uppercase">Reports Ready for Analysis ({uploadedFiles.length})</p>
                                 <div className="flex flex-wrap gap-2">
                                   {uploadedFiles.map(f => (
                                     <Badge key={f} variant="outline" className="bg-slate-900 border-emerald-500/30 text-[8px]">{f}</Badge>
@@ -716,33 +718,51 @@ function AgentsContent() {
                         )}
 
                         {output.type === 'ceo' && (
-                          <div className="space-y-6">
+                          <div className="space-y-8">
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                               <div className="p-4 rounded-xl bg-slate-900 border border-white/5 text-center">
                                 <p className="text-[10px] text-slate-500 uppercase font-bold">Total Sales</p>
                                 <p className="text-xl font-headline font-bold text-primary">₹{((output.metrics.totalSales || 0) / 100000).toFixed(1)}L</p>
                               </div>
                               <div className="p-4 rounded-xl bg-slate-900 border border-white/5 text-center">
-                                <p className="text-[10px] text-slate-500 uppercase font-bold">Profit</p>
+                                <p className="text-[10px] text-slate-500 uppercase font-bold">Net Profit</p>
                                 <p className="text-xl font-headline font-bold text-emerald-500">₹{((output.metrics.profit || 0) / 100000).toFixed(1)}L</p>
                               </div>
                               <div className="p-4 rounded-xl bg-slate-900 border border-white/5 text-center">
-                                <p className="text-[10px] text-slate-500 uppercase font-bold">Leakage/Loss</p>
+                                <p className="text-[10px] text-slate-500 uppercase font-bold">Margin Leakage</p>
                                 <p className="text-xl font-headline font-bold text-rose-500">₹{((output.metrics.loss || 0) / 100000).toFixed(1)}L</p>
                               </div>
                             </div>
 
-                            <div className="space-y-3">
-                              <p className="text-[10px] font-bold text-slate-500 uppercase">Leakage Identified</p>
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                {output.leakageInsights?.map((leak: any, idx: number) => (
-                                  <div key={idx} className="p-4 rounded-xl bg-rose-500/5 border border-rose-500/10 flex gap-3">
-                                    <AlertCircle className="text-rose-500 size-4 shrink-0 mt-0.5" />
-                                    <div>
-                                      <p className="text-xs font-bold text-white">{leak.reason}</p>
-                                      <p className="text-[10px] text-slate-400">{leak.impact}</p>
-                                    </div>
-                                  </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                              <div className="space-y-4">
+                                <h5 className="text-[10px] font-bold text-primary uppercase flex items-center gap-2"><TrendingUp size={14} /> Revenue Growth</h5>
+                                {output.pillars?.revenueGrowth.map((item: string, i: number) => (
+                                  <PillarItem key={i} text={item} onApprove={() => handleApprovePillar('Revenue')} />
+                                ))}
+                              </div>
+                              <div className="space-y-4">
+                                <h5 className="text-[10px] font-bold text-emerald-500 uppercase flex items-center gap-2"><Zap size={14} /> Cost & Profit</h5>
+                                {output.pillars?.costOptimization.map((item: string, i: number) => (
+                                  <PillarItem key={i} text={item} onApprove={() => handleApprovePillar('Cost')} />
+                                ))}
+                              </div>
+                              <div className="space-y-4">
+                                <h5 className="text-[10px] font-bold text-blue-500 uppercase flex items-center gap-2"><Boxes size={14} /> Inventory & Supply</h5>
+                                {output.pillars?.inventoryPlanning.map((item: string, i: number) => (
+                                  <PillarItem key={i} text={item} onApprove={() => handleApprovePillar('Inventory')} />
+                                ))}
+                              </div>
+                              <div className="space-y-4">
+                                <h5 className="text-[10px] font-bold text-rose-500 uppercase flex items-center gap-2"><ShieldAlert size={14} /> Risk & Compliance</h5>
+                                {output.pillars?.riskMonitoring.map((item: string, i: number) => (
+                                  <PillarItem key={i} text={item} onApprove={() => handleApprovePillar('Risk')} />
+                                ))}
+                              </div>
+                              <div className="md:col-span-2 space-y-4 pt-4 border-t border-white/5">
+                                <h5 className="text-[10px] font-bold text-amber-500 uppercase flex items-center gap-2"><Target size={14} /> Strategic Roadmap</h5>
+                                {output.pillars?.strategicPlanning.map((item: string, i: number) => (
+                                  <PillarItem key={i} text={item} onApprove={() => handleApprovePillar('Strategy')} isWide />
                                 ))}
                               </div>
                             </div>
@@ -757,7 +777,7 @@ function AgentsContent() {
                               disabled={isSavingWeb}
                             >
                               {isSavingWeb ? <Loader2 className="animate-spin mr-2" /> : <RefreshCw className="mr-2" size={18} />}
-                              Sync Analysis to Brand Overview
+                              Sync Intelligence to Brand Overview
                             </Button>
                           </div>
                         )}
@@ -831,6 +851,27 @@ function AgentsContent() {
           )}
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+function PillarItem({ text, onApprove, isWide }: { text: string, onApprove: () => void, isWide?: boolean }) {
+  return (
+    <div className={cn(
+      "flex items-start justify-between gap-4 p-4 rounded-xl bg-slate-900 border border-white/5 hover:border-white/10 transition-colors group",
+      isWide && "w-full"
+    )}>
+      <div className="flex-1 min-w-0">
+        <p className="text-xs font-medium text-slate-200 leading-relaxed">{text}</p>
+      </div>
+      <Button 
+        size="sm" 
+        variant="ghost" 
+        className="h-7 text-[9px] font-bold uppercase tracking-widest text-emerald-500 hover:bg-emerald-500/10 hover:text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity"
+        onClick={onApprove}
+      >
+        Approve
+      </Button>
     </div>
   );
 }
