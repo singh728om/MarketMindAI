@@ -257,7 +257,7 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent className="pt-4 flex flex-col items-center justify-center min-h-[120px] text-center">
                 <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">Untapped Potential</p>
-                <h3 className="text-3xl font-headline font-bold text-emerald-500">₹{(ceoAnalysis ? (ceoAnalysis.metrics?.totalSales * 0.4 / 100000).toFixed(1) : '12.4')}L</h3>
+                <h3 className="text-3xl font-headline font-bold text-emerald-500">₹{(ceoAnalysis ? ((ceoAnalysis.metrics?.totalSales || 0) * 0.4 / 100000).toFixed(1) : '12.4')}L</h3>
                 <p className="text-[10px] text-slate-400 mt-2">Targeted monthly lift via AI optimization.</p>
               </CardContent>
             </Card>

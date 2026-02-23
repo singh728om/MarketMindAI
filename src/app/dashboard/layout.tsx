@@ -22,7 +22,7 @@ export default function DashboardLayout({
 
   useEffect(() => {
     setHasMounted(true);
-    // Simulation logic deferred to client-side only
+    // Simulation logic deferred to client-side only to prevent hydration mismatch
     const joinedDate = new Date();
     joinedDate.setDate(joinedDate.getDate() - 2); 
 
@@ -43,12 +43,23 @@ export default function DashboardLayout({
     }
   }, [router, toast]);
 
-  if (!hasMounted || isChecking || isExpired) {
+  if (!hasMounted) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0c] text-white">
         <div className="text-center space-y-4">
           <Loader2 className="w-12 h-12 text-primary animate-spin mx-auto" />
           <h2 className="text-xl font-headline font-bold">Initializing Brand Workspace...</h2>
+        </div>
+      </div>
+    );
+  }
+
+  if (isChecking || isExpired) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0c] text-white">
+        <div className="text-center space-y-4">
+          <Loader2 className="w-12 h-12 text-primary animate-spin mx-auto" />
+          <h2 className="text-xl font-headline font-bold">Checking Credentials...</h2>
         </div>
       </div>
     );

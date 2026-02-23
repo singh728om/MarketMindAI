@@ -58,7 +58,6 @@ export default function CommandHubPage() {
     setHasMounted(true);
   }, []);
 
-  // Load intelligence
   useEffect(() => {
     if (!hasMounted || isUserLoading || !user || !db) {
       if (!isUserLoading && !user) setIsLoading(false);
