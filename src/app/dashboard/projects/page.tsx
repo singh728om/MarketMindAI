@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { 
   FolderKanban, 
@@ -50,18 +50,18 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
 const AVAILABLE_SERVICES = [
-  { id: "myntra-on", name: "Myntra Onboarding", category: "Onboarding", icon: ShoppingBag, marketplace: "Myntra" },
-  { id: "amazon-on", name: "Amazon Onboarding", category: "Onboarding", icon: ShoppingBag, marketplace: "Amazon" },
-  { id: "flipkart-on", name: "Flipkart Onboarding", category: "Onboarding", icon: ShoppingBag, marketplace: "Flipkart" },
-  { id: "ajio-on", name: "Ajio Onboarding", category: "Onboarding", icon: ShoppingBag, marketplace: "Ajio" },
-  { id: "nykaa-on", name: "Nykaa Onboarding", category: "Onboarding", icon: ShoppingBag, marketplace: "Nykaa" },
-  { id: "listing-creation", name: "Listing Creation", category: "SEO", icon: ListChecks, marketplace: "Multi-channel" },
-  { id: "listing-opt", name: "Listing Optimization", category: "SEO", icon: Zap, marketplace: "Multi-channel" },
-  { id: "keyword-res", name: "Keyword Research", category: "SEO", icon: Search, marketplace: "Multi-channel" },
-  { id: "photoshoot", name: "AI Photoshoot", category: "Creative", icon: Sparkles, marketplace: "Creative Studio" },
-  { id: "video-ad", name: "AI Video Ad (15s)", category: "Creative", icon: Video, marketplace: "Creative Studio" },
-  { id: "web-builder", name: "Website Store Builder", category: "Development", icon: Globe, marketplace: "Direct" },
-  { id: "shopify", name: "Shopify Store", category: "Development", icon: ShoppingBag, marketplace: "Shopify" },
+  { id: "myntra-on", name: "Myntra Onboarding", category: "Onboarding", icon: ShoppingBag, marketplace: "Myntra", price: 14999 },
+  { id: "amazon-on", name: "Amazon Onboarding", category: "Onboarding", icon: ShoppingBag, marketplace: "Amazon", price: 4999 },
+  { id: "flipkart-on", name: "Flipkart Onboarding", category: "Onboarding", icon: ShoppingBag, marketplace: "Flipkart", price: 4999 },
+  { id: "ajio-on", name: "Ajio Onboarding", category: "Onboarding", icon: ShoppingBag, marketplace: "Ajio", price: 14999 },
+  { id: "nykaa-on", name: "Nykaa Onboarding", category: "Onboarding", icon: ShoppingBag, marketplace: "Nykaa", price: 14999 },
+  { id: "listing-creation", name: "Listing Creation", category: "SEO", icon: ListChecks, marketplace: "Multi-channel", price: 1999 },
+  { id: "listing-opt", name: "Listing Optimization", category: "SEO", icon: Zap, marketplace: "Multi-channel", price: 1999 },
+  { id: "keyword-res", name: "Keyword Research", category: "SEO", icon: Search, marketplace: "Multi-channel", price: 999 },
+  { id: "photoshoot", name: "AI Photoshoot", category: "Creative", icon: Sparkles, marketplace: "Creative Studio", price: 999 },
+  { id: "video-ad", name: "AI Video Ad (15s)", category: "Creative", icon: Video, marketplace: "Creative Studio", price: 1499 },
+  { id: "web-builder", name: "Website Store Builder", category: "Development", icon: Globe, marketplace: "Direct", price: 11999 },
+  { id: "shopify", name: "Shopify Store", category: "Development", icon: ShoppingBag, marketplace: "Shopify", price: 14999 },
 ];
 
 const INITIAL_PROJECTS = [
@@ -114,14 +114,24 @@ const INITIAL_PROJECTS = [
 ];
 
 export default function ProjectsPage() {
-  const [projects, setProjects] = useState(INITIAL_PROJECTS);
+  const [projects, setProjects] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isNewServiceOpen, setIsNewServiceOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<any>(null);
   const router = useRouter();
   const { toast } = useToast();
 
-  const handleStartService = (service: typeof AVAILABLE_SERVICES[0]) => {
+  useEffect(() => {
+    const saved = localStorage.getItem("marketmind_projects");
+    if (saved) {
+      setProjects(JSON.parse(saved));
+    } else {
+      setProjects(INITIAL_PROJECTS);
+      localStorage.setItem("marketmind_projects", JSON.stringify(INITIAL_PROJECTS));
+    }
+  }, []);
+
+  const handleStartService = (service: any) => {
     const exists = projects.some(p => p.name === service.name);
     
     if (exists) {
@@ -133,40 +143,12 @@ export default function ProjectsPage() {
       return;
     }
 
-    const newProject = {
-      id: `proj-${Date.now()}`,
-      name: service.name,
-      marketplace: service.marketplace,
-      status: "Initial Setup",
-      progress: 5,
-      updatedAt: "Just now",
-      assets: 0,
-      priority: "Medium",
-      type: service.category,
-      icon: service.icon,
-      details: {
-        listingsCreated: 0,
-        listingsInProgress: 1,
-        brandOnboarded: false,
-        milestones: [
-          { id: "new1", name: "Account Activation", completed: false },
-          { id: "new2", name: "Milestone Documentation", completed: false },
-          { id: "new3", name: "Brand Verification", completed: false },
-          { id: "new4", name: "Initial Listing Creation", completed: false },
-        ]
-      }
-    };
-
-    setProjects([newProject, ...projects]);
-    setIsNewServiceOpen(false);
-    toast({
-      title: "Service Started!",
-      description: `${service.name} has been added to your opted projects.`,
-    });
+    // Redirect to checkout with the item details
+    router.push(`/checkout?items=${encodeURIComponent(service.name)}&total=${service.price}&autoAdd=true`);
   };
 
   const toggleMilestone = (projectId: string, milestoneId: string) => {
-    setProjects(prev => prev.map(p => {
+    const updatedProjects = projects.map(p => {
       if (p.id !== projectId) return p;
       const updatedMilestones = p.details.milestones.map((m: any) => 
         m.id === milestoneId ? { ...m, completed: !m.completed } : m
@@ -186,7 +168,17 @@ export default function ProjectsPage() {
       }
 
       return updated;
-    }));
+    });
+
+    setProjects(updatedProjects);
+    localStorage.setItem("marketmind_projects", JSON.stringify(updatedProjects));
+  };
+
+  const deleteProject = (id: string) => {
+    const updated = projects.filter(p => p.id !== id);
+    setProjects(updated);
+    localStorage.setItem("marketmind_projects", JSON.stringify(updated));
+    toast({ title: "Project Removed", description: "The service project has been archived." });
   };
 
   const filteredProjects = projects.filter(p => 
@@ -213,12 +205,13 @@ export default function ProjectsPage() {
             <DialogHeader className="p-8 pb-0">
               <DialogTitle className="text-2xl font-headline">Opt for New Service</DialogTitle>
               <DialogDescription>
-                Select a marketplace onboarding or AI creative service to initiate.
+                Select a marketplace onboarding or AI creative service to initiate. You will be redirected to complete payment.
               </DialogDescription>
             </DialogHeader>
             <div className="flex-1 overflow-y-auto p-8 pt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
               {AVAILABLE_SERVICES.map((service) => {
                 const isActive = projects.some(p => p.name === service.name);
+                const Icon = service.icon;
                 return (
                   <div 
                     key={service.id}
@@ -235,11 +228,14 @@ export default function ProjectsPage() {
                         "w-10 h-10 rounded-xl flex items-center justify-center transition-colors",
                         isActive ? "bg-muted text-muted-foreground" : "bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white"
                       )}>
-                        <service.icon size={20} />
+                        <Icon size={20} />
                       </div>
                       <div className="space-y-0.5">
                         <p className="font-bold text-sm leading-tight">{service.name}</p>
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">{service.category}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">{service.category}</p>
+                          {!isActive && <p className="text-[10px] text-primary font-bold">₹{service.price.toLocaleString()}</p>}
+                        </div>
                       </div>
                     </div>
                     {isActive ? (
@@ -276,77 +272,80 @@ export default function ProjectsPage() {
 
       {/* Projects Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {filteredProjects.map((project) => (
-          <Card 
-            key={project.id} 
-            className="rounded-2xl border-white/5 bg-card hover:border-primary/30 transition-all overflow-hidden group cursor-pointer"
-            onClick={() => setSelectedProject(project)}
-          >
-            <CardHeader className="pb-4">
-              <div className="flex justify-between items-start">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                      <project.icon size={16} />
+        {filteredProjects.map((project) => {
+          const Icon = project.icon || ShoppingBag;
+          return (
+            <Card 
+              key={project.id} 
+              className="rounded-2xl border-white/5 bg-card hover:border-primary/30 transition-all overflow-hidden group cursor-pointer"
+              onClick={() => setSelectedProject(project)}
+            >
+              <CardHeader className="pb-4">
+                <div className="flex justify-between items-start">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                        <Icon size={16} />
+                      </div>
+                      <CardTitle className="font-headline text-lg">{project.name}</CardTitle>
                     </div>
-                    <CardTitle className="font-headline text-lg">{project.name}</CardTitle>
+                    <div className="flex items-center gap-2 mt-2">
+                      <Badge variant={project.status === 'Completed' ? 'default' : 'secondary'} className="text-[10px] uppercase font-bold">
+                        {project.status}
+                      </Badge>
+                      <Badge variant="outline" className="text-[10px] font-bold border-primary/20 text-primary">
+                        {project.marketplace}
+                      </Badge>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 mt-2">
-                    <Badge variant={project.status === 'Completed' ? 'default' : 'secondary'} className="text-[10px] uppercase font-bold">
-                      {project.status}
-                    </Badge>
-                    <Badge variant="outline" className="text-[10px] font-bold border-primary/20 text-primary">
-                      {project.marketplace}
-                    </Badge>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
+                        <MoreVertical size={16} />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="rounded-xl border-white/10">
+                      <DropdownMenuItem onClick={() => setSelectedProject(project)}>
+                        <Edit2 size={14} className="mr-2" /> View Details
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); router.push('/dashboard/tickets'); }}>
+                        <Ticket size={14} className="mr-2" /> Raise Support Ticket
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="text-destructive" onClick={(e) => { e.stopPropagation(); deleteProject(project.id); }}>
+                        <Trash2 size={14} className="mr-2" /> Cancel Service
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-2">
+                  <div className="flex justify-between text-xs font-bold mb-1">
+                    <span className="text-muted-foreground uppercase tracking-widest">Service Completion</span>
+                    <span className="text-primary">{project.progress}%</span>
                   </div>
+                  <Progress value={project.progress} className="h-2" />
                 </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
-                      <MoreVertical size={16} />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="rounded-xl border-white/10">
-                    <DropdownMenuItem onClick={() => setSelectedProject(project)}>
-                      <Edit2 size={14} className="mr-2" /> View Details
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); router.push('/dashboard/tickets'); }}>
-                      <Ticket size={14} className="mr-2" /> Raise Support Ticket
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className="text-destructive">
-                      <Trash2 size={14} className="mr-2" /> Cancel Service
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <div className="flex justify-between text-xs font-bold mb-1">
-                  <span className="text-muted-foreground uppercase tracking-widest">Service Completion</span>
-                  <span className="text-primary">{project.progress}%</span>
-                </div>
-                <Progress value={project.progress} className="h-2" />
-              </div>
 
-              <div className="flex items-center justify-between pt-4 border-t border-white/5">
-                <div className="flex items-center gap-6">
-                  <div className="flex flex-col">
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Project Type</span>
-                    <span className="text-sm font-bold text-foreground">{project.type}</span>
+                <div className="flex items-center justify-between pt-4 border-t border-white/5">
+                  <div className="flex items-center gap-6">
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Project Type</span>
+                      <span className="text-sm font-bold text-foreground">{project.type}</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Updated</span>
+                      <span className="text-sm font-bold">{project.updatedAt}</span>
+                    </div>
                   </div>
-                  <div className="flex flex-col">
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Updated</span>
-                    <span className="text-sm font-bold">{project.updatedAt}</span>
-                  </div>
+                  <Button variant="ghost" size="sm" className="group-hover:text-primary transition-colors">
+                    Details <ChevronRight className="ml-1 w-4 h-4" />
+                  </Button>
                 </div>
-                <Button variant="ghost" size="sm" className="group-hover:text-primary transition-colors">
-                  Details <ChevronRight className="ml-1 w-4 h-4" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       {/* Project Details Dialog */}
@@ -357,7 +356,10 @@ export default function ProjectsPage() {
               <DialogHeader className="p-8 pb-4 bg-primary/5">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-xl bg-primary text-white flex items-center justify-center">
-                    <selectedProject.icon size={24} />
+                    {(() => {
+                      const Icon = selectedProject.icon || ShoppingBag;
+                      return <Icon size={24} />;
+                    })()}
                   </div>
                   <div>
                     <DialogTitle className="text-2xl font-headline font-bold">{selectedProject.name}</DialogTitle>

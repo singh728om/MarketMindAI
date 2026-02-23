@@ -14,7 +14,13 @@ import {
   Loader2,
   CheckCircle2,
   Tag,
-  Package
+  Package,
+  ShoppingBag,
+  ListChecks,
+  Zap,
+  Sparkles,
+  Video,
+  Globe
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
@@ -22,6 +28,26 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
+
+// Helper to map names to icons
+const getIconForService = (name: string) => {
+  if (name.includes("Onboarding")) return ShoppingBag;
+  if (name.includes("Listing")) return ListChecks;
+  if (name.includes("Keyword")) return Zap;
+  if (name.includes("Photoshoot")) return Sparkles;
+  if (name.includes("Video")) return Video;
+  if (name.includes("Website")) return Globe;
+  return Package;
+};
+
+// Helper to map names to categories
+const getCategoryForService = (name: string) => {
+  if (name.includes("Onboarding")) return "Onboarding";
+  if (name.includes("Listing") || name.includes("Keyword")) return "SEO";
+  if (name.includes("Photoshoot") || name.includes("Video")) return "Creative";
+  if (name.includes("Website") || name.includes("Shopify")) return "Development";
+  return "Services";
+};
 
 function CheckoutContent() {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -65,6 +91,48 @@ function CheckoutContent() {
     
     // Simulate payment gateway delay
     setTimeout(() => {
+      // PROVISION SERVICES: Add to localStorage projects
+      try {
+        const savedProjectsStr = localStorage.getItem("marketmind_projects");
+        let projects = savedProjectsStr ? JSON.parse(savedProjectsStr) : [];
+
+        selectedItems.forEach(itemName => {
+          // Avoid duplicates if coming from project tab
+          if (!projects.some((p: any) => p.name === itemName)) {
+            const newProject = {
+              id: `proj-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+              name: itemName,
+              marketplace: itemName.includes("Amazon") ? "Amazon" : 
+                           itemName.includes("Myntra") ? "Myntra" : 
+                           itemName.includes("Flipkart") ? "Flipkart" : "Multi-channel",
+              status: "Initial Setup",
+              progress: 5,
+              updatedAt: "Just now",
+              assets: 0,
+              priority: "Medium",
+              type: getCategoryForService(itemName),
+              icon: null, // Icons can't be stringified, will be re-mapped in UI
+              details: {
+                listingsCreated: 0,
+                listingsInProgress: 1,
+                brandOnboarded: false,
+                milestones: [
+                  { id: "p1", name: "Account Activation", completed: false },
+                  { id: "p2", name: "Milestone Documentation", completed: false },
+                  { id: "p3", name: "Brand Verification", completed: false },
+                  { id: "p4", name: "Initial Listing Creation", completed: false },
+                ]
+              }
+            };
+            projects = [newProject, ...projects];
+          }
+        });
+
+        localStorage.setItem("marketmind_projects", JSON.stringify(projects));
+      } catch (err) {
+        console.error("Failed to provision services", err);
+      }
+
       setIsProcessing(false);
       setIsSuccess(true);
       toast({
@@ -91,8 +159,8 @@ function CheckoutContent() {
               ? "Your request for offline payment is being processed. An agent will reach out to you within 24 hours."
               : "Thank you for choosing MarketMind AI. Your dashboard is now updated with your premium features."}
           </p>
-          <Button className="w-full h-12 rounded-xl font-bold" onClick={() => router.push("/dashboard")}>
-            Go to Dashboard
+          <Button className="w-full h-12 rounded-xl font-bold" onClick={() => router.push("/dashboard/projects")}>
+            Go to My Projects
           </Button>
         </Card>
       </div>
@@ -266,9 +334,11 @@ function CheckoutContent() {
                 <div className="space-y-4 pb-6 border-b border-white/5">
                   <p className="text-xs font-bold uppercase tracking-widest text-primary mb-2">Selected Services</p>
                   {selectedItems.map((item, idx) => (
-                    <div key={idx} className="flex items-center gap-3">
-                       <Package size={14} className="text-muted-foreground" />
-                       <span className="text-sm font-medium">{item}</span>
+                    <div key={idx} className="flex items-center justify-between gap-3">
+                       <div className="flex items-center gap-3">
+                         <Package size={14} className="text-muted-foreground" />
+                         <span className="text-sm font-medium">{item}</span>
+                       </div>
                     </div>
                   ))}
                 </div>
