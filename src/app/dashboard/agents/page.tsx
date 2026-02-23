@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef, useEffect, Suspense } from "react";
@@ -22,7 +23,8 @@ import {
   HardDrive,
   Copy,
   CheckCircle2,
-  Cpu
+  Cpu,
+  X
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,6 +34,7 @@ import {
   DialogHeader, 
   DialogTitle, 
   DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -177,8 +180,8 @@ function AgentsContent() {
     }, 1000);
   };
 
-  const handleRunAgent = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleRunAgent = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!isApiActive) {
       toast({ variant: "destructive", title: "API Node Offline", description: "Please enter your Gemini API Key in System Config." });
       return;
@@ -298,27 +301,32 @@ function AgentsContent() {
       </div>
 
       <Dialog open={!!selectedAgent} onOpenChange={(open) => !open && setSelectedAgent(null)}>
-        <DialogContent className="max-w-4xl bg-slate-900 border-white/10 rounded-3xl overflow-hidden max-h-[95vh] flex flex-col p-0 text-white shadow-2xl">
+        <DialogContent className="max-w-4xl bg-slate-900 border-white/10 rounded-3xl overflow-hidden h-[90vh] flex flex-col p-0 text-white shadow-2xl">
           {selectedAgent && (
             <>
               <DialogHeader className="p-6 md:p-8 border-b border-white/5 bg-slate-900/50 shrink-0">
-                <div className="flex items-center gap-4">
-                  <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl bg-slate-800 flex items-center justify-center ${selectedAgent.color}`}>
-                    <selectedAgent.icon size={24} />
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl bg-slate-800 flex items-center justify-center ${selectedAgent.color}`}>
+                      <selectedAgent.icon size={24} />
+                    </div>
+                    <div className="min-w-0">
+                      <DialogTitle className="text-xl md:text-2xl font-headline font-bold truncate">{selectedAgent.title}</DialogTitle>
+                      <DialogDescription className="text-slate-400 text-xs md:text-sm truncate">{selectedAgent.desc}</DialogDescription>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <DialogTitle className="text-xl md:text-2xl font-headline font-bold truncate">{selectedAgent.title}</DialogTitle>
-                    <DialogDescription className="text-slate-400 text-xs md:text-sm truncate">{selectedAgent.desc}</DialogDescription>
-                  </div>
+                  <Button variant="ghost" size="icon" className="rounded-full hover:bg-white/5" onClick={() => setSelectedAgent(null)}>
+                    <X size={20} />
+                  </Button>
                 </div>
               </DialogHeader>
 
               <ScrollArea className="flex-1">
                 <div className="p-6 md:p-8">
                   {!output ? (
-                    <form onSubmit={handleRunAgent} className="space-y-6">
+                    <form id="agent-config-form" onSubmit={handleRunAgent} className="space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
-                        {/* AI Engine Selection for Photoshoot */}
+                        {/* AI Engine Selection */}
                         {selectedAgent.id === 'photoshoot' && (
                           <div className="md:col-span-2 space-y-2 pb-2 border-b border-white/5">
                             <Label className="text-[10px] uppercase font-bold text-primary tracking-widest flex items-center gap-2 mb-1">
@@ -331,11 +339,10 @@ function AgentsContent() {
                                 <SelectItem value="openai">OpenAI DALL-E 3</SelectItem>
                               </SelectContent>
                             </Select>
-                            <p className="text-[10px] text-slate-500 italic">OpenAI offers high-detail commercial renders; Gemini excels at photorealism.</p>
                           </div>
                         )}
 
-                        {/* Common Fields Grouped */}
+                        {/* Common Fields */}
                         <div className="space-y-2">
                           <Label className="text-[10px] uppercase font-bold text-slate-500 tracking-widest">Marketplace Context</Label>
                           <Select value={formData.marketplace} onValueChange={(val) => handleInputChange("marketplace", val)}>
@@ -364,7 +371,7 @@ function AgentsContent() {
                           </Select>
                         </div>
 
-                        {/* Photoshoot Specific Fields */}
+                        {/* Photoshoot Specific */}
                         {selectedAgent.id === 'photoshoot' && (
                           <>
                             <div className="space-y-2">
@@ -417,7 +424,7 @@ function AgentsContent() {
                           </>
                         )}
 
-                        {/* Video Specific Fields */}
+                        {/* Video Specific */}
                         {selectedAgent.id === 'video' && (
                           <div className="space-y-2">
                             <Label className="text-[10px] uppercase font-bold text-slate-500 tracking-widest">Scene Environment</Label>
@@ -434,37 +441,32 @@ function AgentsContent() {
                         )}
 
                         {/* Asset Upload */}
-                        {(selectedAgent.id === 'photoshoot' || selectedAgent.id === 'video' || selectedAgent.id === 'listing') && (
+                        {(['photoshoot', 'video', 'listing'].includes(selectedAgent.id)) && (
                           <div className="md:col-span-2 space-y-3">
                             <Label className="text-[10px] uppercase font-bold text-slate-500 tracking-widest">Raw Product Image</Label>
-                            <div onClick={() => fileInputRef.current?.click()} className={cn("border-2 border-dashed rounded-2xl p-6 md:p-10 flex flex-col items-center justify-center gap-3 cursor-pointer transition-all", formData.base64Image ? "border-primary bg-primary/5" : "border-white/10 bg-slate-800/30 hover:bg-slate-800/50")}>
+                            <div onClick={() => fileInputRef.current?.click()} className={cn("border-2 border-dashed rounded-2xl p-6 md:p-8 flex flex-col items-center justify-center gap-3 cursor-pointer transition-all", formData.base64Image ? "border-primary bg-primary/5" : "border-white/10 bg-slate-800/30 hover:bg-slate-800/50")}>
                               <input type="file" className="hidden" ref={fileInputRef} onChange={handleFileChange} accept="image/*" />
                               {formData.base64Image ? (
                                 <div className="relative group">
-                                  <img src={formData.base64Image} className="w-24 h-24 md:w-32 md:h-32 object-contain rounded-lg" />
+                                  <img src={formData.base64Image} className="w-20 h-20 md:w-24 md:h-24 object-contain rounded-lg" />
                                   <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
                                     <p className="text-[10px] font-bold uppercase">Change</p>
                                   </div>
                                 </div>
                               ) : (
                                 <>
-                                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                                    <Upload size={20} />
+                                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                                    <Upload size={16} />
                                   </div>
                                   <div className="text-center">
-                                    <p className="text-sm font-bold">Upload product photo</p>
-                                    <p className="text-[10px] text-slate-500 mt-1 uppercase tracking-tighter">PNG, JPG (Max 5MB)</p>
+                                    <p className="text-xs font-bold">Upload product photo</p>
+                                    <p className="text-[10px] text-slate-500 mt-1 uppercase">PNG, JPG (Max 5MB)</p>
                                   </div>
                                 </>
                               )}
                             </div>
                           </div>
                         )}
-                      </div>
-                      <div className="pt-4 pb-12">
-                        <Button type="submit" className="w-full h-14 md:h-16 rounded-2xl font-bold shadow-2xl shadow-primary/20 text-lg" disabled={isRunning}>
-                          {isRunning ? <><RefreshCw className="mr-2 animate-spin" /> Astra Processing...</> : <><Zap className="mr-2" /> Execute Agent</>}
-                        </Button>
                       </div>
                     </form>
                   ) : (
@@ -506,22 +508,35 @@ function AgentsContent() {
                           </div>
                         )}
                       </div>
-
-                      <div className="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto">
-                        <Button variant="outline" className="flex-1 h-14 rounded-2xl border-white/10" onClick={() => setOutput(null)}>
-                          Discard Result
-                        </Button>
-                        <Button className="flex-1 h-14 rounded-2xl font-bold shadow-xl shadow-primary/20" onClick={handleVaultOutput} disabled={isVaulting}>
-                          {isVaulting ? <><Loader2 className="mr-2 animate-spin" /> Securing...</> : <><HardDrive className="mr-2" /> Vault Asset</>}
-                        </Button>
-                        <Button variant="secondary" className="flex-1 h-14 rounded-2xl font-bold" onClick={() => toast({ title: "Initiating Download..." })}>
-                          <Download className="mr-2" /> Download
-                        </Button>
-                      </div>
                     </div>
                   )}
                 </div>
               </ScrollArea>
+
+              <DialogFooter className="p-6 md:p-8 bg-slate-900 border-t border-white/5 shrink-0">
+                {!output ? (
+                  <Button 
+                    form="agent-config-form" 
+                    type="submit" 
+                    className="w-full h-14 md:h-16 rounded-2xl font-bold shadow-2xl shadow-primary/20 text-lg" 
+                    disabled={isRunning}
+                  >
+                    {isRunning ? <><RefreshCw className="mr-2 animate-spin" /> Astra Processing...</> : <><Zap className="mr-2" /> Execute Agent</>}
+                  </Button>
+                ) : (
+                  <div className="flex flex-col sm:flex-row gap-4 w-full">
+                    <Button variant="outline" className="flex-1 h-14 rounded-2xl border-white/10" onClick={() => setOutput(null)}>
+                      Discard Result
+                    </Button>
+                    <Button className="flex-1 h-14 rounded-2xl font-bold shadow-xl shadow-primary/20" onClick={handleVaultOutput} disabled={isVaulting}>
+                      {isVaulting ? <><Loader2 className="mr-2 animate-spin" /> Securing...</> : <><HardDrive className="mr-2" /> Vault Asset</>}
+                    </Button>
+                    <Button variant="secondary" className="flex-1 h-14 rounded-2xl font-bold" onClick={() => toast({ title: "Initiating Download..." })}>
+                      <Download className="mr-2" /> Download
+                    </Button>
+                  </div>
+                )}
+              </DialogFooter>
             </>
           )}
         </DialogContent>
