@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview Professional AI Photoshoot Agent with Dynamic Key Support and Advanced Studio Angles.
+ * Professional AI Photoshoot Agent with Dynamic Key Support and Multi-Engine Generation (Gemini & OpenAI).
  */
 
 import {genkit} from 'genkit';
@@ -17,6 +17,8 @@ const GeneratePhotoshootInputSchema = z.object({
   background: z.string().optional(),
   style: z.string().optional(),
   apiKey: z.string().optional(),
+  openaiApiKey: z.string().optional(),
+  aiEngine: z.enum(['gemini', 'openai']).optional().default('gemini'),
 });
 export type GeneratePhotoshootInput = z.infer<typeof GeneratePhotoshootInputSchema>;
 
@@ -75,6 +77,33 @@ export async function generatePhotoshoot(input: GeneratePhotoshootInput): Promis
 
   const finalPromptText = promptEngineeringResponse.text;
 
+  // --- ENGINE SELECTION LOGIC ---
+
+  if (input.aiEngine === 'openai') {
+    if (!input.openaiApiKey) throw new Error('OpenAI API Key is required for DALL-E generation.');
+    
+    const response = await fetch('https://api.openai.com/v1/images/generations', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${input.openaiApiKey}`
+      },
+      body: JSON.stringify({
+        model: "dall-e-3",
+        prompt: finalPromptText,
+        n: 1,
+        size: "1024x1024",
+        response_format: "b64_json"
+      })
+    });
+
+    const result = await response.json();
+    if (result.error) throw new Error(`OpenAI Error: ${result.error.message}`);
+    
+    return { generatedImageDataUri: `data:image/png;base64,${result.data[0].b64_json}` };
+  }
+
+  // --- DEFAULT GEMINI/IMAGEN LOGIC ---
   if (input.photoDataUri) {
     const response = await ai.generate({
       model: 'googleai/gemini-2.5-flash-image',

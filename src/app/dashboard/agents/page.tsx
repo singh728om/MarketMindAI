@@ -21,7 +21,8 @@ import {
   Download,
   HardDrive,
   Copy,
-  CheckCircle2
+  CheckCircle2,
+  Cpu
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -69,7 +70,7 @@ function AgentsContent() {
   const [isVaulting, setIsVaulting] = useState(false);
   const [output, setOutput] = useState<any>(null);
   const [isApiActive, setIsApiActive] = useState(false);
-  const [activeKey, setActiveKey] = useState<string>("");
+  const [activeKeys, setActiveKeys] = useState<{ gemini: string; openai: string }>({ gemini: "", openai: "" });
   const [hasMounted, setHasMounted] = useState(false);
   
   const searchParams = useSearchParams();
@@ -90,6 +91,7 @@ function AgentsContent() {
     country: "India",
     websiteUrl: "",
     style: "high-end commercial editorial, extremely detailed, realistic lighting",
+    aiEngine: "gemini",
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -109,15 +111,15 @@ function AgentsContent() {
         const keys = localStorage.getItem("marketmind_api_keys");
         if (keys) {
           const parsed = JSON.parse(keys);
+          setActiveKeys({
+            gemini: parsed.gemini || "",
+            openai: parsed.openai || ""
+          });
           if (parsed.gemini && parsed.gemini.trim() !== "") {
             setIsApiActive(true);
-            setActiveKey(parsed.gemini);
-            return;
           }
         }
       } catch (e) {}
-      setIsApiActive(false);
-      setActiveKey("");
     };
 
     checkKeys();
@@ -182,6 +184,11 @@ function AgentsContent() {
       return;
     }
 
+    if (formData.aiEngine === 'openai' && !activeKeys.openai) {
+      toast({ variant: "destructive", title: "OpenAI Node Offline", description: "Please enter your OpenAI API Key in System Config." });
+      return;
+    }
+
     setIsRunning(true);
     try {
       let result: any;
@@ -196,7 +203,9 @@ function AgentsContent() {
             kidAge: formData.modelType === 'kids' ? formData.kidAge : undefined,
             background: formData.background,
             style: formData.style,
-            apiKey: activeKey
+            apiKey: activeKeys.gemini,
+            openaiApiKey: activeKeys.openai,
+            aiEngine: formData.aiEngine as any
           });
           setOutput({ imageUrl: result.generatedImageDataUri, type: 'creative' });
           break;
@@ -209,7 +218,7 @@ function AgentsContent() {
             productCategory: formData.category,
             background: formData.background,
             photoDataUri: formData.base64Image,
-            apiKey: activeKey
+            apiKey: activeKeys.gemini
           });
           setOutput({ videoUrl: result.videoDataUri, type: 'video' });
           break;
@@ -219,7 +228,7 @@ function AgentsContent() {
             category: formData.category,
             marketplace: formData.marketplace as any,
             photoDataUri: formData.base64Image || undefined,
-            apiKey: activeKey
+            apiKey: activeKeys.gemini
           });
           setOutput({ ...result, type: 'listing' });
           break;
@@ -228,7 +237,7 @@ function AgentsContent() {
             productName: formData.productName,
             category: formData.category,
             marketplace: formData.marketplace,
-            apiKey: activeKey
+            apiKey: activeKeys.gemini
           });
           setOutput({ ...result, type: 'ranking' });
           break;
@@ -236,7 +245,7 @@ function AgentsContent() {
           result = await generateB2BLeads({
             niche: formData.category,
             location: formData.location,
-            apiKey: activeKey
+            apiKey: activeKeys.gemini
           });
           setOutput({ ...result, type: 'leads' });
           break;
@@ -309,6 +318,23 @@ function AgentsContent() {
                   {!output ? (
                     <form onSubmit={handleRunAgent} className="space-y-8">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* AI Engine Selection for Photoshoot */}
+                        {selectedAgent.id === 'photoshoot' && (
+                          <div className="md:col-span-2 space-y-2">
+                            <Label className="text-xs uppercase font-bold text-primary tracking-widest flex items-center gap-2">
+                              <Cpu size={14} /> AI Generation Engine
+                            </Label>
+                            <Select value={formData.aiEngine} onValueChange={(val) => handleInputChange("aiEngine", val)}>
+                              <SelectTrigger className="bg-slate-800 border-white/5 h-12 rounded-xl"><SelectValue /></SelectTrigger>
+                              <SelectContent className="bg-slate-800 border-white/10 text-white">
+                                <SelectItem value="gemini">Google Gemini (Astra Core)</SelectItem>
+                                <SelectItem value="openai">OpenAI DALL-E 3</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <p className="text-[10px] text-slate-500 italic">Select OpenAI for artistic commercial renders or Gemini for high-fidelity realism.</p>
+                          </div>
+                        )}
+
                         {/* Common Fields */}
                         <div className="space-y-2">
                           <Label className="text-xs uppercase font-bold text-slate-500 tracking-widest">Marketplace Context</Label>
