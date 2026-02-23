@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -36,6 +37,26 @@ import { Progress } from "@/components/ui/progress";
 import { KPI_DATA as STATIC_KPI, PERFORMANCE_CHART } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
+const PRICE_MAP: Record<string, number> = {
+  "Myntra Onboarding": 14999,
+  "Amazon Onboarding": 4999,
+  "Flipkart Onboarding": 4999,
+  "Ajio Onboarding": 14999,
+  "Nykaa Onboarding": 14999,
+  "Listing Creation": 1999,
+  "Listing Optimization": 1999,
+  "Keyword Research": 999,
+  "AI Photoshoot": 999,
+  "AI Video Ad (15s)": 1499,
+  "Website Store Builder": 11999,
+  "Shopify Store": 14999,
+  "AI CEO & Chief Strategist": 24999,
+  "AI Social Media Manager": 9999,
+  "AI Listing Architect": 7999,
+  "AI Customer Success Lead": 5999,
+  "AI Creative Director": 12999
+};
+
 export default function Dashboard() {
   const [showTrialBanner, setShowTrialBanner] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
@@ -63,7 +84,7 @@ export default function Dashboard() {
     const active = projects.filter(p => p.status !== 'Canceled');
     if (active.length === 0) return { name: "Free Trial", color: "bg-primary" };
     
-    const totalValue = active.reduce((sum, p) => sum + (Number(p.price) || 0), 0);
+    const totalValue = active.reduce((sum, p) => sum + (Number(p.price) || PRICE_MAP[p.name] || 0), 0);
     
     if (totalValue >= 50000) return { name: "Enterprise Plan", color: "bg-indigo-500" };
     if (totalValue >= 10000) return { name: "Pro Plan", color: "bg-amber-500" };

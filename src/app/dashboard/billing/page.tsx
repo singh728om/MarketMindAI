@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
@@ -48,7 +49,7 @@ const PRICE_MAP: Record<string, number> = {
   "AI Video Ad (15s)": 1499,
   "Website Store Builder": 11999,
   "Shopify Store": 14999,
-  "AI CEO & Strategist": 24999,
+  "AI CEO & Chief Strategist": 24999,
   "AI Social Media Manager": 9999,
   "AI Listing Architect": 7999,
   "AI Customer Success Lead": 5999,

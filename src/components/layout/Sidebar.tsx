@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -24,6 +25,26 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+
+const PRICE_MAP: Record<string, number> = {
+  "Myntra Onboarding": 14999,
+  "Amazon Onboarding": 4999,
+  "Flipkart Onboarding": 4999,
+  "Ajio Onboarding": 14999,
+  "Nykaa Onboarding": 14999,
+  "Listing Creation": 1999,
+  "Listing Optimization": 1999,
+  "Keyword Research": 999,
+  "AI Photoshoot": 999,
+  "AI Video Ad (15s)": 1499,
+  "Website Store Builder": 11999,
+  "Shopify Store": 14999,
+  "AI CEO & Chief Strategist": 24999,
+  "AI Social Media Manager": 9999,
+  "AI Listing Architect": 7999,
+  "AI Customer Success Lead": 5999,
+  "AI Creative Director": 12999
+};
 
 const navItems = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -68,14 +89,32 @@ export function Sidebar({ onClose }: SidebarProps) {
 
   const currentPlan = useMemo(() => {
     const active = projects.filter(p => p.status !== 'Canceled');
-    if (active.length === 0) return { name: "Free Trial", color: "text-primary", badge: "Trial" };
+    if (active.length === 0) return { name: "Free Trial", color: "text-primary", border: "border-primary/20", bg: "bg-primary/10", badge: "Trial" };
     
-    const totalValue = active.reduce((sum, p) => sum + (Number(p.price) || 0), 0);
+    const totalValue = active.reduce((sum, p) => sum + (Number(p.price) || PRICE_MAP[p.name] || 0), 0);
     
-    if (totalValue >= 50000) return { name: "Enterprise Plan", color: "text-indigo-500", badge: "Enterprise" };
-    if (totalValue >= 10000) return { name: "Pro Plan", color: "text-amber-500", badge: "Pro" };
+    if (totalValue >= 50000) return { 
+      name: "Enterprise Plan", 
+      color: "text-indigo-500", 
+      border: "border-indigo-500/30", 
+      bg: "bg-indigo-500/10", 
+      badge: "Enterprise" 
+    };
+    if (totalValue >= 10000) return { 
+      name: "Pro Plan", 
+      color: "text-amber-500", 
+      border: "border-amber-500/30", 
+      bg: "bg-amber-500/10", 
+      badge: "Pro" 
+    };
     
-    return { name: "Plus Plan", color: "text-emerald-500", badge: "Plus" };
+    return { 
+      name: "Plus Plan", 
+      color: "text-emerald-500", 
+      border: "border-emerald-500/30", 
+      bg: "bg-emerald-500/10", 
+      badge: "Plus" 
+    };
   }, [projects]);
 
   const handleSignOut = () => {
@@ -128,7 +167,7 @@ export function Sidebar({ onClose }: SidebarProps) {
       </nav>
 
       <div className="p-4 border-t border-white/5 space-y-4">
-        <div className="p-4 rounded-xl bg-primary/10 border border-primary/20">
+        <div className={cn("p-4 rounded-xl border transition-colors", currentPlan.bg, currentPlan.border)}>
           <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-1">Active Tier</p>
           <p className={cn("text-sm font-bold flex items-center gap-2 mb-3", currentPlan.color)}>
             {currentPlan.name} <Zap size={10} className="fill-current" />
