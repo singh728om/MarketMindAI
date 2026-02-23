@@ -84,8 +84,8 @@ export default function CEOHubPage() {
         setAnalysis(snapshot.docs[0].data());
       }
       setIsLoading(false);
-    }, async (err) => {
-      // Index errors are common in prototypes, handle silently or via emitter
+    }, (err) => {
+      console.error(err);
       const permissionError = new FirestorePermissionError({
         path: analysesRef.path,
         operation: 'list',
@@ -131,7 +131,7 @@ export default function CEOHubPage() {
 
       const result = await runAICeoAnalysis({
         marketplace: marketplace as any,
-        reportSummary: `Analysis of: ${uploadedFiles.join(', ')}. Mode: Astra Boardroom Synthesis AS-S1-V4.`,
+        reportSummary: `Analysis of: ${uploadedFiles.join(', ')}. Mode: Astra Boardroom Synthesis Node AS-S1-V4.`,
         apiKey: apiKey
       });
 
@@ -152,8 +152,7 @@ export default function CEOHubPage() {
         createdAt: new Date().toISOString()
       };
 
-      // Non-blocking save
-      setDoc(analysisRef, data).catch(async (serverError) => {
+      setDoc(analysisRef, data).catch((serverError) => {
         const permissionError = new FirestorePermissionError({
           path: analysisRef.path,
           operation: 'write',
@@ -233,7 +232,7 @@ export default function CEOHubPage() {
               <div className="space-y-4">
                 <h2 className="text-3xl font-headline font-bold text-white tracking-tight">Initiate Boardroom Synthesis</h2>
                 <p className="text-slate-400 text-lg leading-relaxed">
-                  Astra correlates departmental signals to identify margin leakage and growth paths. Upload reports to begin.
+                  Astra correlates departmental signals to identify margin leakage and growth paths. Ingest reports to begin.
                 </p>
               </div>
 
@@ -257,10 +256,26 @@ export default function CEOHubPage() {
                 <div className="space-y-4">
                   <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Ingest Signals (Reports)</Label>
                   <div className="grid grid-cols-2 gap-3">
-                    <ReportUploadButton id="r1" label="Sales & GMV" onFile={handleFileChange} />
-                    <ReportUploadButton id="r2" label="Ad Performance" onFile={handleFileChange} />
-                    <ReportUploadButton id="r3" label="Returns & RTO" onFile={handleFileChange} />
-                    <ReportUploadButton id="r4" label="Stock Levels" onFile={handleFileChange} />
+                    <div className="p-4 rounded-xl bg-slate-800 border border-white/5 flex flex-col items-center gap-3 hover:bg-slate-700 transition-colors cursor-pointer group relative">
+                      <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleFileChange} />
+                      <FileUp size={20} className="text-slate-500 group-hover:text-amber-500" />
+                      <span className="text-[10px] font-bold uppercase text-slate-400 group-hover:text-white">Sales & GMV</span>
+                    </div>
+                    <div className="p-4 rounded-xl bg-slate-800 border border-white/5 flex flex-col items-center gap-3 hover:bg-slate-700 transition-colors cursor-pointer group relative">
+                      <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleFileChange} />
+                      <FileUp size={20} className="text-slate-500 group-hover:text-amber-500" />
+                      <span className="text-[10px] font-bold uppercase text-slate-400 group-hover:text-white">Ad Performance</span>
+                    </div>
+                    <div className="p-4 rounded-xl bg-slate-800 border border-white/5 flex flex-col items-center gap-3 hover:bg-slate-700 transition-colors cursor-pointer group relative">
+                      <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleFileChange} />
+                      <FileUp size={20} className="text-slate-500 group-hover:text-amber-500" />
+                      <span className="text-[10px] font-bold uppercase text-slate-400 group-hover:text-white">Returns & RTO</span>
+                    </div>
+                    <div className="p-4 rounded-xl bg-slate-800 border border-white/5 flex flex-col items-center gap-3 hover:bg-slate-700 transition-colors cursor-pointer group relative">
+                      <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleFileChange} />
+                      <FileUp size={20} className="text-slate-500 group-hover:text-amber-500" />
+                      <span className="text-[10px] font-bold uppercase text-slate-400 group-hover:text-white">Stock Levels</span>
+                    </div>
                   </div>
                   {uploadedFiles.length > 0 && (
                     <div className="flex flex-wrap gap-2 pt-2">
@@ -298,9 +313,33 @@ export default function CEOHubPage() {
               </div>
               
               <div className="space-y-8">
-                <AuditBenefit icon={TrendingUp} title="Growth Velocity" desc="Detecting organic ranking shifts relative to ad budget spikes." />
-                <AuditBenefit icon={ShieldAlert} title="Leakage Protection" desc="Identifying margin erosion in RTO and logistics handling." />
-                <AuditBenefit icon={Boxes} title="Inventory Logic" desc="Predictive capital reallocation based on SKU velocity." />
+                <div className="flex gap-4 group">
+                  <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-primary shrink-0 group-hover:bg-primary/10 transition-colors">
+                    <TrendingUp size={20} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-white group-hover:text-primary">Growth Velocity</p>
+                    <p className="text-xs text-slate-500 leading-relaxed">Detecting organic ranking shifts relative to ad budget spikes.</p>
+                  </div>
+                </div>
+                <div className="flex gap-4 group">
+                  <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-rose-500 shrink-0 group-hover:bg-rose-500/10 transition-colors">
+                    <ShieldAlert size={20} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-white group-hover:text-rose-500">Leakage Protection</p>
+                    <p className="text-xs text-slate-500 leading-relaxed">Identifying margin erosion in RTO and logistics handling.</p>
+                  </div>
+                </div>
+                <div className="flex gap-4 group">
+                  <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-blue-500 shrink-0 group-hover:bg-blue-500/10 transition-colors">
+                    <Boxes size={20} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-white group-hover:text-blue-500">Inventory Logic</p>
+                    <p className="text-xs text-slate-500 leading-relaxed">Predictive capital reallocation based on SKU velocity.</p>
+                  </div>
+                </div>
               </div>
 
               <div className="pt-6 border-t border-white/5 space-y-4">
@@ -379,7 +418,7 @@ export default function CEOHubPage() {
                       </div>
                       <div className="flex flex-col items-end shrink-0">
                         <span className="text-[10px] font-bold text-slate-500 uppercase">Est. Monthly Leakage</span>
-                        <span className="text-xl font-headline font-bold text-rose-500">₹{metrics ? (metrics.loss * 0.3).toLocaleString() : '0'}</span>
+                        <span className="text-xl font-headline font-bold text-rose-500">₹{(metrics ? (metrics.loss * 0.3) : 0).toLocaleString()}</span>
                       </div>
                     </div>
                   )) : (
@@ -456,14 +495,14 @@ export default function CEOHubPage() {
                 <div className="space-y-2">
                   <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest">
                     <span className="text-slate-500">Margin Health</span>
-                    <span className="text-emerald-500">{metrics && metrics.totalSales > 0 ? ((metrics.profit / metrics.totalSales) * 100).toFixed(1) : 0}%</span>
+                    <span className="text-emerald-500">{(metrics && metrics.totalSales > 0 ? ((metrics.profit / metrics.totalSales) * 100) : 0).toFixed(1)}%</span>
                   </div>
                   <Progress value={metrics && metrics.totalSales > 0 ? (metrics.profit / metrics.totalSales) * 100 : 0} className="h-1.5 bg-slate-800" />
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest">
                     <span className="text-slate-500">ROAS Multiplier</span>
-                    <span className="text-primary">{metrics ? metrics.roas : 0}x</span>
+                    <span className="text-primary">{(metrics?.roas || 0)}x</span>
                   </div>
                   <Progress value={metrics ? Math.min(100, metrics.roas * 10) : 0} className="h-1.5 bg-slate-800" />
                 </div>
@@ -494,30 +533,6 @@ export default function CEOHubPage() {
           </div>
         </div>
       )}
-    </div>
-  );
-}
-
-function ReportUploadButton({ id, label, onFile }: { id: string, label: string, onFile: any }) {
-  return (
-    <div className="p-4 rounded-xl bg-slate-800 border border-white/5 flex flex-col items-center gap-3 hover:bg-slate-700 transition-colors cursor-pointer group relative">
-      <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={onFile} />
-      <FileUp size={20} className="text-slate-500 group-hover:text-amber-500 transition-colors" />
-      <span className="text-[10px] font-bold uppercase text-slate-400 group-hover:text-white transition-colors text-center">{label}</span>
-    </div>
-  );
-}
-
-function AuditBenefit({ icon: Icon, title, desc }: { icon: any, title: string, desc: string }) {
-  return (
-    <div className="flex gap-4 group">
-      <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-primary shrink-0 group-hover:bg-primary/10 transition-colors">
-        <Icon size={20} />
-      </div>
-      <div>
-        <p className="text-sm font-bold text-white group-hover:text-primary transition-colors">{title}</p>
-        <p className="text-xs text-slate-500 leading-relaxed">{desc}</p>
-      </div>
     </div>
   );
 }
