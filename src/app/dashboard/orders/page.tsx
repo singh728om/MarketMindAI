@@ -3,23 +3,20 @@
 
 import { useState, useEffect } from "react";
 import { 
-  History, 
   Search, 
-  Filter, 
   ShoppingBag, 
   XCircle, 
   CheckCircle2, 
   Clock, 
   ExternalLink,
   ChevronRight,
-  ArrowUpRight,
-  Loader2
+  Loader2,
+  History
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 
@@ -36,36 +33,18 @@ export default function OrderHistoryPage() {
   const [orders, setOrders] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const { toast } = useToast();
 
   useEffect(() => {
     try {
       const saved = localStorage.getItem("marketmind_projects");
-      let activeOrders = saved ? JSON.parse(saved) : [];
-      
-      // Simulate historical/canceled data for display
-      const historicalOrders = [
-        {
-          id: "ord-hist-1",
-          name: "Shopify Store Trial",
-          marketplace: "Direct",
-          status: "Canceled",
-          type: "Development",
-          updatedAt: "2 weeks ago",
-          price: 14999
-        },
-        {
-          id: "ord-hist-2",
-          name: "Amazon Keyword Audit",
-          marketplace: "Amazon",
-          status: "Completed",
-          type: "SEO",
-          updatedAt: "1 month ago",
-          price: 999
-        }
-      ];
-
-      setOrders([...activeOrders, ...historicalOrders]);
+      if (saved) {
+        const allProjects = JSON.parse(saved);
+        // Show only active or canceled orders as requested
+        const filtered = allProjects.filter((p: any) => 
+          ['In Progress', 'Initial Setup', 'Drafting', 'Canceled'].includes(p.status)
+        );
+        setOrders(filtered);
+      }
     } catch (err) {
       console.error("Failed to load history", err);
     } finally {
@@ -80,8 +59,7 @@ export default function OrderHistoryPage() {
 
   const stats = {
     total: orders.length,
-    enrolled: orders.filter(o => o.status !== 'Canceled').length,
-    active: orders.filter(o => ['In Progress', 'Initial Setup', 'Drafting'].includes(o.status)).length,
+    active: orders.filter(o => o.status !== 'Canceled' && o.status !== 'Completed').length,
     canceled: orders.filter(o => o.status === 'Canceled').length
   };
 
@@ -92,13 +70,13 @@ export default function OrderHistoryPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-headline font-bold mb-1 text-white">Order History</h1>
-          <p className="text-muted-foreground">Audit your agency service enrollment lifecycle.</p>
+          <p className="text-muted-foreground">Audit your active and canceled marketplace service enrollments.</p>
         </div>
         <div className="flex items-center gap-4">
           <Card className="px-4 py-2 bg-slate-900 border-white/5 flex items-center gap-6">
             <div className="text-center">
-              <p className="text-[10px] font-bold text-slate-500 uppercase">Enrolled</p>
-              <p className="text-lg font-bold text-primary">{stats.enrolled}</p>
+              <p className="text-[10px] font-bold text-slate-500 uppercase">Active</p>
+              <p className="text-lg font-bold text-primary">{stats.active}</p>
             </div>
             <div className="w-px h-8 bg-white/5" />
             <div className="text-center">
@@ -168,7 +146,7 @@ export default function OrderHistoryPage() {
               }) : (
                 <tr>
                   <td colSpan={5} className="px-8 py-20 text-center text-slate-500 italic">
-                    No matching order records found.
+                    No active or canceled order records found.
                   </td>
                 </tr>
               )}
@@ -184,35 +162,6 @@ export default function OrderHistoryPage() {
           </Button>
         </CardFooter>
       </Card>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <Card className="rounded-3xl border-white/5 bg-slate-900 p-8 flex items-center gap-6">
-          <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shadow-lg">
-            <Zap size={32} />
-          </div>
-          <div>
-            <h3 className="text-xl font-headline font-bold mb-1">Growth Retention</h3>
-            <p className="text-sm text-slate-400">
-              You have successfully completed {Math.max(0, stats.enrolled - stats.active - stats.canceled)} services this month with a 100% SEO satisfaction rate.
-            </p>
-          </div>
-        </Card>
-
-        <Card className="rounded-3xl border-white/5 bg-slate-900 p-8 flex items-center gap-6">
-          <div className="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shadow-lg">
-            <History size={32} />
-          </div>
-          <div>
-            <h3 className="text-xl font-headline font-bold mb-1">Service Re-activation</h3>
-            <p className="text-sm text-slate-400">
-              Canceled services can be re-provisioned within 30 days without loss of initial onboarding data.
-            </p>
-          </div>
-        </Card>
-      </div>
     </div>
   );
-}
-function Zap({ className, size }: { className?: string, size?: number }) {
-  return <svg xmlns="http://www.w3.org/2000/svg" width={size || 24} height={size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>;
 }

@@ -23,7 +23,8 @@ import {
   ListChecks,
   Info,
   Building2,
-  Ticket
+  Ticket,
+  XCircle
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -153,7 +154,7 @@ export default function ProjectsPage() {
   }, []);
 
   const handleStartService = (service: any) => {
-    const exists = projects.some(p => p.name === service.name);
+    const exists = projects.some(p => p.name === service.name && p.status !== 'Canceled');
     
     if (exists) {
       toast({
@@ -194,14 +195,19 @@ export default function ProjectsPage() {
     localStorage.setItem("marketmind_projects", JSON.stringify(updatedProjects));
   };
 
-  const deleteProject = (id: string) => {
-    const updated = projects.filter(p => p.id !== id);
+  const cancelProject = (id: string) => {
+    const updated = projects.map(p => {
+      if (p.id === id) {
+        return { ...p, status: 'Canceled', progress: 0, updatedAt: "Just now" };
+      }
+      return p;
+    });
     setProjects(updated);
     localStorage.setItem("marketmind_projects", JSON.stringify(updated));
-    toast({ title: "Project Removed", description: "The service project has been archived." });
+    toast({ title: "Project Canceled", description: "The service project has been moved to Order History." });
   };
 
-  const filteredProjects = projects.filter(p => 
+  const filteredProjects = projects.filter(p => p.status !== 'Canceled').filter(p => 
     p.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     p.marketplace?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     p.type?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -230,7 +236,7 @@ export default function ProjectsPage() {
             </DialogHeader>
             <div className="flex-1 overflow-y-auto p-8 pt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
               {AVAILABLE_SERVICES.map((service) => {
-                const isActive = projects.some(p => p.name === service.name);
+                const isActive = projects.some(p => p.name === service.name && p.status !== 'Canceled');
                 const Icon = ICON_MAP[service.iconKey] || ShoppingBag;
                 return (
                   <div 
@@ -329,8 +335,8 @@ export default function ProjectsPage() {
                       <DropdownMenuItem onClick={(e) => { e.stopPropagation(); router.push('/dashboard/tickets'); }}>
                         <Ticket size={14} className="mr-2" /> Raise Support Ticket
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="text-destructive" onClick={(e) => { e.stopPropagation(); deleteProject(project.id); }}>
-                        <Trash2 size={14} className="mr-2" /> Cancel Service
+                      <DropdownMenuItem className="text-destructive" onClick={(e) => { e.stopPropagation(); cancelProject(project.id); }}>
+                        <XCircle size={14} className="mr-2" /> Cancel Service
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -364,6 +370,18 @@ export default function ProjectsPage() {
             </Card>
           );
         })}
+        {filteredProjects.length === 0 && (
+          <div className="col-span-full py-20 text-center space-y-4">
+            <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mx-auto text-muted-foreground">
+              <FolderKanban size={40} />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold font-headline">No active projects</h3>
+              <p className="text-muted-foreground">Start a new marketplace service to begin growing your brand.</p>
+            </div>
+            <Button onClick={() => setIsNewServiceOpen(true)}>Start New Service</Button>
+          </div>
+        )}
       </div>
 
       <Dialog open={!!selectedProject} onOpenChange={(open) => !open && setSelectedProject(null)}>

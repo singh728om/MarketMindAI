@@ -14,7 +14,6 @@ import {
   Clock,
   Sparkles,
   X,
-  Ticket,
   Loader2,
   Video,
   Briefcase,
@@ -22,9 +21,9 @@ import {
   CheckCircle2,
   RefreshCw,
   Target,
-  History,
   ShoppingBag,
-  XCircle
+  XCircle,
+  ChevronRight
 } from "lucide-react";
 import { 
   AreaChart, 
@@ -39,7 +38,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { query, collection, where, orderBy, limit, onSnapshot } from "firebase/firestore";
-import { useFirestore, useUser, useMemoFirebase } from "@/firebase";
+import { useFirestore, useUser } from "@/firebase";
 import { KPI_DATA as STATIC_KPI, PERFORMANCE_CHART, ACTIVITY_FEED } from "@/lib/mock-data";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError, type SecurityRuleContext } from "@/firebase/errors";
@@ -53,27 +52,30 @@ export default function Dashboard() {
   const db = useFirestore();
   const { user } = useUser();
 
-  // Load Order Stats from localStorage
+  // Load Real Order Stats from localStorage
   useEffect(() => {
-    try {
-      const projectsStr = localStorage.getItem("marketmind_projects");
-      if (projectsStr) {
-        const projects = JSON.parse(projectsStr);
-        const enrolled = projects.length;
-        const active = projects.filter((p: any) => p.status === 'In Progress' || p.status === 'Initial Setup').length;
-        // Mock canceled count since deletion usually removes from local list in this prototype
-        // We'll simulate a persistent canceled count for the UI
-        setOrderStats({
-          enrolled: enrolled + 2, // simulation
-          active: active,
-          canceled: 1 // simulation
-        });
-      } else {
-        setOrderStats({ enrolled: 2, active: 2, canceled: 0 });
+    const loadStats = () => {
+      try {
+        const projectsStr = localStorage.getItem("marketmind_projects");
+        if (projectsStr) {
+          const projects = JSON.parse(projectsStr);
+          const enrolled = projects.length;
+          const active = projects.filter((p: any) => p.status !== 'Canceled' && p.status !== 'Completed').length;
+          const canceled = projects.filter((p: any) => p.status === 'Canceled').length;
+          setOrderStats({
+            enrolled: enrolled,
+            active: active,
+            canceled: canceled
+          });
+        }
+      } catch (e) {
+        console.error("Failed to load order stats", e);
       }
-    } catch (e) {
-      console.error("Failed to load order stats", e);
-    }
+    };
+
+    loadStats();
+    window.addEventListener('storage', loadStats);
+    return () => window.removeEventListener('storage', loadStats);
   }, []);
 
   // Fetch latest AI CEO Analysis from Firestore
@@ -289,7 +291,7 @@ export default function Dashboard() {
           <Card className="rounded-2xl border-white/5 bg-card">
             <CardHeader className="pb-3">
               <CardTitle className="text-lg font-headline">Service Fulfillment Stats</CardTitle>
-              <CardDescription>Order History Overview</CardDescription>
+              <CardDescription>Real-time Enrollment Tracking</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-3 gap-2">
