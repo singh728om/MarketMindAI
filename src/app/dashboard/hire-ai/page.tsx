@@ -156,7 +156,7 @@ export default function HireAIPage() {
     <div className="space-y-8 pb-20 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-headline font-bold mb-1 text-white">Hire AI Talent</h1>
+          <h1 className="text-3xl font-headline font-bold mb-1 text-white">AI Employee</h1>
           <p className="text-muted-foreground">Recruit specialized digital employees trained on marketplace datasets.</p>
         </div>
         <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 px-4 py-1.5 flex items-center gap-2">
