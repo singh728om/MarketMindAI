@@ -23,7 +23,12 @@ import {
   Target,
   ShoppingBag,
   XCircle,
-  ChevronRight
+  ChevronRight,
+  BarChart3,
+  Search,
+  ArrowRight,
+  ShieldCheck,
+  Activity
 } from "lucide-react";
 import { 
   AreaChart, 
@@ -34,9 +39,10 @@ import {
   Tooltip, 
   ResponsiveContainer 
 } from "recharts";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { query, collection, where, orderBy, limit, onSnapshot } from "firebase/firestore";
 import { useFirestore, useUser } from "@/firebase";
 import { KPI_DATA as STATIC_KPI, PERFORMANCE_CHART, ACTIVITY_FEED } from "@/lib/mock-data";
@@ -203,12 +209,19 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Performance Chart / CEO Insights */}
+        {/* Main Intelligence Column */}
         <div className="lg:col-span-2 space-y-8">
           <Card className="rounded-2xl border-white/5 bg-card">
             <CardHeader>
-              <CardTitle className="font-headline">Weekly Sales & CTR</CardTitle>
-              <CardDescription>Correlation between ads and direct conversion.</CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="font-headline">Weekly Sales & CTR</CardTitle>
+                  <CardDescription>Correlation between ads and direct conversion.</CardDescription>
+                </div>
+                <Badge variant="outline" className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20">
+                  <Activity size={12} className="mr-1" /> Live Sync
+                </Badge>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="h-[300px] w-full">
@@ -234,8 +247,60 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          {ceoAnalysis && (
-            <Card className="rounded-3xl border-amber-500/20 bg-amber-500/5 overflow-hidden">
+          {/* New Metrics/Intelligence Filler Below Chart */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card className="rounded-2xl border-white/5 bg-card overflow-hidden">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg font-headline flex items-center gap-2">
+                  <BarChart3 className="text-primary" size={18} /> Category Benchmark
+                </CardTitle>
+                <CardDescription>Performance vs. Marketplace Average</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4 pt-4">
+                {[
+                  { label: "Price Competitiveness", value: 82, color: "bg-emerald-500" },
+                  { label: "Listing Quality Score", value: 64, color: "bg-amber-500" },
+                  { label: "Review Velocity", value: 45, color: "bg-primary" }
+                ].map((item) => (
+                  <div key={item.label} className="space-y-1.5">
+                    <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                      <span>{item.label}</span>
+                      <span>{item.value}%</span>
+                    </div>
+                    <Progress value={item.value} className="h-1.5" />
+                  </div>
+                ))}
+              </CardContent>
+              <CardFooter className="bg-muted/10 p-4">
+                <Button variant="ghost" size="sm" className="w-full text-xs font-bold text-primary" asChild>
+                  <Link href="/dashboard/growth">View Competitor Intel <ArrowRight size={12} className="ml-1" /></Link>
+                </Button>
+              </CardFooter>
+            </Card>
+
+            <Card className="rounded-2xl border-white/5 bg-card overflow-hidden">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg font-headline flex items-center gap-2">
+                  <TrendingUp className="text-emerald-500" size={18} /> Revenue Potential
+                </CardTitle>
+                <CardDescription>Monthly Growth Opportunities</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-4 flex flex-col items-center justify-center min-h-[120px] text-center">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Estimated Gap</p>
+                <h3 className="text-3xl font-headline font-bold text-emerald-500">₹{(ceoAnalysis ? (ceoAnalysis.metrics.totalSales * 0.4 / 100000).toFixed(1) : '12.4')}L</h3>
+                <p className="text-xs text-slate-400 mt-2 max-w-[180px]">Predicted monthly revenue lift via AI SEO & UGC Ads.</p>
+              </CardContent>
+              <CardFooter className="p-4 pt-0">
+                <div className="flex gap-2 w-full">
+                  <Badge className="bg-primary/10 text-primary border-none text-[8px] flex-1 justify-center py-1">AD SCALING</Badge>
+                  <Badge className="bg-emerald-500/10 text-emerald-500 border-none text-[8px] flex-1 justify-center py-1">SEO GAP</Badge>
+                </div>
+              </CardFooter>
+            </Card>
+          </div>
+
+          {ceoAnalysis ? (
+            <Card className="rounded-3xl border-amber-500/20 bg-amber-500/5 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700">
               <CardHeader className="bg-amber-500/10 border-b border-amber-500/10">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-xl font-headline font-bold text-amber-500 flex items-center gap-2">
@@ -260,11 +325,6 @@ export default function Dashboard() {
                         <span className="text-sm text-slate-200 font-medium">{leak.impact}</span>
                       </div>
                     ))}
-                    {!ceoAnalysis.leakageInsights?.length && (
-                      <div className="col-span-2 text-center py-4 text-slate-500 text-xs italic">
-                        No critical style-level leakage detected in this report cycle.
-                      </div>
-                    )}
                   </div>
                 </div>
 
@@ -283,81 +343,77 @@ export default function Dashboard() {
                 </div>
               </CardContent>
             </Card>
+          ) : (
+            <Card className="rounded-3xl border-dashed border-2 border-white/10 bg-transparent p-12 text-center space-y-6">
+              <div className="mx-auto w-16 h-16 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center mb-4">
+                <Briefcase size={32} className="animate-float" />
+              </div>
+              <div className="max-w-md mx-auto space-y-2">
+                <h3 className="text-2xl font-headline font-bold">Activate AI Strategic Briefing</h3>
+                <p className="text-muted-foreground">
+                  Upload your Sales & Returns reports in the AI Studio to generate a boardroom-level analysis of your brand's health and margin leakage.
+                </p>
+              </div>
+              <Button size="lg" className="rounded-xl px-8 bg-amber-500 hover:bg-amber-600 text-black font-bold shadow-xl shadow-amber-500/20" asChild>
+                <Link href="/dashboard/agents?agent=ceo">Run CEO Analysis Now</Link>
+              </Button>
+            </Card>
           )}
         </div>
 
-        {/* Quick Actions & Feed */}
+        {/* Actionable Sidebar Column */}
         <div className="space-y-6">
-          <Card className="rounded-2xl border-white/5 bg-card">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg font-headline">Service Fulfillment Stats</CardTitle>
-              <CardDescription>Real-time Enrollment Tracking</CardDescription>
+          <Card className="rounded-2xl border-white/5 bg-card shadow-xl overflow-hidden">
+            <CardHeader className="pb-3 border-b border-white/5 bg-primary/5">
+              <CardTitle className="text-lg font-headline flex items-center gap-2">
+                <ShoppingBag size={18} className="text-primary" /> Enrollment Stats
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 pt-6">
               <div className="grid grid-cols-3 gap-2">
                 <div className="flex flex-col items-center p-3 rounded-xl bg-primary/5 border border-primary/10">
-                  <ShoppingBag size={16} className="text-primary mb-1" />
                   <span className="text-lg font-bold">{orderStats.enrolled}</span>
-                  <span className="text-[8px] font-bold text-muted-foreground uppercase">Enrolled</span>
+                  <span className="text-[8px] font-bold text-muted-foreground uppercase">Total</span>
                 </div>
                 <div className="flex flex-col items-center p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
-                  <CheckCircle2 size={16} className="text-emerald-500 mb-1" />
-                  <span className="text-lg font-bold">{orderStats.active}</span>
-                  <span className="text-[8px] font-bold text-muted-foreground uppercase">Active</span>
+                  <span className="text-lg font-bold text-emerald-500">{orderStats.active}</span>
+                  <span className="text-[8px] font-bold text-muted-foreground uppercase">Live</span>
                 </div>
                 <div className="flex flex-col items-center p-3 rounded-xl bg-rose-500/5 border border-rose-500/10">
-                  <XCircle size={16} className="text-rose-500 mb-1" />
-                  <span className="text-lg font-bold">{orderStats.canceled}</span>
-                  <span className="text-[8px] font-bold text-muted-foreground uppercase">Canceled</span>
+                  <span className="text-lg font-bold text-rose-500">{orderStats.canceled}</span>
+                  <span className="text-[8px] font-bold text-muted-foreground uppercase">Closed</span>
                 </div>
               </div>
-              <Button variant="ghost" className="w-full text-xs font-bold uppercase tracking-wider text-primary hover:bg-primary/5" asChild>
-                <Link href="/dashboard/orders">View Full History <ChevronRight size={14} className="ml-1" /></Link>
+              <Button variant="ghost" className="w-full h-10 rounded-lg text-[10px] font-bold uppercase tracking-wider border border-white/5 hover:bg-white/5" asChild>
+                <Link href="/dashboard/orders">Fulfillment Audit <ChevronRight size={12} className="ml-1" /></Link>
               </Button>
             </CardContent>
           </Card>
 
-          <Card className="rounded-2xl border-white/5 bg-card">
+          <Card className="rounded-2xl border-white/5 bg-card overflow-hidden">
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg font-headline">Quick Actions</CardTitle>
+              <CardTitle className="text-lg font-headline">Financial Pulse</CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 gap-2">
-              <Button variant="secondary" className="w-full justify-start h-12 rounded-xl group" asChild>
-                <Link href="/dashboard/agents?agent=ceo">
-                  <Briefcase className="w-5 h-5 mr-3 text-amber-500" /> AI CEO Analysis
-                </Link>
-              </Button>
-              <Button variant="secondary" className="w-full justify-start h-12 rounded-xl group" asChild>
-                <Link href="/dashboard/agents?agent=listing">
-                  <FileText className="w-5 h-5 mr-3 text-primary" /> AI Listing Agent
-                </Link>
-              </Button>
-              <Button variant="secondary" className="w-full justify-start h-12 rounded-xl group" asChild>
-                <Link href="/dashboard/agents?agent=video">
-                  <Video className="w-5 h-5 mr-3 text-rose-500" /> AI UGC Ads
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="rounded-2xl border-white/5 bg-card">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg font-headline text-white">Financial Pulse</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
-                <span className="text-xs text-emerald-500 font-bold uppercase tracking-widest">Est. Profit</span>
-                <span className="font-bold text-emerald-500">₹{ceoAnalysis ? ((ceoAnalysis.metrics?.profit || 0) / 100000).toFixed(1) : '8.4'}L</span>
+            <CardContent className="space-y-4 pt-2">
+              <div className="flex items-center justify-between p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
+                <div className="space-y-0.5">
+                  <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-widest">Est. Profit</span>
+                  <p className="text-2xl font-headline font-bold text-emerald-500">₹{ceoAnalysis ? ((ceoAnalysis.metrics?.profit || 0) / 100000).toFixed(1) : '8.4'}L</p>
+                </div>
+                <TrendingUp size={24} className="text-emerald-500 opacity-20" />
               </div>
-              <div className="flex items-center justify-between p-3 rounded-xl bg-rose-500/5 border border-rose-500/10">
-                <span className="text-xs text-rose-500 font-bold uppercase tracking-widest">Est. Loss</span>
-                <span className="font-bold text-rose-500">₹{ceoAnalysis ? ((ceoAnalysis.metrics?.loss || 0) / 100000).toFixed(1) : '1.2'}L</span>
+              <div className="flex items-center justify-between p-4 rounded-xl bg-rose-500/5 border border-rose-500/10">
+                <div className="space-y-0.5">
+                  <span className="text-[10px] text-rose-500 font-bold uppercase tracking-widest">Margin Leakage</span>
+                  <p className="text-2xl font-headline font-bold text-rose-500">₹{ceoAnalysis ? ((ceoAnalysis.metrics?.loss || 0) / 100000).toFixed(1) : '1.2'}L</p>
+                </div>
+                <TrendingDown size={24} className="text-rose-500 opacity-20" />
               </div>
               {!ceoAnalysis && (
                 <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/20 flex gap-3">
                   <AlertCircle className="text-amber-500 size-4 shrink-0 mt-0.5" />
-                  <p className="text-[10px] text-amber-500 leading-relaxed">
-                    Upload Sales & Returns reports in the AI Studio to calculate real-time Profit/Loss and identify leakage.
+                  <p className="text-[10px] text-amber-500 leading-relaxed font-medium">
+                    Run the <span className="underline">AI CEO Analysis</span> to identify exactly where your profit is leaking.
                   </p>
                 </div>
               )}
@@ -366,7 +422,29 @@ export default function Dashboard() {
 
           <Card className="rounded-2xl border-white/5 bg-card">
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg font-headline">Activity Feed</CardTitle>
+              <CardTitle className="text-lg font-headline">Quick Hub</CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 gap-2">
+              {[
+                { icon: Briefcase, label: "CEO Boardroom", color: "text-amber-500", href: "/dashboard/agents?agent=ceo" },
+                { icon: FileText, label: "SEO Architect", color: "text-primary", href: "/dashboard/agents?agent=listing" },
+                { icon: Video, label: "Ads Creative", color: "text-rose-500", href: "/dashboard/agents?agent=video" },
+                { icon: ShieldCheck, label: "Compliance", color: "text-emerald-500", href: "/dashboard/settings" }
+              ].map((link) => (
+                <Button key={link.label} variant="secondary" className="w-full justify-start h-12 rounded-xl group hover:bg-secondary/80" asChild>
+                  <Link href={link.href}>
+                    <link.icon className={`w-5 h-5 mr-3 ${link.color}`} />
+                    <span className="font-bold text-sm">{link.label}</span>
+                    <ArrowRight size={14} className="ml-auto opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
+                  </Link>
+                </Button>
+              ))}
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-2xl border-white/5 bg-card">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg font-headline">Recent Activity</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {ACTIVITY_FEED.map((activity) => (
@@ -377,11 +455,11 @@ export default function Dashboard() {
                       activity.status === 'Running' ? 'bg-amber-500 animate-pulse' : 'bg-muted'
                     }`} />
                     <div>
-                      <p className="text-sm font-medium">{activity.name}</p>
-                      <p className="text-xs text-muted-foreground">{activity.type} • {activity.time}</p>
+                      <p className="text-xs font-bold">{activity.name}</p>
+                      <p className="text-[10px] text-muted-foreground">{activity.type} • {activity.time}</p>
                     </div>
                   </div>
-                  <ArrowUpRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <ArrowUpRight className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
               ))}
             </CardContent>
