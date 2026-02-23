@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 import Link from "next/link";
 
 const STATUS_MAP = {
@@ -27,7 +28,8 @@ const STATUS_MAP = {
   'Completed': { color: 'text-emerald-500 bg-emerald-500/10', icon: CheckCircle2 },
   'Canceled': { color: 'text-rose-500 bg-rose-500/10', icon: XCircle },
   'Enrolled': { color: 'text-primary bg-primary/10', icon: ShoppingBag },
-  'Initial Setup': { color: 'text-blue-500 bg-blue-500/10', icon: History }
+  'Initial Setup': { color: 'text-blue-500 bg-blue-500/10', icon: History },
+  'Drafting': { color: 'text-amber-400 bg-amber-400/10', icon: Clock }
 };
 
 export default function OrderHistoryPage() {
@@ -72,13 +74,14 @@ export default function OrderHistoryPage() {
   }, []);
 
   const filteredOrders = orders.filter(o => 
-    o.name.toLowerCase().includes(search.toLowerCase()) || 
-    o.id.toLowerCase().includes(search.toLowerCase())
+    o.name?.toLowerCase().includes(search.toLowerCase()) || 
+    o.id?.toLowerCase().includes(search.toLowerCase())
   );
 
   const stats = {
     total: orders.length,
     enrolled: orders.filter(o => o.status !== 'Canceled').length,
+    active: orders.filter(o => ['In Progress', 'Initial Setup', 'Drafting'].includes(o.status)).length,
     canceled: orders.filter(o => o.status === 'Canceled').length
   };
 
@@ -190,7 +193,7 @@ export default function OrderHistoryPage() {
           <div>
             <h3 className="text-xl font-headline font-bold mb-1">Growth Retention</h3>
             <p className="text-sm text-slate-400">
-              You have successfully completed {stats.enrolled - stats.active - stats.canceled} services this month with a 100% SEO satisfaction rate.
+              You have successfully completed {Math.max(0, stats.enrolled - stats.active - stats.canceled)} services this month with a 100% SEO satisfaction rate.
             </p>
           </div>
         </Card>
@@ -209,4 +212,7 @@ export default function OrderHistoryPage() {
       </div>
     </div>
   );
+}
+function Zap({ className, size }: { className?: string, size?: number }) {
+  return <svg xmlns="http://www.w3.org/2000/svg" width={size || 24} height={size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>;
 }
