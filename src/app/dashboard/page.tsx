@@ -59,7 +59,6 @@ export default function Dashboard() {
   const [orderStats, setOrderStats] = useState({ enrolled: 0, canceled: 0, active: 0 });
   const [hasMounted, setHasMounted] = useState(false);
   
-  const router = useRouter();
   const db = useFirestore();
   const { user, isUserLoading } = useUser();
 
@@ -67,8 +66,8 @@ export default function Dashboard() {
     setHasMounted(true);
   }, []);
 
-  // Load Real Order Stats from localStorage
   useEffect(() => {
+    if (!hasMounted) return;
     const loadStats = () => {
       try {
         const projectsStr = localStorage.getItem("marketmind_projects");
@@ -77,11 +76,7 @@ export default function Dashboard() {
           const enrolled = projects.length;
           const active = projects.filter((p: any) => p.status !== 'Canceled' && p.status !== 'Completed').length;
           const canceled = projects.filter((p: any) => p.status === 'Canceled').length;
-          setOrderStats({
-            enrolled: enrolled,
-            active: active,
-            canceled: canceled
-          });
+          setOrderStats({ enrolled, active, canceled });
         }
       } catch (e) {
         console.error("Failed to load order stats", e);
@@ -91,14 +86,11 @@ export default function Dashboard() {
     loadStats();
     window.addEventListener('storage', loadStats);
     return () => window.removeEventListener('storage', loadStats);
-  }, []);
+  }, [hasMounted]);
 
-  // Fetch latest AI CEO Analysis from Firestore
   useEffect(() => {
-    if (isUserLoading || !hasMounted) return;
-    
-    if (!user || !db) {
-      setIsLoadingAnalysis(false);
+    if (isUserLoading || !hasMounted || !user || !db) {
+      if (!isUserLoading && !user) setIsLoadingAnalysis(false);
       return;
     }
 
@@ -115,13 +107,11 @@ export default function Dashboard() {
         setCeoAnalysis(snapshot.docs[0].data());
       }
       setIsLoadingAnalysis(false);
-    }, async (err) => {
-      const permissionError = new FirestorePermissionError({
+    }, (err) => {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
         path: analysesRef.path,
         operation: 'list',
-      } satisfies SecurityRuleContext);
-      
-      errorEmitter.emit('permission-error', permissionError);
+      }));
       setIsLoadingAnalysis(false);
     });
 
@@ -149,7 +139,6 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8">
-      {/* Trial Period Banner */}
       {showTrialBanner && (
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-primary/20 via-accent/20 to-primary/10 border border-primary/20 p-6 md:p-8 animate-in fade-in slide-in-from-top-4 duration-500">
           <div className="absolute top-0 right-0 p-4">
@@ -190,19 +179,19 @@ export default function Dashboard() {
             <h1 className="text-3xl font-headline font-bold text-white">Brand Overview</h1>
             {ceoAnalysis && (
               <Badge variant="outline" className="bg-amber-500/10 text-amber-500 border-amber-500/30 font-bold text-[10px] uppercase tracking-tighter">
-                <Briefcase size={10} className="mr-1" /> Powered by AI CEO Analysis
+                <Briefcase size={10} className="mr-1" /> Powered by Astra Intelligence
               </Badge>
             )}
           </div>
           <p className="text-muted-foreground">Welcome back. Performance is {ceoAnalysis ? `calibrated for ${ceoAnalysis.marketplace}` : 'up 12% this week'}.</p>
         </div>
         <div className="flex items-center gap-3">
-          <Button size="sm" className="bg-amber-500 hover:bg-amber-600 text-black font-bold border-none shadow-lg shadow-amber-500/20" asChild>
-            <Link href="/dashboard/agents?agent=ceo">
-              <RefreshCw className="w-4 h-4 mr-2" /> Re-run CEO Analysis
+          <Button size="sm" className="bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20" asChild>
+            <Link href="/dashboard/ceo-hub">
+              <RefreshCw className="w-4 h-4 mr-2" /> Run Audit
             </Link>
           </Button>
-          <Button size="sm" className="bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20" asChild>
+          <Button size="sm" variant="outline" className="border-white/5 bg-slate-900 text-white shadow-lg shadow-primary/20" asChild>
             <Link href="/dashboard/projects">
               <Plus className="w-4 h-4 mr-2" /> New Project
             </Link>
@@ -210,7 +199,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {kpis.map((kpi) => (
           <Card key={kpi.title} className="rounded-2xl border-white/5 bg-card overflow-hidden">
@@ -231,7 +219,6 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Intelligence Column */}
         <div className="lg:col-span-2 space-y-8">
           <Card className="rounded-2xl border-white/5 bg-card">
             <CardHeader>
@@ -269,7 +256,6 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          {/* Category Benchmark & Potential */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card className="rounded-2xl border-white/5 bg-card overflow-hidden">
               <CardHeader className="pb-2">
@@ -321,141 +307,38 @@ export default function Dashboard() {
             </Card>
           </div>
 
-          {/* Intelligence Stream */}
-          {ceoAnalysis ? (
-            <Card className="rounded-3xl border-amber-500/20 bg-amber-500/5 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700">
-              <CardHeader className="bg-amber-500/10 border-b border-amber-500/10">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-xl font-headline font-bold text-amber-500 flex items-center gap-2">
-                    <Zap size={20} /> AI CEO Strategic Briefing
-                  </CardTitle>
-                  <Badge className="bg-amber-500 text-black text-[10px]">{ceoAnalysis.marketplace} Insights</Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="p-8 space-y-8">
-                <div className="p-4 rounded-xl bg-black/40 border border-white/5">
-                  <p className="text-sm text-slate-300 leading-relaxed font-medium italic">"{ceoAnalysis.summary}"</p>
-                </div>
-
-                <div className="space-y-4">
-                  <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                    <AlertCircle size={14} className="text-rose-500" /> Critical Leakage Identified
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {(ceoAnalysis.leakageInsights || []).map((leak: any, i: number) => (
-                      <div key={i} className="flex flex-col p-4 bg-rose-500/10 rounded-2xl border border-rose-500/20">
-                        <span className="text-xs font-bold text-rose-500 uppercase mb-1">{leak.reason}</span>
-                        <span className="text-sm text-slate-200 font-medium">{leak.impact}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-4 pt-4">
-                  <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                    <Target size={14} className="text-emerald-500" /> High-Impact Recommendations
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {(ceoAnalysis.recommendations || []).map((rec: string, i: number) => (
-                      <div key={i} className="flex gap-3 p-4 bg-slate-900/50 rounded-2xl text-xs border border-white/5 hover:border-amber-500/30 transition-colors">
-                        <CheckCircle2 className="text-amber-500 size-4 shrink-0 mt-0.5" />
-                        <span className="text-slate-200">{rec}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xl font-headline font-bold text-white flex items-center gap-2">
-                  <Flame size={20} className="text-orange-500" /> Market Intelligence Stream
-                </h3>
-                <Badge variant="outline" className="bg-slate-900 text-[10px] font-bold border-white/5 uppercase tracking-widest text-slate-500">Live Feed</Badge>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card className="rounded-2xl border-white/5 bg-slate-900/50 hover:border-primary/30 transition-all cursor-pointer group">
-                  <CardHeader className="pb-3">
-                    <div className="flex justify-between items-start">
-                      <Badge className="bg-emerald-500/10 text-emerald-500 border-none text-[8px] px-2 py-0.5 uppercase mb-2">Pricing Gap</Badge>
-                      <MousePointer2 size={12} className="text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </div>
-                    <CardTitle className="text-base font-headline">Ethnic Wear Arbitrage</CardTitle>
-                  </CardHeader>
-                  <CardContent className="pb-4">
-                    <p className="text-xs text-slate-400 leading-relaxed">
-                      Competitors in <span className="text-white font-bold">"Designer Kurtas"</span> have raised prices by 15%. Adjusting your entry-level SKU by ₹150 could yield <span className="text-emerald-500 font-bold">+₹24k/mo</span>.
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="rounded-2xl border-white/5 bg-slate-900/50 hover:border-primary/30 transition-all cursor-pointer group">
-                  <CardHeader className="pb-3">
-                    <div className="flex justify-between items-start">
-                      <Badge className="bg-primary/10 text-primary border-none text-[8px] px-2 py-0.5 uppercase mb-2">Search Trend</Badge>
-                      <MousePointer2 size={12} className="text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </div>
-                    <CardTitle className="text-base font-headline">Keyword Dominance</CardTitle>
-                  </CardHeader>
-                  <CardContent className="pb-4">
-                    <p className="text-xs text-slate-400 leading-relaxed">
-                      High volume identified for <span className="text-white font-bold">"Eco-friendly Cotton"</span> on Myntra. Current listings are missing this attribute. SEO update recommended for <span className="text-primary font-bold">+12% Visibility</span>.
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="rounded-2xl border-white/5 bg-slate-900/50 hover:border-primary/30 transition-all cursor-pointer group">
-                  <CardHeader className="pb-3">
-                    <div className="flex justify-between items-start">
-                      <Badge className="bg-rose-500/10 text-rose-500 border-none text-[8px] px-2 py-0.5 uppercase mb-2">Inventory Alert</Badge>
-                      <MousePointer2 size={12} className="text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </div>
-                    <CardTitle className="text-base font-headline">Velocity stock-out</CardTitle>
-                  </CardHeader>
-                  <CardContent className="pb-4">
-                    <p className="text-xs text-slate-400 leading-relaxed">
-                      Your <span className="text-white font-bold">"Velvet Lehenga - Maroon"</span> is selling 2.4x faster than predicted. Stock-out expected in <span className="text-rose-500 font-bold">4 days</span>. Urgent restock required.
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="rounded-2xl border-white/5 bg-slate-900/50 hover:border-primary/30 transition-all cursor-pointer group">
-                  <CardHeader className="pb-3">
-                    <div className="flex justify-between items-start">
-                      <Badge className="bg-amber-500/10 text-amber-500 border-none text-[8px] px-2 py-0.5 uppercase mb-2">Ad Tuning</Badge>
-                      <MousePointer2 size={12} className="text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </div>
-                    <CardTitle className="text-base font-headline">Creative Sentiment</CardTitle>
-                  </CardHeader>
-                  <CardContent className="pb-4">
-                    <p className="text-xs text-slate-400 leading-relaxed">
-                      UGC-style ads are seeing <span className="text-white font-bold">35% higher CTR</span> than studio shots in your niche. Use the <span className="text-amber-500 font-bold">AI Video Agent</span> to refresh your campaign assets.
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
-
-              <Card className="rounded-2xl border-primary/20 bg-primary/5 p-6 border-dashed border-2 flex flex-col items-center text-center space-y-4">
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                  <ShieldCheck size={24} />
-                </div>
-                <div>
-                  <h4 className="font-bold text-white mb-1">Deep Strategic Analysis Available</h4>
-                  <p className="text-xs text-slate-400 max-w-sm mx-auto">
-                    For boardroom-level reporting and profit/loss leakage detection, connect your marketplace reports.
-                  </p>
-                </div>
-                <Button size="sm" className="bg-primary text-white rounded-lg px-6 font-bold shadow-lg shadow-primary/20" asChild>
-                  <Link href="/dashboard/agents?agent=ceo">Run Comprehensive Audit</Link>
-                </Button>
-              </Card>
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-headline font-bold text-white flex items-center gap-2">
+                <Flame size={20} className="text-orange-500" /> Intelligence Feed
+              </h3>
+              <Badge variant="outline" className="bg-slate-900 text-[10px] font-bold border-white/5 uppercase tracking-widest text-slate-500">Live Sync</Badge>
             </div>
-          )}
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[
+                { badge: "Pricing Gap", title: "Ethnic Wear Arbitrage", text: "Competitors have raised prices by 15%. Adjusting your entry-level SKU could yield +₹24k/mo.", color: "text-emerald-500" },
+                { badge: "Search Trend", title: "Keyword Dominance", text: "High volume identified for 'Eco-friendly Cotton' on Myntra. Current listings are missing this attribute.", color: "text-primary" },
+                { badge: "Inventory Alert", title: "Velocity Stock-out", text: "Your 'Velvet Lehenga' is selling 2.4x faster than predicted. Stock-out expected in 4 days.", color: "text-rose-500" },
+                { badge: "Ad Tuning", title: "Creative Sentiment", text: "UGC-style ads are seeing 35% higher CTR than studio shots in your niche. Update recommended.", color: "text-amber-500" }
+              ].map((item, i) => (
+                <Card key={i} className="rounded-2xl border-white/5 bg-slate-900/50 hover:border-primary/30 transition-all cursor-pointer group">
+                  <CardHeader className="pb-3">
+                    <div className="flex justify-between items-start">
+                      <Badge className={cn("border-none text-[8px] px-2 py-0.5 uppercase mb-2 bg-slate-800", item.color)}>{item.badge}</Badge>
+                      <MousePointer2 size={12} className="text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                    <CardTitle className="text-base font-headline">{item.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pb-4">
+                    <p className="text-xs text-slate-400 leading-relaxed">{item.text}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
         </div>
 
-        {/* Actionable Sidebar Column */}
         <div className="space-y-6">
           <Card className="rounded-2xl border-white/5 bg-card shadow-xl overflow-hidden">
             <CardHeader className="pb-3 border-b border-white/5 bg-primary/5">
@@ -503,14 +386,6 @@ export default function Dashboard() {
                 </div>
                 <TrendingDown size={24} className="text-rose-500 opacity-20" />
               </div>
-              {!ceoAnalysis && (
-                <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/20 flex gap-3">
-                  <AlertCircle className="text-amber-500 size-4 shrink-0 mt-0.5" />
-                  <p className="text-[10px] text-amber-500 leading-relaxed font-medium">
-                    Run the <span className="underline">AI CEO Analysis</span> to identify exactly where your profit is leaking.
-                  </p>
-                </div>
-              )}
             </CardContent>
           </Card>
 
@@ -520,41 +395,18 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent className="grid grid-cols-1 gap-2">
               {[
-                { icon: Briefcase, label: "CEO Boardroom", color: "text-amber-500", href: "/dashboard/agents?agent=ceo" },
-                { icon: FileText, label: "SEO Architect", color: "text-primary", href: "/dashboard/agents?agent=listing" },
+                { icon: Briefcase, label: "Command Center", color: "text-primary", href: "/dashboard/ceo-hub" },
+                { icon: FileText, label: "SEO Architect", color: "text-blue-500", href: "/dashboard/agents?agent=listing" },
                 { icon: Video, label: "Ads Creative", color: "text-rose-500", href: "/dashboard/agents?agent=video" },
                 { icon: ShieldCheck, label: "Compliance", color: "text-emerald-500", href: "/dashboard/settings" }
               ].map((link) => (
                 <Button key={link.label} variant="secondary" className="w-full justify-start h-12 rounded-xl group hover:bg-secondary/80" asChild>
                   <Link href={link.href}>
-                    <link.icon className={`w-5 h-5 mr-3 ${link.color}`} />
+                    <link.icon className={cn("w-5 h-5 mr-3", link.color)} />
                     <span className="font-bold text-sm">{link.label}</span>
                     <ArrowRight size={14} className="ml-auto opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
                   </Link>
                 </Button>
-              ))}
-            </CardContent>
-          </Card>
-
-          <Card className="rounded-2xl border-white/5 bg-card">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg font-headline">Recent Activity</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {ACTIVITY_FEED.map((activity) => (
-                <div key={activity.id} className="flex items-center justify-between group">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-2 h-2 rounded-full ${
-                      activity.status === 'Completed' ? 'bg-emerald-500' : 
-                      activity.status === 'Running' ? 'bg-amber-500 animate-pulse' : 'bg-muted'
-                    }`} />
-                    <div>
-                      <p className="text-xs font-bold">{activity.name}</p>
-                      <p className="text-[10px] text-muted-foreground">{activity.type} • {activity.time}</p>
-                    </div>
-                  </div>
-                  <ArrowUpRight className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                </div>
               ))}
             </CardContent>
           </Card>
