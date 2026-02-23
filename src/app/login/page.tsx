@@ -10,6 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BrainCircuit, Loader2, Eye, EyeOff, ShieldCheck, User, Briefcase } from "lucide-react";
+import { useAuth } from "@/firebase";
+import { initiateAnonymousSignIn } from "@/firebase/non-blocking-login";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -17,12 +19,16 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const auth = useAuth();
 
   const handleLogin = (e: React.FormEvent, type: 'customer' | 'staff') => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate login verification delay
+    // Initiate non-blocking anonymous sign-in for the prototype
+    initiateAnonymousSignIn(auth);
+    
+    // Delay redirect to match auth state propagation
     setTimeout(() => {
       setIsLoading(false);
       if (type === 'staff') {

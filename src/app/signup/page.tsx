@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { BrainCircuit, Loader2, Eye, EyeOff, ShieldCheck } from "lucide-react";
+import { useAuth } from "@/firebase";
+import { initiateAnonymousSignIn } from "@/firebase/non-blocking-login";
 
 export default function SignupPage() {
   const [formData, setFormData] = useState({
@@ -19,10 +21,14 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const auth = useAuth();
 
   const handleSignup = (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    
+    // Initiate real auth session for the prototype
+    initiateAnonymousSignIn(auth);
     
     // Simulate signup and account creation delay
     setTimeout(() => {

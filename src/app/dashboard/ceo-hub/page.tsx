@@ -40,9 +40,15 @@ export default function CEOHubPage() {
   const [analysis, setAnalysis] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const db = useFirestore();
-  const { user } = useUser();
+  const { user, isUserLoading } = useUser();
 
   useEffect(() => {
+    // If auth check is complete and no user exists, stop loading
+    if (!isUserLoading && !user) {
+      setIsLoading(false);
+      return;
+    }
+
     if (!db || !user) return;
 
     const analysesRef = collection(db, "ceoAnalyses");
@@ -68,14 +74,14 @@ export default function CEOHubPage() {
     });
 
     return () => unsubscribe();
-  }, [db, user]);
+  }, [db, user, isUserLoading]);
 
   const metrics = useMemo(() => {
     if (!analysis) return null;
     return analysis.metrics;
   }, [analysis]);
 
-  if (isLoading) {
+  if (isLoading || isUserLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
         <Loader2 className="animate-spin text-amber-500 w-12 h-12" />
@@ -297,16 +303,16 @@ export default function CEOHubPage() {
                 <div className="space-y-2">
                   <div className="flex justify-between text-xs font-bold uppercase tracking-widest">
                     <span className="text-slate-500">Margin Health</span>
-                    <span className="text-emerald-500">{((metrics.profit / metrics.totalSales) * 100).toFixed(1)}%</span>
+                    <span className="text-emerald-500">{analysis ? ((metrics.profit / metrics.totalSales) * 100).toFixed(1) : 0}%</span>
                   </div>
-                  <Progress value={(metrics.profit / metrics.totalSales) * 100} className="h-1.5 bg-slate-800" />
+                  <Progress value={analysis ? (metrics.profit / metrics.totalSales) * 100 : 0} className="h-1.5 bg-slate-800" />
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between text-xs font-bold uppercase tracking-widest">
                     <span className="text-slate-500">ROAS Efficiency</span>
-                    <span className="text-primary">{metrics.roas}x</span>
+                    <span className="text-primary">{analysis ? metrics.roas : 0}x</span>
                   </div>
-                  <Progress value={metrics.roas * 10} className="h-1.5 bg-slate-800" />
+                  <Progress value={analysis ? metrics.roas * 10 : 0} className="h-1.5 bg-slate-800" />
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between text-xs font-bold uppercase tracking-widest">

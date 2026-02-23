@@ -60,7 +60,7 @@ export default function Dashboard() {
   const [orderStats, setOrderStats] = useState({ enrolled: 0, canceled: 0, active: 0 });
   const router = useRouter();
   const db = useFirestore();
-  const { user } = useUser();
+  const { user, isUserLoading } = useUser();
 
   // Load Real Order Stats from localStorage
   useEffect(() => {
@@ -90,6 +90,11 @@ export default function Dashboard() {
 
   // Fetch latest AI CEO Analysis from Firestore
   useEffect(() => {
+    if (!isUserLoading && !user) {
+      setIsLoadingAnalysis(false);
+      return;
+    }
+
     if (!db || !user) return;
 
     const analysesRef = collection(db, "ceoAnalyses");
@@ -116,7 +121,7 @@ export default function Dashboard() {
     });
 
     return () => unsubscribe();
-  }, [db, user]);
+  }, [db, user, isUserLoading]);
 
   const kpis = useMemo(() => {
     if (!ceoAnalysis) return STATIC_KPI;
@@ -128,6 +133,10 @@ export default function Dashboard() {
       { title: "ROAS", value: `${m.roas || 0}x`, change: "+0.5x", trend: "up" }
     ];
   }, [ceoAnalysis]);
+
+  if (isLoadingAnalysis && isUserLoading) {
+    return <div className="flex items-center justify-center min-h-[60vh]"><Loader2 className="animate-spin text-primary w-12 h-12" /></div>;
+  }
 
   return (
     <div className="space-y-8">
@@ -251,7 +260,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          {/* New Metrics/Intelligence Filler Below Chart */}
+          {/* Category Benchmark & Potential */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card className="rounded-2xl border-white/5 bg-card overflow-hidden">
               <CardHeader className="pb-2">
@@ -303,7 +312,7 @@ export default function Dashboard() {
             </Card>
           </div>
 
-          {/* Conditional Strategic Section */}
+          {/* Intelligence Stream */}
           {ceoAnalysis ? (
             <Card className="rounded-3xl border-amber-500/20 bg-amber-500/5 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700">
               <CardHeader className="bg-amber-500/10 border-b border-amber-500/10">
