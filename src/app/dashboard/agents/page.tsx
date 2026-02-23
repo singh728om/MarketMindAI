@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useRef, useEffect, Suspense } from "react";
@@ -25,7 +24,9 @@ import {
   ShieldCheck,
   CheckCircle2,
   Copy,
-  ChevronDown
+  ChevronDown,
+  ArrowUpRight,
+  AlertCircle
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -178,6 +179,7 @@ function AgentsContent() {
         metrics: output.metrics,
         recommendations: output.recommendations,
         summary: output.narrative,
+        leakageInsights: output.leakageInsights || [],
         createdAt: new Date().toISOString()
       });
       toast({ title: "Intelligence Synced", description: "Dashboard has been updated with CEO Agent data." });
@@ -193,7 +195,6 @@ function AgentsContent() {
     setIsVaulting(true);
     
     setTimeout(() => {
-      // Logic to actually save to persistent localStorage used by StoragePage
       const savedFilesStr = localStorage.getItem("marketmind_vault_files");
       let savedFiles = savedFilesStr ? JSON.parse(savedFilesStr) : [];
       
@@ -209,7 +210,7 @@ function AgentsContent() {
         id: Date.now(),
         name: fileName,
         type: fileType,
-        size: "1.2 MB", // Mock size
+        size: "1.2 MB",
         date: "Just now",
         status: "Stored"
       };
@@ -270,7 +271,7 @@ function AgentsContent() {
         case 'ceo':
           result = await runAICeoAnalysis({
             marketplace: formData.marketplace as any,
-            reportSummary: `Reports Uploaded: ${uploadedFiles.join(', ')}`,
+            reportSummary: `Reports Uploaded: ${uploadedFiles.join(', ')}. Context: Analyze Sales vs Returns.`,
             apiKey: activeKey
           });
           setOutput({ ...result, type: 'ceo' });
@@ -470,6 +471,20 @@ function AgentsContent() {
                                 <input type="file" className="hidden" id="ads-up" onChange={handleFileChange} />
                                 <Button size="sm" variant="outline" className="h-8 text-[10px]" asChild>
                                   <label htmlFor="ads-up" className="cursor-pointer"><FileUp size={12} className="mr-1" /> Upload</label>
+                                </Button>
+                              </div>
+                              <div className="p-4 rounded-xl bg-slate-800 border border-white/5 flex items-center justify-between">
+                                <span className="text-xs font-bold">Returns Report</span>
+                                <input type="file" className="hidden" id="returns-up" onChange={handleFileChange} />
+                                <Button size="sm" variant="outline" className="h-8 text-[10px]" asChild>
+                                  <label htmlFor="returns-up" className="cursor-pointer"><FileUp size={12} className="mr-1" /> Upload</label>
+                                </Button>
+                              </div>
+                              <div className="p-4 rounded-xl bg-slate-800 border border-white/5 flex items-center justify-between">
+                                <span className="text-xs font-bold">Inventory Data</span>
+                                <input type="file" className="hidden" id="inv-up" onChange={handleFileChange} />
+                                <Button size="sm" variant="outline" className="h-8 text-[10px]" asChild>
+                                  <label htmlFor="inv-up" className="cursor-pointer"><FileUp size={12} className="mr-1" /> Upload</label>
                                 </Button>
                               </div>
                             </div>
@@ -680,6 +695,53 @@ function AgentsContent() {
                         {output.videoUrl && (
                           <div className="w-full max-w-lg mx-auto aspect-[9/16] rounded-3xl overflow-hidden border-4 border-white/5 shadow-2xl bg-slate-900">
                             <video src={output.videoUrl} className="w-full h-full object-cover" autoPlay loop muted controls />
+                          </div>
+                        )}
+
+                        {output.type === 'ceo' && (
+                          <div className="space-y-6">
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                              <div className="p-4 rounded-xl bg-slate-900 border border-white/5 text-center">
+                                <p className="text-[10px] text-slate-500 uppercase font-bold">Total Sales</p>
+                                <p className="text-xl font-headline font-bold text-primary">₹{(output.metrics.totalSales / 100000).toFixed(1)}L</p>
+                              </div>
+                              <div className="p-4 rounded-xl bg-slate-900 border border-white/5 text-center">
+                                <p className="text-[10px] text-slate-500 uppercase font-bold">Profit</p>
+                                <p className="text-xl font-headline font-bold text-emerald-500">₹{(output.metrics.profit / 100000).toFixed(1)}L</p>
+                              </div>
+                              <div className="p-4 rounded-xl bg-slate-900 border border-white/5 text-center">
+                                <p className="text-[10px] text-slate-500 uppercase font-bold">Leakage/Loss</p>
+                                <p className="text-xl font-headline font-bold text-rose-500">₹{(output.metrics.loss / 100000).toFixed(1)}L</p>
+                              </div>
+                            </div>
+
+                            <div className="space-y-3">
+                              <p className="text-[10px] font-bold text-slate-500 uppercase">Leakage Identified</p>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                {output.leakageInsights.map((leak: any, idx: number) => (
+                                  <div key={idx} className="p-4 rounded-xl bg-rose-500/5 border border-rose-500/10 flex gap-3">
+                                    <AlertCircle className="text-rose-500 size-4 shrink-0 mt-0.5" />
+                                    <div>
+                                      <p className="text-xs font-bold text-white">{leak.reason}</p>
+                                      <p className="text-[10px] text-slate-400">{leak.impact}</p>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div className="p-4 rounded-xl bg-slate-900 border border-white/5">
+                              <p className="text-xs text-slate-300 leading-relaxed italic">"{output.narrative}"</p>
+                            </div>
+
+                            <Button 
+                              className="w-full h-12 rounded-xl bg-amber-500 text-black font-bold hover:bg-amber-600"
+                              onClick={handleSaveToDashboard}
+                              disabled={isSavingWeb}
+                            >
+                              {isSavingWeb ? <Loader2 className="animate-spin mr-2" /> : <RefreshCw className="mr-2" size={18} />}
+                              Sync Analysis to Brand Overview
+                            </Button>
                           </div>
                         )}
 

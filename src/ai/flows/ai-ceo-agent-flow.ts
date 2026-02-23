@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview AI CEO Agent - Financial & Strategic Analysis for E-commerce.
@@ -26,6 +25,10 @@ const AICeoOutputSchema = z.object({
   }),
   recommendations: z.array(z.string()).describe('Top 3-5 high-impact CEO-level strategic actions.'),
   narrative: z.string().describe('A professional summary of the current business health.'),
+  leakageInsights: z.array(z.object({
+    reason: z.string().describe('The cause of loss (e.g., "High Returns", "Low Orders", "Ad Waste").'),
+    impact: z.string().describe('The financial impact or specific style identifier.'),
+  })).describe('Specific style-level or operational loss identifiers.'),
 });
 export type AICeoOutput = z.infer<typeof AICeoOutputSchema>;
 
@@ -41,14 +44,18 @@ export async function runAICeoAnalysis(input: AICeoInput): Promise<AICeoOutput> 
     prompt: `You are the AI CEO of a high-growth e-commerce brand operating on {{marketplace}} in India.
     
     Context:
-    You have been provided with the following business intelligence signals:
+    You have been provided with signals from Sales, Inventory, Returns, and Ads reports:
     {{reportSummary}}
     
     Your Task:
     1. Act as a data-driven CEO to extract financial performance metrics.
     2. Analyze Profit vs Loss including ad spend leakage and return impacts.
-    3. Generate exactly 4 strategic recommendations to increase ROAS and reduce returns.
-    4. Provide a 2-sentence executive summary of the brand's health.
+    3. Identify EXACT causes of loss. Look for:
+       - Styles causing loss due to high return rates (>25%).
+       - Products causing loss due to low order volume but high ad spend.
+       - Category-level margin erosion.
+    4. Generate exactly 4 strategic recommendations to increase ROAS and reduce returns.
+    5. Provide a 2-sentence executive summary of the brand's health.
     
     Constraints:
     - Return numbers only (no strings in metric fields).

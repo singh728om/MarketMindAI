@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -19,7 +18,9 @@ import {
   Video,
   Briefcase,
   AlertCircle,
-  CheckCircle2
+  CheckCircle2,
+  RefreshCw,
+  Target
 } from "lucide-react";
 import { 
   AreaChart, 
@@ -76,7 +77,7 @@ export default function Dashboard() {
     return [
       { title: "Total Sales", value: `₹${(m.totalSales / 100000).toFixed(1)}L`, change: "+12.5%", trend: "up" },
       { title: "CTR", value: `${m.ctr}%`, change: "+0.4%", trend: "up" },
-      { title: "Return Rate", value: `${m.returnRate}%`, change: "-0.2%", trend: "down" },
+      { title: "Return Rate", value: `${m.returnRate}%`, change: m.returnRate > 20 ? "+2.1%" : "-0.2%", trend: m.returnRate > 20 ? "up" : "down" },
       { title: "ROAS", value: `${m.roas}x`, change: "+0.5x", trend: "up" }
     ];
   }, [ceoAnalysis]);
@@ -128,12 +129,12 @@ export default function Dashboard() {
               </Badge>
             )}
           </div>
-          <p className="text-muted-foreground">Welcome back. Performance is {ceoAnalysis ? 're-calculated based on latest reports' : 'up 12% this week'}.</p>
+          <p className="text-muted-foreground">Welcome back. Performance is {ceoAnalysis ? `calibrated for ${ceoAnalysis.marketplace}` : 'up 12% this week'}.</p>
         </div>
         <div className="flex items-center gap-3">
           <Link href="/dashboard/agents?agent=ceo">
             <Button size="sm" className="bg-amber-500 hover:bg-amber-600 text-black font-bold">
-              <RefreshCw className="w-4 h-4 mr-2" /> Run AI CEO Analysis
+              <RefreshCw className="w-4 h-4 mr-2" /> Re-run CEO Analysis
             </Button>
           </Link>
           <Link href="/dashboard/projects">
@@ -206,17 +207,42 @@ export default function Dashboard() {
                   <Badge className="bg-amber-500 text-black text-[10px]">{ceoAnalysis.marketplace} Insights</Badge>
                 </div>
               </CardHeader>
-              <CardContent className="p-8 space-y-6">
+              <CardContent className="p-8 space-y-8">
                 <div className="p-4 rounded-xl bg-black/40 border border-white/5">
                   <p className="text-sm text-slate-300 leading-relaxed font-medium italic">"{ceoAnalysis.summary}"</p>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {ceoAnalysis.recommendations.map((rec: string, i: number) => (
-                    <div key={i} className="flex gap-3 p-4 bg-slate-900/50 rounded-2xl text-xs border border-white/5 hover:border-amber-500/30 transition-colors">
-                      <CheckCircle2 className="text-amber-500 size-4 shrink-0 mt-0.5" />
-                      <span className="text-slate-200">{rec}</span>
-                    </div>
-                  ))}
+
+                <div className="space-y-4">
+                  <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                    <AlertCircle size={14} className="text-rose-500" /> Critical Leakage Identified
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {ceoAnalysis.leakageInsights && ceoAnalysis.leakageInsights.map((leak: any, i: number) => (
+                      <div key={i} className="flex flex-col p-4 bg-rose-500/10 rounded-2xl border border-rose-500/20">
+                        <span className="text-xs font-bold text-rose-500 uppercase mb-1">{leak.reason}</span>
+                        <span className="text-sm text-slate-200 font-medium">{leak.impact}</span>
+                      </div>
+                    ))}
+                    {!ceoAnalysis.leakageInsights && (
+                      <div className="col-span-2 text-center py-4 text-slate-500 text-xs italic">
+                        No critical style-level leakage detected in this report cycle.
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-4 pt-4">
+                  <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                    <Target size={14} className="text-emerald-500" /> High-Impact Recommendations
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {ceoAnalysis.recommendations.map((rec: string, i: number) => (
+                      <div key={i} className="flex gap-3 p-4 bg-slate-900/50 rounded-2xl text-xs border border-white/5 hover:border-amber-500/30 transition-colors">
+                        <CheckCircle2 className="text-amber-500 size-4 shrink-0 mt-0.5" />
+                        <span className="text-slate-200">{rec}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -298,8 +324,4 @@ export default function Dashboard() {
       </div>
     </div>
   );
-}
-
-function RefreshCw({ className }: { className?: string }) {
-  return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></svg>;
 }
