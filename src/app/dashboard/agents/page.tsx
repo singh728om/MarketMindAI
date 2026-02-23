@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef, useEffect, Suspense } from "react";
@@ -62,6 +63,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { doc, setDoc } from "firebase/firestore";
 import { useFirestore, useUser } from "@/firebase";
+import { errorEmitter } from "@/firebase/error-emitter";
+import { FirestorePermissionError } from "@/firebase/errors";
 
 const AGENTS = [
   { id: "ceo", title: "AI CEO Agent", icon: Briefcase, desc: "Analyze Sales, Ads, & Returns to drive Dashboard metrics.", color: "text-amber-400" },
@@ -166,28 +169,37 @@ function AgentsContent() {
     }
   };
 
-  const handleSaveToDashboard = async () => {
+  const handleSaveToDashboard = () => {
     if (!output?.metrics || !user || !db) return;
     setIsSavingWeb(true);
-    try {
-      const analysisId = `ceo-${Date.now()}`;
-      const analysisRef = doc(db, "ceoAnalyses", analysisId);
-      await setDoc(analysisRef, {
-        id: analysisId,
-        userProfileId: user.uid,
-        marketplace: formData.marketplace,
-        metrics: output.metrics,
-        recommendations: output.recommendations,
-        summary: output.narrative,
-        leakageInsights: output.leakageInsights || [],
-        createdAt: new Date().toISOString()
+    
+    const analysisId = `ceo-${Date.now()}`;
+    const analysisRef = doc(db, "ceoAnalyses", analysisId);
+    const data = {
+      id: analysisId,
+      userProfileId: user.uid,
+      marketplace: formData.marketplace,
+      metrics: output.metrics,
+      recommendations: output.recommendations,
+      summary: output.narrative,
+      leakageInsights: output.leakageInsights || [],
+      createdAt: new Date().toISOString()
+    };
+
+    setDoc(analysisRef, data)
+      .then(() => {
+        toast({ title: "Intelligence Synced", description: "Dashboard has been updated with CEO Agent data." });
+        setIsSavingWeb(false);
+      })
+      .catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: analysisRef.path,
+          operation: 'write',
+          requestResourceData: data,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        setIsSavingWeb(false);
       });
-      toast({ title: "Intelligence Synced", description: "Dashboard has been updated with CEO Agent data." });
-    } catch (err) {
-      toast({ variant: "destructive", title: "Sync Failed", description: "Failed to connect to Firestore." });
-    } finally {
-      setIsSavingWeb(false);
-    }
   };
 
   const handleSaveToVault = () => {
@@ -195,34 +207,39 @@ function AgentsContent() {
     setIsVaulting(true);
     
     setTimeout(() => {
-      const savedFilesStr = localStorage.getItem("marketmind_vault_files");
-      let savedFiles = savedFilesStr ? JSON.parse(savedFilesStr) : [];
-      
-      let fileType = "DATA";
-      let fileName = `ai_${selectedAgent.id}_${Date.now()}`;
+      try {
+        const savedFilesStr = localStorage.getItem("marketmind_vault_files");
+        let savedFiles = savedFilesStr ? JSON.parse(savedFilesStr) : [];
+        
+        let fileType = "DATA";
+        let fileName = `ai_${selectedAgent.id}_${Date.now()}`;
 
-      if (output.imageUrl) { fileType = "PNG"; fileName += ".png"; }
-      else if (output.videoUrl) { fileType = "MP4"; fileName += ".mp4"; }
-      else if (output.type === 'listing') { fileType = "PDF"; fileName += ".pdf"; }
-      else if (output.type === 'ceo') { fileType = "CSV"; fileName += ".csv"; }
+        if (output.imageUrl) { fileType = "PNG"; fileName += ".png"; }
+        else if (output.videoUrl) { fileType = "MP4"; fileName += ".mp4"; }
+        else if (output.type === 'listing') { fileType = "PDF"; fileName += ".pdf"; }
+        else if (output.type === 'ceo') { fileType = "CSV"; fileName += ".csv"; }
 
-      const newFile = {
-        id: Date.now(),
-        name: fileName,
-        type: fileType,
-        size: "1.2 MB",
-        date: "Just now",
-        status: "Stored"
-      };
+        const newFile = {
+          id: Date.now(),
+          name: fileName,
+          type: fileType,
+          size: "1.2 MB",
+          date: "Just now",
+          status: "Stored"
+        };
 
-      savedFiles = [newFile, ...savedFiles];
-      localStorage.setItem("marketmind_vault_files", JSON.stringify(savedFiles));
-      
-      setIsVaulting(false);
-      toast({
-        title: "Secured in Brand Vault",
-        description: `${fileName} has been encrypted and archived.`,
-      });
+        savedFiles = [newFile, ...savedFiles];
+        localStorage.setItem("marketmind_vault_files", JSON.stringify(savedFiles));
+        
+        setIsVaulting(false);
+        toast({
+          title: "Secured in Brand Vault",
+          description: `${fileName} has been encrypted and archived.`,
+        });
+      } catch (err) {
+        setIsVaulting(false);
+        toast({ variant: "destructive", title: "Vault Error", description: "Failed to write to local storage." });
+      }
     }, 1500);
   };
 
@@ -703,22 +720,22 @@ function AgentsContent() {
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                               <div className="p-4 rounded-xl bg-slate-900 border border-white/5 text-center">
                                 <p className="text-[10px] text-slate-500 uppercase font-bold">Total Sales</p>
-                                <p className="text-xl font-headline font-bold text-primary">₹{(output.metrics.totalSales / 100000).toFixed(1)}L</p>
+                                <p className="text-xl font-headline font-bold text-primary">₹{((output.metrics.totalSales || 0) / 100000).toFixed(1)}L</p>
                               </div>
                               <div className="p-4 rounded-xl bg-slate-900 border border-white/5 text-center">
                                 <p className="text-[10px] text-slate-500 uppercase font-bold">Profit</p>
-                                <p className="text-xl font-headline font-bold text-emerald-500">₹{(output.metrics.profit / 100000).toFixed(1)}L</p>
+                                <p className="text-xl font-headline font-bold text-emerald-500">₹{((output.metrics.profit || 0) / 100000).toFixed(1)}L</p>
                               </div>
                               <div className="p-4 rounded-xl bg-slate-900 border border-white/5 text-center">
                                 <p className="text-[10px] text-slate-500 uppercase font-bold">Leakage/Loss</p>
-                                <p className="text-xl font-headline font-bold text-rose-500">₹{(output.metrics.loss / 100000).toFixed(1)}L</p>
+                                <p className="text-xl font-headline font-bold text-rose-500">₹{((output.metrics.loss || 0) / 100000).toFixed(1)}L</p>
                               </div>
                             </div>
 
                             <div className="space-y-3">
                               <p className="text-[10px] font-bold text-slate-500 uppercase">Leakage Identified</p>
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                {output.leakageInsights.map((leak: any, idx: number) => (
+                                {output.leakageInsights?.map((leak: any, idx: number) => (
                                   <div key={idx} className="p-4 rounded-xl bg-rose-500/5 border border-rose-500/10 flex gap-3">
                                     <AlertCircle className="text-rose-500 size-4 shrink-0 mt-0.5" />
                                     <div>
@@ -747,7 +764,7 @@ function AgentsContent() {
 
                         {output.type === 'ranking' && (
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            {output.keywords.map((k: any, i: number) => (
+                            {output.keywords?.map((k: any, i: number) => (
                               <div key={i} className="p-4 rounded-xl bg-slate-900 border border-white/5 flex items-center justify-between group">
                                 <div className="space-y-1">
                                   <p className="text-sm font-bold text-white">{k.term}</p>
@@ -770,7 +787,7 @@ function AgentsContent() {
                             <div className="space-y-2">
                               <Label className="text-[10px] font-bold text-primary uppercase">High-Conversion Bullets</Label>
                               <div className="space-y-2">
-                                {output.bulletPoints.map((b: string, i: number) => (
+                                {output.bulletPoints?.map((b: string, i: number) => (
                                   <div key={i} className="p-3 bg-slate-900 rounded-lg text-xs flex gap-3"><Zap className="size-3 text-amber-500 shrink-0" /> {b}</div>
                                 ))}
                               </div>
@@ -780,7 +797,7 @@ function AgentsContent() {
 
                         {output.type === 'leads' && (
                           <div className="grid grid-cols-1 gap-3">
-                            {output.results.map((l: any, i: number) => (
+                            {output.results?.map((l: any, i: number) => (
                               <div key={i} className="p-5 rounded-2xl bg-slate-900 border border-white/5 grid grid-cols-3 gap-4 items-center">
                                 <div className="flex items-center gap-3"><Briefcase className="text-accent size-5" /> <span className="font-bold text-sm truncate">{l.businessName}</span></div>
                                 <div className="text-xs text-slate-400 font-mono text-center">{l.mobile}</div>

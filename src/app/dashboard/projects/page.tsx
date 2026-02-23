@@ -49,19 +49,30 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
+// Map string keys to Lucide icons for serializable state
+const ICON_MAP: Record<string, any> = {
+  ShoppingBag,
+  Sparkles,
+  Video,
+  Globe,
+  ListChecks,
+  Zap,
+  Search,
+};
+
 const AVAILABLE_SERVICES = [
-  { id: "myntra-on", name: "Myntra Onboarding", category: "Onboarding", icon: ShoppingBag, marketplace: "Myntra", price: 14999 },
-  { id: "amazon-on", name: "Amazon Onboarding", category: "Onboarding", icon: ShoppingBag, marketplace: "Amazon", price: 4999 },
-  { id: "flipkart-on", name: "Flipkart Onboarding", category: "Onboarding", icon: ShoppingBag, marketplace: "Flipkart", price: 4999 },
-  { id: "ajio-on", name: "Ajio Onboarding", category: "Onboarding", icon: ShoppingBag, marketplace: "Ajio", price: 14999 },
-  { id: "nykaa-on", name: "Nykaa Onboarding", category: "Onboarding", icon: ShoppingBag, marketplace: "Nykaa", price: 14999 },
-  { id: "listing-creation", name: "Listing Creation", category: "SEO", icon: ListChecks, marketplace: "Multi-channel", price: 1999 },
-  { id: "listing-opt", name: "Listing Optimization", category: "SEO", icon: Zap, marketplace: "Multi-channel", price: 1999 },
-  { id: "keyword-res", name: "Keyword Research", category: "SEO", icon: Search, marketplace: "Multi-channel", price: 999 },
-  { id: "photoshoot", name: "AI Photoshoot", category: "Creative", icon: Sparkles, marketplace: "Creative Studio", price: 999 },
-  { id: "video-ad", name: "AI Video Ad (15s)", category: "Creative", icon: Video, marketplace: "Creative Studio", price: 1499 },
-  { id: "web-builder", name: "Website Store Builder", category: "Development", icon: Globe, marketplace: "Direct", price: 11999 },
-  { id: "shopify", name: "Shopify Store", category: "Development", icon: ShoppingBag, marketplace: "Shopify", price: 14999 },
+  { id: "myntra-on", name: "Myntra Onboarding", category: "Onboarding", iconKey: "ShoppingBag", marketplace: "Myntra", price: 14999 },
+  { id: "amazon-on", name: "Amazon Onboarding", category: "Onboarding", iconKey: "ShoppingBag", marketplace: "Amazon", price: 4999 },
+  { id: "flipkart-on", name: "Flipkart Onboarding", category: "Onboarding", iconKey: "ShoppingBag", marketplace: "Flipkart", price: 4999 },
+  { id: "ajio-on", name: "Ajio Onboarding", category: "Onboarding", iconKey: "ShoppingBag", marketplace: "Ajio", price: 14999 },
+  { id: "nykaa-on", name: "Nykaa Onboarding", category: "Onboarding", iconKey: "ShoppingBag", marketplace: "Nykaa", price: 14999 },
+  { id: "listing-creation", name: "Listing Creation", category: "SEO", iconKey: "ListChecks", marketplace: "Multi-channel", price: 1999 },
+  { id: "listing-opt", name: "Listing Optimization", category: "SEO", iconKey: "Zap", marketplace: "Multi-channel", price: 1999 },
+  { id: "keyword-res", name: "Keyword Research", category: "SEO", iconKey: "Search", marketplace: "Multi-channel", price: 999 },
+  { id: "photoshoot", name: "AI Photoshoot", category: "Creative", iconKey: "Sparkles", marketplace: "Creative Studio", price: 999 },
+  { id: "video-ad", name: "AI Video Ad (15s)", category: "Creative", iconKey: "Video", marketplace: "Creative Studio", price: 1499 },
+  { id: "web-builder", name: "Website Store Builder", category: "Development", iconKey: "Globe", marketplace: "Direct", price: 11999 },
+  { id: "shopify", name: "Shopify Store", category: "Development", iconKey: "ShoppingBag", marketplace: "Shopify", price: 14999 },
 ];
 
 const INITIAL_PROJECTS = [
@@ -75,7 +86,7 @@ const INITIAL_PROJECTS = [
     assets: 0,
     priority: "High",
     type: "Onboarding",
-    icon: ShoppingBag,
+    iconKey: "ShoppingBag",
     details: {
       listingsCreated: 12,
       listingsInProgress: 8,
@@ -98,7 +109,7 @@ const INITIAL_PROJECTS = [
     assets: 15,
     priority: "High",
     type: "SEO",
-    icon: ListChecks,
+    iconKey: "ListChecks",
     details: {
       listingsCreated: 5,
       listingsInProgress: 25,
@@ -122,12 +133,22 @@ export default function ProjectsPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    const saved = localStorage.getItem("marketmind_projects");
-    if (saved) {
-      setProjects(JSON.parse(saved));
-    } else {
+    try {
+      const saved = localStorage.getItem("marketmind_projects");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          setProjects(parsed);
+        } else {
+          setProjects(INITIAL_PROJECTS);
+        }
+      } else {
+        setProjects(INITIAL_PROJECTS);
+        localStorage.setItem("marketmind_projects", JSON.stringify(INITIAL_PROJECTS));
+      }
+    } catch (err) {
+      console.error("Failed to load projects", err);
       setProjects(INITIAL_PROJECTS);
-      localStorage.setItem("marketmind_projects", JSON.stringify(INITIAL_PROJECTS));
     }
   }, []);
 
@@ -143,18 +164,17 @@ export default function ProjectsPage() {
       return;
     }
 
-    // Redirect to checkout with the item details
     router.push(`/checkout?items=${encodeURIComponent(service.name)}&total=${service.price}&autoAdd=true`);
   };
 
   const toggleMilestone = (projectId: string, milestoneId: string) => {
     const updatedProjects = projects.map(p => {
       if (p.id !== projectId) return p;
-      const updatedMilestones = p.details.milestones.map((m: any) => 
+      const updatedMilestones = p.details?.milestones?.map((m: any) => 
         m.id === milestoneId ? { ...m, completed: !m.completed } : m
-      );
+      ) || [];
       const completedCount = updatedMilestones.filter((m: any) => m.completed).length;
-      const newProgress = Math.round((completedCount / updatedMilestones.length) * 100);
+      const newProgress = updatedMilestones.length > 0 ? Math.round((completedCount / updatedMilestones.length) * 100) : 0;
       
       const updated = {
         ...p,
@@ -182,9 +202,9 @@ export default function ProjectsPage() {
   };
 
   const filteredProjects = projects.filter(p => 
-    p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.marketplace.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.type.toLowerCase().includes(searchQuery.toLowerCase())
+    p.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    p.marketplace?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    p.type?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -211,7 +231,7 @@ export default function ProjectsPage() {
             <div className="flex-1 overflow-y-auto p-8 pt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
               {AVAILABLE_SERVICES.map((service) => {
                 const isActive = projects.some(p => p.name === service.name);
-                const Icon = service.icon;
+                const Icon = ICON_MAP[service.iconKey] || ShoppingBag;
                 return (
                   <div 
                     key={service.id}
@@ -254,7 +274,6 @@ export default function ProjectsPage() {
         </Dialog>
       </div>
 
-      {/* Search and Filters */}
       <div className="flex flex-col sm:flex-row gap-4 items-center">
         <div className="relative flex-1 w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
@@ -270,10 +289,9 @@ export default function ProjectsPage() {
         </Button>
       </div>
 
-      {/* Projects Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {filteredProjects.map((project) => {
-          const Icon = project.icon || ShoppingBag;
+          const Icon = ICON_MAP[project.iconKey] || ICON_MAP[project.icon] || ShoppingBag;
           return (
             <Card 
               key={project.id} 
@@ -348,7 +366,6 @@ export default function ProjectsPage() {
         })}
       </div>
 
-      {/* Project Details Dialog */}
       <Dialog open={!!selectedProject} onOpenChange={(open) => !open && setSelectedProject(null)}>
         <DialogContent className="max-w-3xl bg-card border-white/10 rounded-3xl overflow-hidden max-h-[90vh] flex flex-col p-0">
           {selectedProject && (
@@ -357,7 +374,7 @@ export default function ProjectsPage() {
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-xl bg-primary text-white flex items-center justify-center">
                     {(() => {
-                      const Icon = selectedProject.icon || ShoppingBag;
+                      const Icon = ICON_MAP[selectedProject.iconKey] || ICON_MAP[selectedProject.icon] || ShoppingBag;
                       return <Icon size={24} />;
                     })()}
                   </div>
@@ -376,21 +393,21 @@ export default function ProjectsPage() {
                   <Card className="bg-background border-white/5 p-4 rounded-2xl flex flex-col items-center text-center">
                     <Building2 className="text-primary mb-2" size={24} />
                     <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Brand Status</p>
-                    <Badge variant={selectedProject.details.brandOnboarded ? "default" : "secondary"} className="mt-1">
-                      {selectedProject.details.brandOnboarded ? "Onboarded" : "Pending Approval"}
+                    <Badge variant={selectedProject.details?.brandOnboarded ? "default" : "secondary"} className="mt-1">
+                      {selectedProject.details?.brandOnboarded ? "Onboarded" : "Pending Approval"}
                     </Badge>
                   </Card>
                   
                   <Card className="bg-background border-white/5 p-4 rounded-2xl flex flex-col items-center text-center">
                     <ListChecks className="text-emerald-500 mb-2" size={24} />
                     <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Listings Created</p>
-                    <p className="text-2xl font-bold">{selectedProject.details.listingsCreated}</p>
+                    <p className="text-2xl font-bold">{selectedProject.details?.listingsCreated || 0}</p>
                   </Card>
                   
                   <Card className="bg-background border-white/5 p-4 rounded-2xl flex flex-col items-center text-center">
                     <Clock className="text-amber-500 mb-2" size={24} />
                     <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">In Progress</p>
-                    <p className="text-2xl font-bold">{selectedProject.details.listingsInProgress}</p>
+                    <p className="text-2xl font-bold">{selectedProject.details?.listingsInProgress || 0}</p>
                   </Card>
                 </div>
 
@@ -405,7 +422,7 @@ export default function ProjectsPage() {
                 <div className="space-y-4">
                   <Label className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Marketplace Milestones (Toggle Stage Completion)</Label>
                   <div className="grid grid-cols-1 gap-3">
-                    {selectedProject.details.milestones.map((milestone: any) => (
+                    {selectedProject.details?.milestones?.map((milestone: any) => (
                       <div 
                         key={milestone.id} 
                         onClick={() => toggleMilestone(selectedProject.id, milestone.id)}

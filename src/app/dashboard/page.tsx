@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -37,6 +38,8 @@ import { Badge } from "@/components/ui/badge";
 import { query, collection, where, orderBy, limit, onSnapshot } from "firebase/firestore";
 import { useFirestore, useUser, useMemoFirebase } from "@/firebase";
 import { KPI_DATA as STATIC_KPI, PERFORMANCE_CHART, ACTIVITY_FEED } from "@/lib/mock-data";
+import { errorEmitter } from "@/firebase/error-emitter";
+import { FirestorePermissionError, type SecurityRuleContext } from "@/firebase/errors";
 
 export default function Dashboard() {
   const [showTrialBanner, setShowTrialBanner] = useState(true);
@@ -63,8 +66,13 @@ export default function Dashboard() {
         setCeoAnalysis(snapshot.docs[0].data());
       }
       setIsLoadingAnalysis(false);
-    }, (err) => {
-      console.error("Firestore Error:", err);
+    }, async (err) => {
+      const permissionError = new FirestorePermissionError({
+        path: analysesRef.path,
+        operation: 'list',
+      } satisfies SecurityRuleContext);
+      
+      errorEmitter.emit('permission-error', permissionError);
       setIsLoadingAnalysis(false);
     });
 
@@ -75,10 +83,10 @@ export default function Dashboard() {
     if (!ceoAnalysis) return STATIC_KPI;
     const m = ceoAnalysis.metrics;
     return [
-      { title: "Total Sales", value: `₹${(m.totalSales / 100000).toFixed(1)}L`, change: "+12.5%", trend: "up" },
-      { title: "CTR", value: `${m.ctr}%`, change: "+0.4%", trend: "up" },
-      { title: "Return Rate", value: `${m.returnRate}%`, change: m.returnRate > 20 ? "+2.1%" : "-0.2%", trend: m.returnRate > 20 ? "up" : "down" },
-      { title: "ROAS", value: `${m.roas}x`, change: "+0.5x", trend: "up" }
+      { title: "Total Sales", value: `₹${((m.totalSales || 0) / 100000).toFixed(1)}L`, change: "+12.5%", trend: "up" },
+      { title: "CTR", value: `${m.ctr || 0}%`, change: "+0.4%", trend: "up" },
+      { title: "Return Rate", value: `${m.returnRate || 0}%`, change: (m.returnRate || 0) > 20 ? "+2.1%" : "-0.2%", trend: (m.returnRate || 0) > 20 ? "up" : "down" },
+      { title: "ROAS", value: `${m.roas || 0}x`, change: "+0.5x", trend: "up" }
     ];
   }, [ceoAnalysis]);
 
@@ -223,7 +231,7 @@ export default function Dashboard() {
                         <span className="text-sm text-slate-200 font-medium">{leak.impact}</span>
                       </div>
                     ))}
-                    {!ceoAnalysis.leakageInsights && (
+                    {!ceoAnalysis.leakageInsights?.length && (
                       <div className="col-span-2 text-center py-4 text-slate-500 text-xs italic">
                         No critical style-level leakage detected in this report cycle.
                       </div>
@@ -236,7 +244,7 @@ export default function Dashboard() {
                     <Target size={14} className="text-emerald-500" /> High-Impact Recommendations
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {ceoAnalysis.recommendations.map((rec: string, i: number) => (
+                    {ceoAnalysis.recommendations?.map((rec: string, i: number) => (
                       <div key={i} className="flex gap-3 p-4 bg-slate-900/50 rounded-2xl text-xs border border-white/5 hover:border-amber-500/30 transition-colors">
                         <CheckCircle2 className="text-amber-500 size-4 shrink-0 mt-0.5" />
                         <span className="text-slate-200">{rec}</span>
@@ -281,11 +289,11 @@ export default function Dashboard() {
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
                 <span className="text-xs text-emerald-500 font-bold uppercase tracking-widest">Est. Profit</span>
-                <span className="font-bold text-emerald-500">₹{ceoAnalysis ? (ceoAnalysis.metrics.profit / 100000).toFixed(1) : '8.4'}L</span>
+                <span className="font-bold text-emerald-500">₹{ceoAnalysis ? ((ceoAnalysis.metrics?.profit || 0) / 100000).toFixed(1) : '8.4'}L</span>
               </div>
               <div className="flex items-center justify-between p-3 rounded-xl bg-rose-500/5 border border-rose-500/10">
                 <span className="text-xs text-rose-500 font-bold uppercase tracking-widest">Est. Loss</span>
-                <span className="font-bold text-rose-500">₹{ceoAnalysis ? (ceoAnalysis.metrics.loss / 100000).toFixed(1) : '1.2'}L</span>
+                <span className="font-bold text-rose-500">₹{ceoAnalysis ? ((ceoAnalysis.metrics?.loss || 0) / 100000).toFixed(1) : '1.2'}L</span>
               </div>
               {!ceoAnalysis && (
                 <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/20 flex gap-3">
