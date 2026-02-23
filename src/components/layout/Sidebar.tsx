@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -16,6 +17,7 @@ import {
   CreditCard,
   Building2,
   HardDrive,
+  History,
   X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -28,6 +30,7 @@ const navItems = [
   { name: "Growth Intel", href: "/dashboard/growth", icon: TrendingUp },
   { name: "Projects", href: "/dashboard/projects", icon: FolderKanban },
   { name: "Storage Services", href: "/dashboard/storage", icon: HardDrive },
+  { name: "Order History", href: "/dashboard/orders", icon: History },
   { name: "Billing & Plans", href: "/dashboard/billing", icon: CreditCard },
   { name: "Support Tickets", href: "/dashboard/tickets", icon: Ticket },
   { name: "Brand Profile", href: "/dashboard/profile", icon: Building2 },

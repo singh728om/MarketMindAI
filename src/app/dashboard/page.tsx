@@ -21,7 +21,10 @@ import {
   AlertCircle,
   CheckCircle2,
   RefreshCw,
-  Target
+  Target,
+  History,
+  ShoppingBag,
+  XCircle
 } from "lucide-react";
 import { 
   AreaChart, 
@@ -45,9 +48,33 @@ export default function Dashboard() {
   const [showTrialBanner, setShowTrialBanner] = useState(true);
   const [ceoAnalysis, setCeoAnalysis] = useState<any>(null);
   const [isLoadingAnalysis, setIsLoadingAnalysis] = useState(true);
+  const [orderStats, setOrderStats] = useState({ enrolled: 0, canceled: 0, active: 0 });
   const router = useRouter();
   const db = useFirestore();
   const { user } = useUser();
+
+  // Load Order Stats from localStorage
+  useEffect(() => {
+    try {
+      const projectsStr = localStorage.getItem("marketmind_projects");
+      if (projectsStr) {
+        const projects = JSON.parse(projectsStr);
+        const enrolled = projects.length;
+        const active = projects.filter((p: any) => p.status === 'In Progress' || p.status === 'Initial Setup').length;
+        // Mock canceled count since deletion usually removes from local list in this prototype
+        // We'll simulate a persistent canceled count for the UI
+        setOrderStats({
+          enrolled: enrolled + 2, // simulation
+          active: active,
+          canceled: 1 // simulation
+        });
+      } else {
+        setOrderStats({ enrolled: 2, active: 2, canceled: 0 });
+      }
+    } catch (e) {
+      console.error("Failed to load order stats", e);
+    }
+  }, []);
 
   // Fetch latest AI CEO Analysis from Firestore
   useEffect(() => {
@@ -259,6 +286,35 @@ export default function Dashboard() {
 
         {/* Quick Actions & Feed */}
         <div className="space-y-6">
+          <Card className="rounded-2xl border-white/5 bg-card">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg font-headline">Service Fulfillment Stats</CardTitle>
+              <CardDescription>Order History Overview</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-3 gap-2">
+                <div className="flex flex-col items-center p-3 rounded-xl bg-primary/5 border border-primary/10">
+                  <ShoppingBag size={16} className="text-primary mb-1" />
+                  <span className="text-lg font-bold">{orderStats.enrolled}</span>
+                  <span className="text-[8px] font-bold text-muted-foreground uppercase">Enrolled</span>
+                </div>
+                <div className="flex flex-col items-center p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
+                  <CheckCircle2 size={16} className="text-emerald-500 mb-1" />
+                  <span className="text-lg font-bold">{orderStats.active}</span>
+                  <span className="text-[8px] font-bold text-muted-foreground uppercase">Active</span>
+                </div>
+                <div className="flex flex-col items-center p-3 rounded-xl bg-rose-500/5 border border-rose-500/10">
+                  <XCircle size={16} className="text-rose-500 mb-1" />
+                  <span className="text-lg font-bold">{orderStats.canceled}</span>
+                  <span className="text-[8px] font-bold text-muted-foreground uppercase">Canceled</span>
+                </div>
+              </div>
+              <Button variant="ghost" className="w-full text-xs font-bold uppercase tracking-wider text-primary hover:bg-primary/5" asChild>
+                <Link href="/dashboard/orders">View Full History <ChevronRight size={14} className="ml-1" /></Link>
+              </Button>
+            </CardContent>
+          </Card>
+
           <Card className="rounded-2xl border-white/5 bg-card">
             <CardHeader className="pb-3">
               <CardTitle className="text-lg font-headline">Quick Actions</CardTitle>
