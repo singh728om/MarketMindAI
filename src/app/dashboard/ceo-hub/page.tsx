@@ -1,64 +1,45 @@
+
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { 
   Briefcase, 
   TrendingUp, 
-  TrendingDown, 
-  AlertCircle, 
   Zap, 
   ShieldAlert, 
   Target, 
   Boxes, 
   RefreshCw, 
   ArrowLeft,
-  BadgeCheck,
   Sparkles,
   BarChart3,
-  Clock,
   Loader2,
   PieChart,
   History,
-  FileUp,
   CheckCircle2,
-  Cpu,
-  Flame,
   Activity,
-  ArrowUpRight
+  ArrowUpRight,
+  AlertCircle
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Label } from "@/components/ui/label";
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { query, collection, where, orderBy, limit, onSnapshot, doc, setDoc } from "firebase/firestore";
+import { query, collection, where, orderBy, limit, onSnapshot } from "firebase/firestore";
 import { useFirestore, useUser, useAuth, initiateAnonymousSignIn } from "@/firebase";
 import { cn } from "@/lib/utils";
 import { errorEmitter } from "@/firebase/error-emitter";
-import { FirestorePermissionError, type SecurityRuleContext } from "@/firebase/errors";
-import { runAICeoAnalysis } from "@/ai/flows/ai-ceo-agent-flow";
-import { useToast } from "@/hooks/use-toast";
+import { FirestorePermissionError } from "@/firebase/errors";
 
 export default function CommandCenterPage() {
   const [analysis, setAnalysis] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isAuditing, setIsAuditing] = useState(false);
-  const [marketplace, setMarketplace] = useState("Amazon");
-  const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
   const [hasMounted, setHasMounted] = useState(false);
   
   const db = useFirestore();
   const auth = useAuth();
   const { user, isUserLoading } = useUser();
-  const { toast } = useToast();
 
   useEffect(() => {
     setHasMounted(true);
@@ -100,96 +81,11 @@ export default function CommandCenterPage() {
     return () => unsubscribe();
   }, [db, user, isUserLoading, hasMounted]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setUploadedFiles(prev => [...prev, file.name]);
-      toast({ title: "Signal Ingested", description: `${file.name} queued for synthesis.` });
-    }
-  };
-
-  const handleRunAudit = async () => {
-    if (!user) {
-      if (auth) initiateAnonymousSignIn(auth);
-      toast({ title: "Securing Node", description: "Establishing encrypted session..." });
-      return;
-    }
-    
-    setIsAuditing(true);
-
-    try {
-      const keysStr = localStorage.getItem("marketmind_api_keys");
-      const keys = keysStr ? JSON.parse(keysStr) : null;
-      const apiKey = keys?.gemini;
-
-      if (!apiKey) {
-        toast({
-          variant: "destructive",
-          title: "Node Offline",
-          description: "Astra Core requires an API key. Update in Ops Console."
-        });
-        setIsAuditing(false);
-        return;
-      }
-
-      const result = await runAICeoAnalysis({
-        marketplace: marketplace as any,
-        reportSummary: `Analysis of: ${uploadedFiles.join(', ')}. Mode: Astra Boardroom Synthesis Node.`,
-        apiKey: apiKey
-      });
-
-      const analysisId = `ceo-${Date.now()}`;
-      const analysisRef = doc(db, "ceoAnalyses", analysisId);
-      const data = {
-        id: analysisId,
-        userProfileId: user.uid,
-        marketplace: marketplace,
-        metrics: result.metrics,
-        pillars: result.pillars,
-        recommendations: [
-          ...(result.pillars?.revenueGrowth || []), 
-          ...(result.pillars?.costOptimization || [])
-        ],
-        summary: result.narrative,
-        leakageInsights: result.leakageInsights || [],
-        createdAt: new Date().toISOString()
-      };
-
-      setDoc(analysisRef, data).catch((serverError) => {
-        errorEmitter.emit('permission-error', new FirestorePermissionError({
-          path: analysisRef.path,
-          operation: 'write',
-          requestResourceData: data,
-        }));
-      });
-      
-      toast({ title: "Synthesis Complete", description: "Operational signals synced." });
-      setUploadedFiles([]);
-    } catch (err: any) {
-      toast({ 
-        variant: "destructive", 
-        title: "Synthesis Error", 
-        description: err.message || "Astra node busy. Retry in 10s." 
-      });
-    } finally {
-      setIsAuditing(false);
-    }
-  };
-
-  const handleApprovePillar = (pillarName: string) => {
-    toast({
-      title: "Action Approved",
-      description: `Deployment instructions for ${pillarName} sent to agents.`,
-    });
-  };
-
-  const metrics = useMemo(() => analysis?.metrics || null, [analysis]);
-
   if (!hasMounted || isLoading || isUserLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
         <Loader2 className="animate-spin text-primary w-12 h-12" />
-        <p className="text-slate-400 font-medium font-headline uppercase tracking-widest text-xs">Summoning Operational Data...</p>
+        <p className="text-slate-400 font-medium font-headline uppercase tracking-widest text-xs text-center">Summoning Operational Data...</p>
       </div>
     );
   }
@@ -211,117 +107,34 @@ export default function CommandCenterPage() {
               <h1 className="text-3xl font-headline font-bold text-white">Command Center</h1>
               <Badge className="bg-emerald-500 text-white font-bold text-[10px] uppercase tracking-widest">System Online</Badge>
             </div>
-            <p className="text-slate-400">High-fidelity operational monitoring powered by Astra Core.</p>
+            <p className="text-slate-400">Mission-critical brand monitoring node.</p>
           </div>
         </div>
-        {analysis && (
-          <div className="flex items-center gap-3">
-            <Button variant="outline" className="border-white/5 bg-slate-900 text-white h-12 px-6 rounded-xl">
-              <History className="mr-2 w-4 h-4" /> Operations Log
-            </Button>
-            <Button 
-              className="bg-primary hover:bg-primary/90 text-white font-bold h-12 px-8 rounded-xl shadow-xl shadow-primary/20"
-              onClick={() => setAnalysis(null)}
-            >
-              <RefreshCw className="mr-2 w-4 h-4" /> Refresh Audit
-            </Button>
-          </div>
-        )}
+        
+        <div className="flex items-center gap-3">
+          <Button variant="outline" className="border-white/5 bg-slate-900 text-white h-12 px-6 rounded-xl" asChild>
+            <Link href="/dashboard/agents?agent=ceo">
+              <RefreshCw className="mr-2 w-4 h-4" /> Run New Audit
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {!analysis ? (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <Card className="lg:col-span-2 rounded-[2.5rem] border-white/5 bg-slate-900 overflow-hidden shadow-2xl border-dashed border-2">
-            <div className="p-8 md:p-12 space-y-8 bg-gradient-to-br from-primary/5 to-transparent">
-              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
-                <Target size={32} className={isAuditing ? "animate-pulse" : ""} />
-              </div>
-              <div className="space-y-4">
-                <h2 className="text-3xl font-headline font-bold text-white tracking-tight">Synchronize Brand Logic</h2>
-                <p className="text-slate-400 text-lg leading-relaxed">
-                  Connect your marketplace reports to Astra. We'll identify margin leakage, catalog errors, and growth gaps instantly.
-                </p>
-              </div>
-
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Select Marketplace Node</Label>
-                  <Select value={marketplace} onValueChange={setMarketplace}>
-                    <SelectTrigger className="bg-slate-800 border-white/5 h-14 rounded-xl text-white text-lg">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-slate-800 border-white/10 text-white">
-                      <SelectItem value="Amazon">Amazon India</SelectItem>
-                      <SelectItem value="Flipkart">Flipkart Commerce</SelectItem>
-                      <SelectItem value="Myntra">Myntra Lifestyle</SelectItem>
-                      <SelectItem value="Ajio">Ajio Premium</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-4">
-                  <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Ingest Raw Data Files</Label>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="p-4 rounded-xl bg-slate-800 border border-white/5 flex flex-col items-center gap-3 hover:bg-slate-700 transition-colors cursor-pointer group relative">
-                      <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleFileChange} />
-                      <FileUp size={20} className="text-slate-500 group-hover:text-primary" />
-                      <span className="text-[10px] font-bold uppercase text-slate-400 group-hover:text-white">Sales & GMV</span>
-                    </div>
-                    <div className="p-4 rounded-xl bg-slate-800 border border-white/5 flex flex-col items-center gap-3 hover:bg-slate-700 transition-colors cursor-pointer group relative">
-                      <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleFileChange} />
-                      <FileUp size={20} className="text-slate-500 group-hover:text-primary" />
-                      <span className="text-[10px] font-bold uppercase text-slate-400 group-hover:text-white">Marketing & Ads</span>
-                    </div>
-                  </div>
-                  {uploadedFiles.length > 0 && (
-                    <div className="flex flex-wrap gap-2 pt-2">
-                      {uploadedFiles.map(f => (
-                        <Badge key={f} variant="outline" className="bg-emerald-500/10 border-emerald-500/20 text-emerald-500 text-[9px] px-3 py-1 font-bold">
-                          <CheckCircle2 className="mr-1 size-3" /> {f}
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <Button 
-                  className="w-full h-16 rounded-2xl text-xl font-bold bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all"
-                  disabled={isAuditing || uploadedFiles.length === 0}
-                  onClick={handleRunAudit}
-                >
-                  {isAuditing ? (
-                    <><RefreshCw className="mr-2 h-6 w-6 animate-spin" /> Astra Core Processing...</>
-                  ) : (
-                    <><Zap className="mr-2 h-6 w-6" /> Deploy Global Audit</>
-                  )}
-                </Button>
-              </div>
-            </div>
-          </Card>
-
-          <div className="space-y-6">
-            <Card className="rounded-[2rem] border-white/5 bg-slate-900 p-8 space-y-8">
-              <h4 className="text-xs font-bold text-primary uppercase tracking-[0.2em]">Operational Scope</h4>
-              <div className="space-y-8">
-                {[
-                  { icon: TrendingUp, title: "Growth Velocity", desc: "Correlation between search intent and sales." },
-                  { icon: ShieldAlert, title: "Leakage Protection", desc: "Identifying margin erosion in returns." },
-                  { icon: Boxes, title: "Inventory Logic", desc: "Capital reallocation based on SKU speed." }
-                ].map((item, i) => (
-                  <div key={i} className="flex gap-4 group">
-                    <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-primary shrink-0 group-hover:bg-primary/10 transition-colors">
-                      <item.icon size={20} />
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-white group-hover:text-primary">{item.title}</p>
-                      <p className="text-xs text-slate-500 leading-relaxed">{item.desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
+        <Card className="rounded-[2.5rem] border-white/5 bg-slate-900 overflow-hidden shadow-2xl border-dashed border-2 p-12 text-center space-y-6">
+          <div className="mx-auto w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-4">
+            <Target size={40} />
           </div>
-        </div>
+          <h2 className="text-3xl font-headline font-bold text-white tracking-tight">Intelligence Required</h2>
+          <p className="text-slate-400 max-w-md mx-auto leading-relaxed">
+            Your command center is offline. Initiate a boardroom audit via Astra to populate your strategic HUD.
+          </p>
+          <Button className="rounded-xl h-14 px-8 font-bold text-lg" asChild>
+            <Link href="/dashboard/agents?agent=ceo">
+              Open Astra Core <ArrowUpRight className="ml-2" />
+            </Link>
+          </Button>
+        </Card>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">
@@ -329,12 +142,12 @@ export default function CommandCenterPage() {
               <CardHeader className="bg-gradient-to-r from-primary/10 to-transparent p-8 pb-4">
                 <div className="flex items-center gap-3 mb-2">
                   <Sparkles size={18} className="text-primary" />
-                  <span className="text-[10px] font-bold text-primary uppercase tracking-[0.2em]">Live Operational Briefing</span>
+                  <span className="text-[10px] font-bold text-primary uppercase tracking-[0.2em]">Operational Briefing</span>
                 </div>
-                <CardTitle className="text-2xl md:text-3xl font-headline">Astra Intelligence Feed</CardTitle>
+                <CardTitle className="text-2xl md:text-3xl font-headline">Intelligence Feed</CardTitle>
               </CardHeader>
-              <CardContent className="p-8 pt-4">
-                <div className="p-6 rounded-2xl bg-black/20 border border-white/5 mb-8">
+              <CardContent className="p-8 pt-4 space-y-8">
+                <div className="p-6 rounded-2xl bg-black/20 border border-white/5">
                   <p className="text-slate-300 text-lg leading-relaxed italic">"{analysis.summary}"</p>
                 </div>
                 
@@ -344,15 +157,19 @@ export default function CommandCenterPage() {
                       <TrendingUp size={14} /> Revenue Accelerators
                     </h4>
                     {(analysis.pillars?.revenueGrowth || []).map((rec: string, i: number) => (
-                      <PillarItem key={i} text={rec} onApprove={() => handleApprovePillar('Revenue')} />
+                      <div key={i} className="p-4 rounded-xl bg-slate-800/50 border border-white/5 text-xs text-slate-300">
+                        {rec}
+                      </div>
                     ))}
                   </div>
                   <div className="space-y-4">
                     <h4 className="text-[10px] font-bold text-rose-500 uppercase tracking-widest flex items-center gap-2">
-                      <TrendingDown size={14} /> Efficiency Risks
+                      <ShieldAlert size={14} /> Risk & Efficiency
                     </h4>
                     {(analysis.pillars?.costOptimization || []).map((rec: string, i: number) => (
-                      <PillarItem key={i} text={rec} onApprove={() => handleApprovePillar('Cost')} />
+                      <div key={i} className="p-4 rounded-xl bg-slate-800/50 border border-white/5 text-xs text-slate-300">
+                        {rec}
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -365,7 +182,7 @@ export default function CommandCenterPage() {
                   <CardTitle className="font-headline text-xl flex items-center gap-2">
                     <ShieldAlert className="text-rose-500" /> Margin Leakage Audit
                   </CardTitle>
-                  <Badge variant="outline" className="bg-rose-500/10 text-rose-500 border-rose-500/20 px-3 py-1 font-bold uppercase">Critical Monitoring</Badge>
+                  <Badge variant="outline" className="bg-rose-500/10 text-rose-500 border-rose-500/20 px-3 py-1 font-bold uppercase">Critical</Badge>
                 </div>
               </CardHeader>
               <CardContent className="p-0">
@@ -381,13 +198,13 @@ export default function CommandCenterPage() {
                           <p className="text-sm text-slate-400">{leak.impact}</p>
                         </div>
                       </div>
-                      <div className="flex flex-col items-end shrink-0">
+                      <div className="flex flex-col items-end shrink-0 text-right">
                         <span className="text-[10px] font-bold text-slate-500 uppercase">Monthly Leakage</span>
-                        <span className="text-xl font-headline font-bold text-rose-500">₹{(metrics?.loss ? (metrics.loss / 100000).toFixed(1) : "0")}L</span>
+                        <span className="text-xl font-headline font-bold text-rose-500">₹{((analysis.metrics?.loss || 0) / 100000).toFixed(1)}L</span>
                       </div>
                     </div>
                   )) : (
-                    <div className="p-12 text-center text-slate-500 italic">No critical leakage identified in this cycle.</div>
+                    <div className="p-12 text-center text-slate-500 italic">No critical leakage identified.</div>
                   )}
                 </div>
               </CardContent>
@@ -395,53 +212,49 @@ export default function CommandCenterPage() {
           </div>
 
           <div className="space-y-8">
-            <Card className="rounded-3xl border-white/5 bg-card overflow-hidden shadow-2xl">
-              <CardContent className="p-8 text-center space-y-4">
-                <div className="mx-auto w-24 h-24 rounded-full bg-primary/10 border-4 border-slate-800 flex items-center justify-center relative">
-                  <Activity size={40} className="text-primary" />
-                  <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-emerald-500 border-4 border-card flex items-center justify-center">
-                    <BadgeCheck size={16} className="text-white" />
-                  </div>
-                </div>
-                <div>
-                  <h3 className="text-2xl font-headline font-bold text-white">Astra Core</h3>
-                  <p className="text-xs font-bold text-primary uppercase tracking-[0.2em]">Operational Lead Node</p>
-                </div>
-                <div className="pt-4 border-t border-white/5 flex justify-center gap-6">
-                  <div className="text-center">
-                    <p className="text-[10px] font-bold text-slate-500 uppercase">Uptime</p>
-                    <p className="text-sm font-bold text-white">100%</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-[10px] font-bold text-slate-500 uppercase">Node ID</p>
-                    <p className="text-sm font-bold text-white">AS-S1-V4</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
             <Card className="rounded-3xl border-white/5 bg-slate-900 overflow-hidden shadow-xl">
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg font-headline flex items-center gap-2 text-white">
-                  <BarChart3 className="text-primary" size={18} /> Command Pulse (HUD)
+                  <BarChart3 className="text-primary" size={18} /> Strategic HUD
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-8 pt-4 space-y-6">
                 <div className="space-y-2">
                   <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest">
-                    <span className="text-slate-500">Margin Health</span>
-                    <span className="text-emerald-500">{(metrics && metrics.totalSales > 0 ? (metrics.profit / metrics.totalSales * 100).toFixed(1) : "0")}%</span>
+                    <span className="text-slate-500">Net Profitability</span>
+                    <span className="text-emerald-500">{analysis.metrics?.totalSales > 0 ? (analysis.metrics.profit / analysis.metrics.totalSales * 100).toFixed(1) : "0"}%</span>
                   </div>
-                  <Progress value={metrics && metrics.totalSales > 0 ? (metrics.profit / metrics.totalSales * 100) : 0} className="h-1.5 bg-slate-800" />
+                  <Progress value={analysis.metrics?.totalSales > 0 ? (analysis.metrics.profit / analysis.metrics.totalSales * 100) : 0} className="h-1.5 bg-slate-800" />
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest">
-                    <span className="text-slate-500">ROAS Multiplier</span>
-                    <span className="text-primary">{(metrics?.roas || 0)}x</span>
+                    <span className="text-slate-500">ROAS Efficiency</span>
+                    <span className="text-primary">{analysis.metrics?.roas || 0}x</span>
                   </div>
-                  <Progress value={metrics?.roas ? Math.min(100, metrics.roas * 10) : 0} className="h-1.5 bg-slate-800" />
+                  <Progress value={Math.min(100, (analysis.metrics?.roas || 0) * 10)} className="h-1.5 bg-slate-800" />
                 </div>
               </CardContent>
+            </Card>
+
+            <Card className="rounded-3xl border-white/5 bg-slate-900 p-8 space-y-6">
+              <h4 className="text-xs font-bold text-primary uppercase tracking-[0.2em]">Operational Scope</h4>
+              <div className="space-y-6">
+                {[
+                  { icon: TrendingUp, title: "Growth Velocity", desc: "Correlation between search intent and GMV." },
+                  { icon: Boxes, title: "Inventory Logic", desc: "Capital reallocation based on SKU velocity." },
+                  { icon: Target, title: "Marketplace Health", desc: "Buy Box monitoring and compliance logic." }
+                ].map((item, i) => (
+                  <div key={i} className="flex gap-4 group">
+                    <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-primary shrink-0 group-hover:bg-primary/10 transition-colors">
+                      <item.icon size={20} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-white group-hover:text-primary transition-colors">{item.title}</p>
+                      <p className="text-[10px] text-slate-500 leading-relaxed">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </Card>
 
             <div className="p-6 rounded-[2rem] bg-primary/5 border border-primary/20 space-y-4">
@@ -451,38 +264,19 @@ export default function CommandCenterPage() {
               <div className="grid grid-cols-1 gap-2">
                 <Button className="w-full justify-start h-12 bg-white/5 border-white/5 hover:bg-white/10 text-white rounded-xl group transition-all">
                   <PieChart className="mr-3 w-4 h-4 text-primary" /> 
-                  <span className="text-sm font-bold">Export Operational Audit</span>
+                  <span className="text-sm font-bold">Export Audit PDF</span>
                 </Button>
-                <Button className="w-full justify-start h-12 bg-white/5 border-white/5 hover:bg-white/10 text-white rounded-xl group transition-all">
-                  <Sparkles className="mr-3 w-4 h-4 text-amber-500" /> 
-                  <span className="text-sm font-bold">Share Performance PDF</span>
+                <Button className="w-full justify-start h-12 bg-white/5 border-white/5 hover:bg-white/10 text-white rounded-xl group transition-all" asChild>
+                  <Link href="/dashboard/growth">
+                    <TrendingUp className="mr-3 w-4 h-4 text-emerald-500" /> 
+                    <span className="text-sm font-bold">Market Share Intel</span>
+                  </Link>
                 </Button>
               </div>
             </div>
           </div>
         </div>
       )}
-    </div>
-  );
-}
-
-function PillarItem({ text, onApprove, isWide }: { text: string, onApprove: () => void, isWide?: boolean }) {
-  return (
-    <div className={cn(
-      "flex items-start justify-between gap-4 p-4 rounded-xl bg-slate-900 border border-white/5 hover:border-white/10 transition-colors group",
-      isWide && "w-full"
-    )}>
-      <div className="flex-1 min-w-0">
-        <p className="text-xs font-medium text-slate-200 leading-relaxed">{text}</p>
-      </div>
-      <Button 
-        size="sm" 
-        variant="ghost" 
-        className="h-7 text-[9px] font-bold uppercase tracking-widest text-emerald-500 hover:bg-emerald-500/10 hover:text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity"
-        onClick={onApprove}
-      >
-        Approve
-      </Button>
     </div>
   );
 }

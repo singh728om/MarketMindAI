@@ -20,7 +20,8 @@ import {
   BadgeCheck,
   Video,
   FileText,
-  ExternalLink
+  ExternalLink,
+  Loader2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -42,7 +43,6 @@ const AI_EMPLOYEES = [
     name: "Astra",
     role: "AI CEO & Strategist",
     agentId: "ceo",
-    hubUrl: "/dashboard/ceo-hub",
     description: "Orchestrates top-level business intelligence, profit/loss monitoring, and investor-ready reporting.",
     skills: ["Financial Analysis", "Strategic Planning", "Leakage Detection"],
     icon: Briefcase,
@@ -118,10 +118,12 @@ const AI_EMPLOYEES = [
 export default function HireAIPage() {
   const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
   const [hiredRoles, setHiredRoles] = useState<string[]>([]);
+  const [hasMounted, setHasMounted] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
 
   useEffect(() => {
+    setHasMounted(true);
     const checkHiredStatus = () => {
       try {
         const projectsStr = localStorage.getItem("marketmind_projects");
@@ -144,11 +146,7 @@ export default function HireAIPage() {
 
   const handleHire = (employee: any) => {
     if (hiredRoles.includes(employee.role)) {
-      if (employee.hubUrl) {
-        router.push(employee.hubUrl);
-      } else {
-        router.push(`/dashboard/agents?agent=${employee.agentId}`);
-      }
+      router.push(`/dashboard/agents?agent=${employee.agentId}`);
       return;
     }
     
@@ -158,6 +156,14 @@ export default function HireAIPage() {
     });
     router.push(`/checkout?items=${encodeURIComponent(employee.role)}&total=${employee.price}&autoAdd=true`);
   };
+
+  if (!hasMounted) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="animate-spin text-primary w-12 h-12" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 pb-20">
@@ -238,7 +244,7 @@ export default function HireAIPage() {
               </CardContent>
 
               <CardFooter className="pt-0 gap-2">
-                <Button variant="outline" className="flex-1 rounded-xl h-11 border-white/5 bg-slate-800/50 hover:bg-slate-800 text-white" onClick={() => setSelectedEmployee(emp)}>
+                <Button variant="outline" className="flex-1 rounded-xl h-11 border-white/5 bg-slate-800/50 hover:bg-slate-800 text-white" onClick={(e) => { e.stopPropagation(); setSelectedEmployee(emp); }}>
                   View Profile
                 </Button>
                 <Button 
@@ -246,10 +252,10 @@ export default function HireAIPage() {
                     "flex-1 rounded-xl h-11 font-bold shadow-lg transition-all",
                     isHired ? "bg-emerald-500 text-white hover:bg-emerald-600" : "bg-primary shadow-primary/20"
                   )} 
-                  onClick={() => handleHire(emp)}
+                  onClick={(e) => { e.stopPropagation(); handleHire(emp); }}
                 >
                   {isHired ? (
-                    <><ExternalLink size={16} className="mr-2" /> {emp.id === 'ai-ceo' ? 'Open Hub' : 'Go to Studio'}</>
+                    <><ExternalLink size={16} className="mr-2" /> Open Studio</>
                   ) : (
                     "Hire Now"
                   )}
@@ -332,7 +338,7 @@ export default function HireAIPage() {
                     onClick={() => handleHire(selectedEmployee)}
                   >
                     {hiredRoles.includes(selectedEmployee.role) ? (
-                      <><ExternalLink size={16} className="mr-2" /> Open {selectedEmployee.id === 'ai-ceo' ? 'Hub' : 'Studio'}</>
+                      <><ExternalLink size={16} className="mr-2" /> Open Studio</>
                     ) : (
                       <><ArrowRight size={16} className="mr-2" /> Recruit {selectedEmployee.name}</>
                     )}
