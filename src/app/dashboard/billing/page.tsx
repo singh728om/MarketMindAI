@@ -30,6 +30,7 @@ import {
   DialogDescription,
   DialogFooter
 } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -139,11 +140,11 @@ export default function BillingPage() {
     <div className="space-y-8 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-headline font-bold mb-1">Billing & Plans</h1>
+          <h1 className="text-3xl font-headline font-bold mb-1 text-white">Billing & Plans</h1>
           <p className="text-muted-foreground">Manage your marketplace investment and premium subscriptions.</p>
         </div>
         <Link href="/pricing">
-          <Button className="rounded-xl h-12 px-6 shadow-lg shadow-primary/20">
+          <Button className="rounded-xl h-12 px-6 shadow-lg shadow-primary/20 font-bold">
             <Plus className="w-4 h-4 mr-2" /> Add New Service
           </Button>
         </Link>
@@ -225,7 +226,7 @@ export default function BillingPage() {
                      <tr key={i} className="group hover:bg-primary/5 transition-colors">
                        <td className="px-8 py-5">
                          <div className="flex flex-col">
-                           <span className="font-bold text-sm">{service.name}</span>
+                           <span className="font-bold text-sm text-white">{service.name}</span>
                            <div className="flex items-center gap-2">
                              <span className="text-[10px] text-muted-foreground">Activated {service.date}</span>
                              <Badge variant="outline" className="text-[8px] border-none bg-primary/10 text-primary py-0 h-3">{service.status}</Badge>
@@ -233,9 +234,9 @@ export default function BillingPage() {
                          </div>
                        </td>
                        <td className="px-8 py-5">
-                         <Badge variant="secondary" className="text-[10px]">{service.type}</Badge>
+                         <Badge variant="secondary" className="text-[10px] uppercase">{service.type}</Badge>
                        </td>
-                       <td className="px-8 py-5 text-right font-mono font-bold text-sm">
+                       <td className="px-8 py-5 text-right font-mono font-bold text-sm text-white">
                          ₹{service.price.toLocaleString()}
                        </td>
                      </tr>
@@ -255,16 +256,16 @@ export default function BillingPage() {
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Active Investment (Subtotal)</p>
               <h3 className="text-3xl font-headline font-bold text-primary">₹{totalInvestment.toLocaleString()}</h3>
             </div>
-            <Button variant="outline" className="rounded-xl h-12 px-8 w-full sm:w-auto" onClick={() => setIsInvoiceOpen(true)}>
+            <Button variant="outline" className="rounded-xl h-12 px-8 w-full sm:w-auto font-bold border-white/10 hover:bg-white/5" onClick={() => setIsInvoiceOpen(true)}>
               View Final Bill
             </Button>
           </CardFooter>
         </Card>
       </div>
 
-      {/* Invoice History Detail Dialog - Optimized for Card View & Responsiveness */}
+      {/* Invoice History Detail Dialog */}
       <Dialog open={isInvoiceOpen} onOpenChange={setIsInvoiceOpen}>
-        <DialogContent className="max-w-lg bg-slate-900 border-white/10 rounded-[2.5rem] overflow-hidden p-0 text-white shadow-2xl">
+        <DialogContent className="max-w-lg bg-slate-950 border-white/10 rounded-[2.5rem] overflow-hidden p-0 text-white shadow-2xl">
           <DialogHeader className="p-8 bg-primary text-primary-foreground relative overflow-hidden">
             <div className="absolute top-0 right-0 p-8 opacity-10">
               <FileText size={140} strokeWidth={1} />
@@ -295,14 +296,14 @@ export default function BillingPage() {
                   {billingSummary.map((item, idx) => (
                     <div key={idx} className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5 group hover:border-primary/30 transition-colors">
                       <div className="flex flex-col gap-1 min-w-0 pr-4">
-                        <span className="font-bold text-sm truncate">{item.name}</span>
+                        <span className="font-bold text-sm truncate text-white">{item.name}</span>
                         <div className="flex items-center gap-2">
                           <span className="text-[9px] text-slate-500 font-bold uppercase">{item.type}</span>
                           <div className="w-1 h-1 rounded-full bg-slate-700" />
                           <span className="text-[9px] text-slate-500">{item.date}</span>
                         </div>
                       </div>
-                      <span className="font-mono font-bold text-sm shrink-0">₹{item.price.toLocaleString()}</span>
+                      <span className="font-mono font-bold text-sm shrink-0 text-white">₹{item.price.toLocaleString()}</span>
                     </div>
                   ))}
                   {billingSummary.length === 0 && (
@@ -343,7 +344,7 @@ export default function BillingPage() {
             </div>
           </div>
 
-          <DialogFooter className="p-6 bg-slate-800/30 border-t border-white/5 flex gap-3 flex-col sm:flex-row">
+          <DialogFooter className="p-6 bg-slate-900 border-t border-white/5 flex gap-3 flex-col sm:flex-row">
             <Button variant="ghost" className="flex-1 rounded-xl text-slate-400 hover:text-white" onClick={() => setIsInvoiceOpen(false)}>
               Close
             </Button>
