@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -21,14 +20,11 @@ import {
   Loader2,
   PieChart,
   History,
-  Info,
   FileUp,
   CheckCircle2,
-  Cpu,
-  ArrowUpRight,
-  ShieldCheck
+  Cpu
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -62,18 +58,18 @@ export default function CEOHubPage() {
 
   // Background Auth Stabilization
   useEffect(() => {
-    if (!isUserLoading && !user) {
+    if (!isUserLoading && !user && auth) {
       initiateAnonymousSignIn(auth);
     }
   }, [isUserLoading, user, auth]);
 
   useEffect(() => {
-    if (!isUserLoading && !user) {
+    if (isUserLoading) return;
+    
+    if (!user || !db) {
       setIsLoading(false);
       return;
     }
-
-    if (!db || !user) return;
 
     const analysesRef = collection(db, "ceoAnalyses");
     const q = query(
@@ -111,7 +107,7 @@ export default function CEOHubPage() {
 
   const handleRunAudit = async () => {
     if (!user) {
-      initiateAnonymousSignIn(auth);
+      if (auth) initiateAnonymousSignIn(auth);
       toast({ title: "Securing Node", description: "Establishing Astra encrypted session..." });
       return;
     }
@@ -162,7 +158,7 @@ export default function CEOHubPage() {
           path: analysisRef.path,
           operation: 'write',
           requestResourceData: data,
-        });
+        } satisfies SecurityRuleContext);
         errorEmitter.emit('permission-error', permissionError);
       });
       
@@ -469,7 +465,7 @@ export default function CEOHubPage() {
                     <span className="text-slate-500">ROAS Multiplier</span>
                     <span className="text-primary">{metrics ? metrics.roas : 0}x</span>
                   </div>
-                  <Progress value={metrics ? metrics.roas * 10 : 0} className="h-1.5 bg-slate-800" />
+                  <Progress value={metrics ? Math.min(100, metrics.roas * 10) : 0} className="h-1.5 bg-slate-800" />
                 </div>
                 <div className="space-y-2 pt-4 border-t border-white/5">
                   <div className="flex items-center justify-between">

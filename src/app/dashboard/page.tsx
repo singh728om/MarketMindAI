@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -90,12 +89,12 @@ export default function Dashboard() {
 
   // Fetch latest AI CEO Analysis from Firestore
   useEffect(() => {
-    if (!isUserLoading && !user) {
+    if (isUserLoading) return;
+    
+    if (!user || !db) {
       setIsLoadingAnalysis(false);
       return;
     }
-
-    if (!db || !user) return;
 
     const analysesRef = collection(db, "ceoAnalyses");
     const q = query(
