@@ -56,10 +56,11 @@ export default function CEOBoardroomPage() {
 
   useEffect(() => {
     if (!hasMounted || isUserLoading || !user || !db) {
-      if (!isUserLoading && !user) setIsLoading(false);
+      if (!isUserLoading && !user && hasMounted) setIsLoading(false);
       return;
     }
 
+    // Stabilized query for Astra Intelligence Node
     const analysesRef = collection(db, "ceoAnalyses");
     const q = query(
       analysesRef,
@@ -74,10 +75,8 @@ export default function CEOBoardroomPage() {
       }
       setIsLoading(false);
     }, (err) => {
-      errorEmitter.emit('permission-error', new FirestorePermissionError({
-        path: "ceoAnalyses",
-        operation: 'list',
-      }));
+      // Graceful error handling for snapshot failures
+      console.warn("Astra Sync Notice:", err.message);
       setIsLoading(false);
     });
 
@@ -162,8 +161,10 @@ export default function CEOBoardroomPage() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="outline" className="border-white/5 bg-slate-900 text-white h-12 px-6 rounded-xl">
-            <History className="mr-2 w-4 h-4" /> History
+          <Button variant="outline" className="border-white/5 bg-slate-900 text-white h-12 px-6 rounded-xl" asChild>
+            <Link href="/dashboard/orders">
+              <History className="mr-2 w-4 h-4" /> History
+            </Link>
           </Button>
           <Button 
             className="bg-amber-500 hover:bg-amber-600 text-black font-bold h-12 px-8 rounded-xl"
@@ -215,7 +216,7 @@ export default function CEOBoardroomPage() {
                       </div>
                       <input type="file" className="hidden" id={`file-${item.id}`} onChange={handleFileChange} />
                       <Button size="sm" variant="ghost" className="h-8 w-8 p-0 rounded-lg" asChild>
-                        <label htmlFor={`file-${item.id}`} className="cursor-pointer">
+                        <label htmlFor={`file-${item.id}`} className="cursor-pointer flex items-center justify-center">
                           <FileUp size={14} className="text-slate-500 group-hover:text-amber-500" />
                         </label>
                       </Button>
@@ -256,7 +257,7 @@ export default function CEOBoardroomPage() {
               </CardHeader>
               <CardContent className="p-8 pt-4 space-y-8">
                 <div className="p-6 rounded-2xl bg-black/20 border border-white/5">
-                  <p className="text-slate-300 text-lg leading-relaxed italic">"{analysis.narrative}"</p>
+                  <p className="text-slate-300 text-lg leading-relaxed italic">"{analysis.narrative || "Synthesis pending..."}"</p>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -264,7 +265,7 @@ export default function CEOBoardroomPage() {
                     <h4 className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest flex items-center gap-2">
                       <TrendingUp size={14} /> Revenue Accelerators
                     </h4>
-                    {(analysis.pillars?.revenueGrowth || []).map((item: string, i: number) => (
+                    {(analysis.pillars?.revenueGrowth || ["No data identified"]).map((item: string, i: number) => (
                       <div key={i} className="p-4 rounded-xl bg-slate-900 border border-white/5 text-xs text-slate-200">{item}</div>
                     ))}
                   </div>
@@ -272,7 +273,7 @@ export default function CEOBoardroomPage() {
                     <h4 className="text-[10px] font-bold text-rose-500 uppercase tracking-widest flex items-center gap-2">
                       <ShieldAlert size={14} /> Risk & Efficiency
                     </h4>
-                    {(analysis.pillars?.costOptimization || []).map((item: string, i: number) => (
+                    {(analysis.pillars?.costOptimization || ["No data identified"]).map((item: string, i: number) => (
                       <div key={i} className="p-4 rounded-xl bg-slate-900 border border-white/5 text-xs text-slate-200">{item}</div>
                     ))}
                   </div>
@@ -288,7 +289,7 @@ export default function CEOBoardroomPage() {
               </CardHeader>
               <CardContent className="p-0">
                 <div className="divide-y divide-white/5">
-                  {(analysis.leakageInsights || []).map((leak: any, i: number) => (
+                  {(analysis.leakageInsights || []).length > 0 ? analysis.leakageInsights.map((leak: any, i: number) => (
                     <div key={i} className="p-8 flex items-center justify-between gap-6 hover:bg-white/5 transition-colors">
                       <div className="flex gap-6 items-start">
                         <div className="w-12 h-12 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-500 shrink-0">
@@ -300,7 +301,9 @@ export default function CEOBoardroomPage() {
                         </div>
                       </div>
                     </div>
-                  ))}
+                  )) : (
+                    <div className="p-8 text-center text-slate-500 italic text-sm">No critical leakages detected in this cycle.</div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -317,16 +320,26 @@ export default function CEOBoardroomPage() {
                 <div className="space-y-2">
                   <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest">
                     <span className="text-slate-500">Net Profit Margin</span>
-                    <span className="text-emerald-500">{analysis.metrics?.totalSales > 0 ? (analysis.metrics.profit / analysis.metrics.totalSales * 100).toFixed(1) : "0"}%</span>
+                    <span className="text-emerald-500">
+                      {analysis.metrics?.totalSales && analysis.metrics.totalSales > 0 
+                        ? (Number(analysis.metrics.profit || 0) / analysis.metrics.totalSales * 100).toFixed(1) 
+                        : "0.0"}%
+                    </span>
                   </div>
-                  <Progress value={analysis.metrics?.totalSales > 0 ? (analysis.metrics.profit / analysis.metrics.totalSales * 100) : 0} className="h-1.5 bg-slate-800" />
+                  <Progress 
+                    value={analysis.metrics?.totalSales && analysis.metrics.totalSales > 0 ? (Number(analysis.metrics.profit || 0) / analysis.metrics.totalSales * 100) : 0} 
+                    className="h-1.5 bg-slate-800" 
+                  />
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest">
                     <span className="text-slate-500">ROAS Multiplier</span>
-                    <span className="text-amber-500">{analysis.metrics?.roas || 0}x</span>
+                    <span className="text-amber-500">{analysis.metrics?.roas || "0.0"}x</span>
                   </div>
-                  <Progress value={Math.min(100, (analysis.metrics?.roas || 0) * 10)} className="h-1.5 bg-slate-800" />
+                  <Progress 
+                    value={Math.min(100, Number(analysis.metrics?.roas || 0) * 10)} 
+                    className="h-1.5 bg-slate-800" 
+                  />
                 </div>
               </CardContent>
             </Card>
