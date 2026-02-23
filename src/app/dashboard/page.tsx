@@ -100,7 +100,7 @@ export default function Dashboard() {
                 <h2 className="text-xl font-headline font-bold text-white">7 Days Remaining in Your Free Trial</h2>
               </div>
               <p className="text-slate-400 max-w-2xl text-sm">
-                Unlock unlimited AI Photoshoots and growth intelligence with a premium node.
+                Unlock unlimited AI Content generation and growth intelligence with a premium node.
               </p>
             </div>
             

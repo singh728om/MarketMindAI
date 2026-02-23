@@ -55,7 +55,10 @@ export function Sidebar({ onClose }: SidebarProps) {
     const loadProjects = () => {
       try {
         const saved = localStorage.getItem("marketmind_projects");
-        if (saved) setProjects(JSON.parse(saved));
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          setProjects(parsed);
+        }
       } catch (e) {}
     };
     loadProjects();
