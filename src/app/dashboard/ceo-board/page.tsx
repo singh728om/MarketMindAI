@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { 
-  ArrowLeft,
   Activity,
   RefreshCw,
   Sparkles,
@@ -15,15 +14,13 @@ import {
   Zap,
   Target,
   FileUp,
-  CheckCircle2,
   HardDrive,
   History
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   Select,
   SelectContent,
@@ -31,13 +28,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useFirestore, useUser, useAuth, initiateAnonymousSignIn } from "@/firebase";
+import { useFirestore, useUser, useAuth } from "@/firebase";
 import { query, collection, where, orderBy, limit, onSnapshot, doc, setDoc } from "firebase/firestore";
 import { runAICeoAnalysis } from "@/ai/flows/ai-ceo-agent-flow";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
+import { initiateAnonymousSignIn } from "@/firebase/non-blocking-login";
 
 export default function CEOBoardroomPage() {
   const [analysis, setAnalysis] = useState<any>(null);

@@ -150,10 +150,10 @@ export default function HireAIPage() {
     router.push(`/checkout?items=${encodeURIComponent(employee.role)}&total=${employee.price}&autoAdd=true`);
   };
 
-  if (!hasMounted) return null;
+  if (!hasMounted) return <div className="min-h-[60vh] flex items-center justify-center"><Loader2 className="animate-spin text-primary w-12 h-12" /></div>;
 
   return (
-    <div className="space-y-8 pb-20">
+    <div className="space-y-8 pb-20 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-headline font-bold mb-1 text-white">Hire AI Talent</h1>
