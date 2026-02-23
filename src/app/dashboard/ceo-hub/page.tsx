@@ -24,8 +24,10 @@ import {
   Info,
   FileUp,
   CheckCircle2,
-  Settings,
-  Cpu
+  Cpu,
+  ArrowUpRight,
+  ShieldCheck,
+  MousePointer2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,12 +42,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { query, collection, where, orderBy, limit, onSnapshot, doc, setDoc } from "firebase/firestore";
-import { useFirestore, useUser } from "@/firebase";
+import { useFirestore, useUser, useAuth } from "@/firebase";
 import { cn } from "@/lib/utils";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError, type SecurityRuleContext } from "@/firebase/errors";
 import { runAICeoAnalysis } from "@/ai/flows/ai-ceo-agent-flow";
 import { useToast } from "@/hooks/use-toast";
+import { initiateAnonymousSignIn } from "@/firebase/non-blocking-login";
 
 export default function CEOHubPage() {
   const [analysis, setAnalysis] = useState<any>(null);
@@ -55,8 +58,16 @@ export default function CEOHubPage() {
   const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
   
   const db = useFirestore();
+  const auth = useAuth();
   const { user, isUserLoading } = useUser();
   const { toast } = useToast();
+
+  // PROTOTYPE SYNC: Auto-login if session is missing
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      initiateAnonymousSignIn(auth);
+    }
+  }, [isUserLoading, user, auth]);
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -100,8 +111,10 @@ export default function CEOHubPage() {
   };
 
   const handleRunAudit = async () => {
-    if (!user || !db) {
-      toast({ variant: "destructive", title: "Auth Sync Required", description: "Please ensure your session is active before running board-level audits." });
+    // If user is still null after background sync attempt, trigger one more time
+    if (!user) {
+      initiateAnonymousSignIn(auth);
+      toast({ title: "Syncing Session", description: "Establishing secure boardroom connection..." });
       return;
     }
     
@@ -171,7 +184,7 @@ export default function CEOHubPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
         <Loader2 className="animate-spin text-amber-500 w-12 h-12" />
-        <p className="text-slate-400 font-medium font-headline">Syncing Astra Strategic Core...</p>
+        <p className="text-slate-400 font-medium font-headline">Connecting to Astra Intelligence Core...</p>
       </div>
     );
   }
@@ -191,8 +204,8 @@ export default function CEOHubPage() {
           </div>
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <h1 className="text-3xl font-headline font-bold text-white">CEO Strategic Hub</h1>
-              <Badge className="bg-amber-500 text-black font-bold text-[10px] uppercase">Processing Node: Active</Badge>
+              <h1 className="text-3xl font-headline font-bold text-white">CEO Department Hub</h1>
+              <Badge className="bg-amber-500 text-black font-bold text-[10px] uppercase">Node: AS-S1-V4 Active</Badge>
             </div>
             <p className="text-slate-400">Boardroom orchestration operated by Astra Intelligence.</p>
           </div>
@@ -200,7 +213,7 @@ export default function CEOHubPage() {
         {analysis && (
           <div className="flex items-center gap-3">
             <Button variant="outline" className="border-white/5 bg-slate-900 text-white h-12 px-6 rounded-xl">
-              <History className="mr-2 w-4 h-4" /> Audit Logs
+              <History className="mr-2 w-4 h-4" /> History
             </Button>
             <Button 
               className="bg-amber-500 hover:bg-amber-600 text-black font-bold h-12 px-8 rounded-xl shadow-xl shadow-amber-500/20"
@@ -221,42 +234,42 @@ export default function CEOHubPage() {
                 <Target size={32} className={isAuditing ? "animate-pulse" : ""} />
               </div>
               <div className="space-y-4">
-                <h2 className="text-3xl font-headline font-bold text-white tracking-tight">Initiate Global Audit</h2>
+                <h2 className="text-3xl font-headline font-bold text-white tracking-tight">Initiate Boardroom Synthesis</h2>
                 <p className="text-slate-400 text-lg leading-relaxed">
-                  Astra requires deep marketplace ingestion to synthesize your boardroom strategy. Please upload your latest financial and operational signals below.
+                  Astra requires departmental signals to correlate your marketplace performance. Upload your latest reports to begin the deep audit.
                 </p>
               </div>
 
               <div className="space-y-6">
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Target Marketplace</Label>
+                  <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Select Marketplace</Label>
                   <Select value={marketplace} onValueChange={setMarketplace}>
                     <SelectTrigger className="bg-slate-800 border-white/5 h-14 rounded-xl text-white text-lg">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-slate-800 border-white/10 text-white">
-                      <SelectItem value="Amazon">Amazon Global / India</SelectItem>
+                      <SelectItem value="Amazon">Amazon India</SelectItem>
                       <SelectItem value="Flipkart">Flipkart Commerce</SelectItem>
                       <SelectItem value="Myntra">Myntra Lifestyle</SelectItem>
                       <SelectItem value="Ajio">Ajio Premium</SelectItem>
-                      <SelectItem value="Nykaa">Nykaa Beauty & Fashion</SelectItem>
+                      <SelectItem value="Nykaa">Nykaa Beauty</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-4">
-                  <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Ingest Departmental Signals</Label>
+                  <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Ingest Reports</Label>
                   <div className="grid grid-cols-2 gap-3">
-                    <ReportUploadButton id="r1" label="Revenue & GMV" onFile={handleFileChange} />
+                    <ReportUploadButton id="r1" label="Sales & GMV" onFile={handleFileChange} />
                     <ReportUploadButton id="r2" label="Ad Performance" onFile={handleFileChange} />
                     <ReportUploadButton id="r3" label="Returns & RTO" onFile={handleFileChange} />
-                    <ReportUploadButton id="r4" label="Stock Velocity" onFile={handleFileChange} />
+                    <ReportUploadButton id="r4" label="Stock Levels" onFile={handleFileChange} />
                   </div>
                   {uploadedFiles.length > 0 && (
                     <div className="flex flex-wrap gap-2 pt-2 animate-in fade-in zoom-in">
                       {uploadedFiles.map(f => (
                         <Badge key={f} variant="outline" className="bg-emerald-500/10 border-emerald-500/20 text-emerald-500 text-[9px] px-3 py-1 font-bold">
-                          <BadgeCheck className="mr-1 size-3" /> {f}
+                          <CheckCircle2 className="mr-1 size-3" /> {f}
                         </Badge>
                       ))}
                     </div>
@@ -264,7 +277,7 @@ export default function CEOHubPage() {
                 </div>
 
                 <Button 
-                  className="w-full h-16 rounded-2xl text-xl font-bold bg-amber-500 text-black hover:bg-amber-600 shadow-xl shadow-amber-500/20 disabled:opacity-50 disabled:grayscale transition-all active:scale-95"
+                  className="w-full h-16 rounded-2xl text-xl font-bold bg-amber-500 text-black hover:bg-amber-600 shadow-xl shadow-amber-500/20 transition-all active:scale-95"
                   disabled={isAuditing || uploadedFiles.length === 0}
                   onClick={handleRunAudit}
                 >
@@ -273,7 +286,7 @@ export default function CEOHubPage() {
                   ) : uploadedFiles.length === 0 ? (
                     <><FileUp className="mr-2 h-6 w-6" /> Upload Signals to Begin</>
                   ) : (
-                    <><Zap className="mr-2 h-6 w-6" /> Start Boardroom Synthesis</>
+                    <><Zap className="mr-2 h-6 w-6" /> Run Global Audit</>
                   )}
                 </Button>
               </div>
@@ -285,14 +298,14 @@ export default function CEOHubPage() {
             <Card className="rounded-[2rem] border-white/5 bg-slate-900 p-8 space-y-8">
               <div className="space-y-2">
                 <h4 className="text-xs font-bold text-amber-500 uppercase tracking-[0.2em]">Synthesis Scope</h4>
-                <p className="text-slate-500 text-sm italic">Multivariate Operational Analysis</p>
+                <p className="text-slate-500 text-sm italic">Multi-Node Operational Analysis</p>
               </div>
               
               <div className="space-y-8">
-                <AuditBenefit icon={TrendingUp} title="Growth Velocity" desc="Cross-referencing ad spikes against organic ranking shifts." />
-                <AuditBenefit icon={ShieldAlert} title="Leakage Protection" desc="Real-time detection of margin erosion in RTO and shipping." />
-                <AuditBenefit icon={Boxes} title="Inventory Logic" desc="Capital reallocation based on predictive SKU velocity." />
-                <AuditBenefit icon={BadgeCheck} title="Regulatory Check" desc="Automated compliance audit against platform policies." />
+                <AuditBenefit icon={TrendingUp} title="Growth Velocity" desc="Detecting organic ranking shifts relative to ad budget spikes." />
+                <AuditBenefit icon={ShieldAlert} title="Leakage Protection" desc="Identifying margin erosion in RTO and logistics handling." />
+                <AuditBenefit icon={Boxes} title="Inventory Logic" desc="Predictive capital reallocation based on SKU velocity." />
+                <AuditBenefit icon={BadgeCheck} title="Marketplace Compliance" desc="Automated audit against current platform policies." />
               </div>
 
               <div className="pt-6 border-t border-white/5 space-y-4">
@@ -300,11 +313,11 @@ export default function CEOHubPage() {
                   <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-amber-500">
                     <Cpu size={16} />
                   </div>
-                  <p className="text-xs font-bold text-slate-300">Astra Intelligence Node: AS-S1-V4</p>
+                  <p className="text-xs font-bold text-slate-300">Node: AS-S1-V4 (Stable)</p>
                 </div>
                 <div className="p-4 rounded-xl bg-white/5 border border-white/5">
                   <p className="text-[10px] text-slate-500 leading-relaxed italic">
-                    "This node utilizes advanced neural synthesis to correlate raw marketplace CSV exports into boardroom-ready strategy."
+                    "This proprietary node correlates cross-departmental signals into actionable boardroom strategy."
                   </p>
                 </div>
               </div>
@@ -316,7 +329,7 @@ export default function CEOHubPage() {
           {/* Main Column */}
           <div className="lg:col-span-2 space-y-8">
             {/* Executive Briefing */}
-            <Card className="rounded-3xl border-white/5 bg-slate-900 overflow-hidden group">
+            <Card className="rounded-3xl border-white/5 bg-slate-900 overflow-hidden">
               <CardHeader className="bg-gradient-to-r from-amber-500/10 to-transparent p-8 pb-4">
                 <div className="flex items-center gap-3 mb-2">
                   <Sparkles size={18} className="text-amber-500" />
@@ -361,15 +374,15 @@ export default function CEOHubPage() {
                     </CardTitle>
                     <CardDescription>Automated detection of operational inefficiencies.</CardDescription>
                   </div>
-                  <Badge variant="outline" className="bg-rose-500/10 text-rose-500 border-rose-500/20 px-3 py-1 font-bold tracking-tighter uppercase">Audit Active</Badge>
+                  <Badge variant="outline" className="bg-rose-500/10 text-rose-500 border-rose-500/20 px-3 py-1 font-bold uppercase">Active Monitoring</Badge>
                 </div>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="divide-y divide-white/5">
                   {analysis.leakageInsights && analysis.leakageInsights.length > 0 ? analysis.leakageInsights.map((leak: any, i: number) => (
-                    <div key={i} className="p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:bg-white/5 transition-colors">
+                    <div key={i} className="p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:bg-white/5 transition-colors group">
                       <div className="flex gap-6 items-start">
-                        <div className="w-12 h-12 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-500 shrink-0">
+                        <div className="w-12 h-12 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-500 shrink-0 group-hover:scale-110 transition-transform">
                           <AlertCircle size={24} />
                         </div>
                         <div className="space-y-1">
@@ -378,7 +391,7 @@ export default function CEOHubPage() {
                         </div>
                       </div>
                       <div className="flex flex-col items-end shrink-0">
-                        <span className="text-[10px] font-bold text-slate-500 uppercase">Estimated Impact</span>
+                        <span className="text-[10px] font-bold text-slate-500 uppercase">Estimated Leakage</span>
                         <span className="text-xl font-headline font-bold text-rose-500">₹{metrics ? (metrics.loss * 0.3).toLocaleString() : '0'}</span>
                       </div>
                     </div>
@@ -390,18 +403,18 @@ export default function CEOHubPage() {
                 </div>
               </CardContent>
               <CardFooter className="bg-rose-500/5 p-6 border-t border-white/5">
-                <div className="flex items-center gap-3 text-xs text-rose-400">
+                <div className="flex items-center gap-3 text-xs text-rose-400 font-medium">
                   <Info size={14} />
-                  <span>Astra suggests initiating the **Inventory Optimization Flow** to recapture ~₹{metrics ? (metrics.loss * 0.4 / 1000).toFixed(1) : '0'}k.</span>
+                  <span>Astra recommends initiating the **Inventory Optimization Workflow** to recapture ~₹{metrics ? (metrics.loss * 0.4 / 1000).toFixed(1) : '0'}k.</span>
                 </div>
               </CardFooter>
             </Card>
 
-            {/* Business Improvement Roadmap */}
+            {/* Strategic Pillars */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card className="rounded-3xl border-white/5 bg-slate-900 p-8 space-y-6">
                 <h4 className="text-lg font-headline font-bold flex items-center gap-2">
-                  <Target className="text-emerald-500" /> Capital Efficiency
+                  <Target className="text-emerald-500" /> Capital Logic
                 </h4>
                 <div className="space-y-4">
                   {analysis.pillars?.inventoryPlanning.map((item: string, i: number) => (
@@ -415,7 +428,7 @@ export default function CEOHubPage() {
 
               <Card className="rounded-3xl border-white/5 bg-slate-900 p-8 space-y-6">
                 <h4 className="text-lg font-headline font-bold flex items-center gap-2">
-                  <Boxes className="text-blue-500" /> Compliance & Risk
+                  <Boxes className="text-blue-500" /> Risk & Governance
                 </h4>
                 <div className="space-y-4">
                   {analysis.pillars?.riskMonitoring.map((item: string, i: number) => (
@@ -429,9 +442,9 @@ export default function CEOHubPage() {
             </div>
           </div>
 
-          {/* Sidebar Column */}
+          {/* SIDE VIEW COLUMN */}
           <div className="space-y-8">
-            {/* Astra Mini-Profile */}
+            {/* Astra Profile HUD */}
             <Card className="rounded-3xl border-white/5 bg-card overflow-hidden">
               <CardContent className="p-8 text-center space-y-4">
                 <div className="mx-auto w-24 h-24 rounded-full bg-amber-500/10 border-4 border-slate-800 flex items-center justify-center relative">
@@ -441,8 +454,8 @@ export default function CEOHubPage() {
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-2xl font-headline font-bold">Astra</h3>
-                  <p className="text-xs font-bold text-amber-500 uppercase tracking-widest">Strategic Intelligence Lead</p>
+                  <h3 className="text-2xl font-headline font-bold text-white">Astra</h3>
+                  <p className="text-xs font-bold text-amber-500 uppercase tracking-[0.2em]">Strategic Lead Agent</p>
                 </div>
                 <div className="pt-4 border-t border-white/5 flex justify-center gap-6">
                   <div className="text-center">
@@ -450,19 +463,19 @@ export default function CEOHubPage() {
                     <p className="text-sm font-bold text-white">100%</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-[10px] font-bold text-slate-500 uppercase">Latent</p>
+                    <p className="text-[10px] font-bold text-slate-500 uppercase">Latency</p>
                     <p className="text-sm font-bold text-white">0.8ms</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-[10px] font-bold text-slate-500 uppercase">Sync</p>
+                    <p className="text-[10px] font-bold text-slate-500 uppercase">Node</p>
                     <p className="text-sm font-bold text-white">AS-S1</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Department Performance */}
-            <Card className="rounded-3xl border-white/5 bg-slate-900 overflow-hidden">
+            {/* Department HUD */}
+            <Card className="rounded-3xl border-white/5 bg-slate-900 overflow-hidden shadow-xl">
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg font-headline flex items-center gap-2 text-white">
                   <BarChart3 className="text-primary" size={18} /> Boardroom Pulse
@@ -470,22 +483,22 @@ export default function CEOHubPage() {
               </CardHeader>
               <CardContent className="p-8 pt-4 space-y-6">
                 <div className="space-y-2">
-                  <div className="flex justify-between text-xs font-bold uppercase tracking-widest">
-                    <span className="text-slate-500">Margin Health</span>
+                  <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest">
+                    <span className="text-slate-500">Net Margin Health</span>
                     <span className="text-emerald-500">{metrics ? ((metrics.profit / metrics.totalSales) * 100).toFixed(1) : 0}%</span>
                   </div>
                   <Progress value={metrics ? (metrics.profit / metrics.totalSales) * 100 : 0} className="h-1.5 bg-slate-800" />
                 </div>
                 <div className="space-y-2">
-                  <div className="flex justify-between text-xs font-bold uppercase tracking-widest">
-                    <span className="text-slate-500">ROAS Efficiency</span>
+                  <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest">
+                    <span className="text-slate-500">ROAS Multiplier</span>
                     <span className="text-primary">{metrics ? metrics.roas : 0}x</span>
                   </div>
                   <Progress value={metrics ? metrics.roas * 10 : 0} className="h-1.5 bg-slate-800" />
                 </div>
                 <div className="space-y-2">
-                  <div className="flex justify-between text-xs font-bold uppercase tracking-widest">
-                    <span className="text-slate-500">Inventory Liquidity</span>
+                  <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest">
+                    <span className="text-slate-500">Asset Velocity</span>
                     <span className="text-amber-500">84%</span>
                   </div>
                   <Progress value={84} className="h-1.5 bg-slate-800" />
@@ -493,20 +506,38 @@ export default function CEOHubPage() {
               </CardContent>
             </Card>
 
-            {/* Quick Actions */}
+            {/* In-View Strategy Actions */}
             <div className="p-6 rounded-[2rem] bg-primary/5 border border-primary/20 space-y-4">
-              <h4 className="text-xs font-bold text-primary uppercase flex items-center gap-2 tracking-widest">
+              <h4 className="text-[10px] font-bold text-primary uppercase flex items-center gap-2 tracking-[0.2em]">
                 <PieChart size={14} /> Boardroom Actions
               </h4>
               <div className="grid grid-cols-1 gap-2">
-                <Button className="w-full justify-start h-12 bg-white/5 border-white/5 hover:bg-white/10 text-white rounded-xl">
-                  <PieChart className="mr-3 w-4 h-4 text-primary" /> Export Financial Brief
+                <Button className="w-full justify-start h-12 bg-white/5 border-white/5 hover:bg-white/10 text-white rounded-xl group transition-all">
+                  <PieChart className="mr-3 w-4 h-4 text-primary group-hover:scale-110 transition-transform" /> 
+                  <span className="text-sm font-bold">Export Financial Brief</span>
                 </Button>
-                <Button className="w-full justify-start h-12 bg-white/5 border-white/5 hover:bg-white/10 text-white rounded-xl">
-                  <Sparkles className="mr-3 w-4 h-4 text-amber-500" /> Share Strategic Roadmap
+                <Button className="w-full justify-start h-12 bg-white/5 border-white/5 hover:bg-white/10 text-white rounded-xl group transition-all">
+                  <Sparkles className="mr-3 w-4 h-4 text-amber-500 group-hover:scale-110 transition-transform" /> 
+                  <span className="text-sm font-bold">Share Strategy Doc</span>
                 </Button>
               </div>
             </div>
+
+            {/* Quick Signals */}
+            <Card className="rounded-3xl border-white/5 bg-slate-900/50 hover:border-primary/30 transition-all cursor-pointer group">
+              <CardHeader className="pb-3">
+                <div className="flex justify-between items-start">
+                  <Badge className="bg-emerald-500/10 text-emerald-500 border-none text-[8px] px-2 py-0.5 uppercase mb-2">Market Alert</Badge>
+                  <ArrowUpRight size={14} className="text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+                <CardTitle className="text-sm font-bold text-white">Pricing Arbitrage Found</CardTitle>
+              </CardHeader>
+              <CardContent className="pb-4">
+                <p className="text-[10px] text-slate-400 leading-relaxed">
+                  Competitors in your top category raised prices by 12%. Astra suggests a ₹150 hike for SKU-KT-01.
+                </p>
+              </CardContent>
+            </Card>
           </div>
         </div>
       )}
