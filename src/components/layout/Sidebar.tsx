@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -14,14 +13,12 @@ import {
   ChevronRight,
   BrainCircuit,
   Zap,
-  Ticket,
   CreditCard,
   Building2,
   HardDrive,
   History,
   X,
-  UserPlus,
-  Activity
+  UserPlus
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -29,7 +26,6 @@ import { useToast } from "@/hooks/use-toast";
 
 const navItems = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Strategic Hub", href: "/dashboard/ceo-hub", icon: Activity },
   { name: "AI Studio", href: "/dashboard/agents", icon: Sparkles },
   { name: "Growth Intel", href: "/dashboard/growth", icon: TrendingUp },
   { name: "Projects", href: "/dashboard/projects", icon: FolderKanban },
@@ -55,10 +51,7 @@ export function Sidebar({ onClose }: SidebarProps) {
   }, []);
 
   const handleSignOut = () => {
-    toast({
-      title: "Logged Out",
-      description: "Session closed successfully.",
-    });
+    toast({ title: "Logged Out" });
     router.push("/");
   };
 
@@ -107,25 +100,16 @@ export function Sidebar({ onClose }: SidebarProps) {
       </nav>
 
       <div className="p-4 border-t border-white/5 space-y-4">
-        <div className="p-4 rounded-xl bg-primary/10 border border-primary/20 relative overflow-hidden">
-          <div className="relative z-10">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-1">Active Tier</p>
-            <p className="text-sm font-bold text-white flex items-center gap-2 mb-3">
-              Free Trial <Zap size={10} className="text-amber-500 fill-amber-500" />
-            </p>
-            <Button size="sm" className="w-full h-8 text-[10px] font-bold uppercase tracking-widest rounded-lg bg-primary hover:bg-primary/90 text-white" asChild>
-              <Link href="/pricing" onClick={handleLinkClick}>Upgrade</Link>
-            </Button>
-          </div>
-          <div className="absolute -right-4 -bottom-4 opacity-5">
-            <HardDrive size={64} />
-          </div>
+        <div className="p-4 rounded-xl bg-primary/10 border border-primary/20">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-1">Active Tier</p>
+          <p className="text-sm font-bold text-white flex items-center gap-2 mb-3">
+            Free Trial <Zap size={10} className="text-amber-500 fill-amber-500" />
+          </p>
+          <Button size="sm" className="w-full h-8 text-[10px] font-bold uppercase tracking-widest rounded-lg bg-primary hover:bg-primary/90 text-white" asChild>
+            <Link href="/pricing" onClick={handleLinkClick}>Upgrade</Link>
+          </Button>
         </div>
-        <Button 
-          variant="ghost" 
-          onClick={handleSignOut}
-          className="w-full justify-start text-slate-500 hover:bg-white/5 hover:text-white transition-colors h-10"
-        >
+        <Button variant="ghost" onClick={handleSignOut} className="w-full justify-start text-slate-500 hover:bg-white/5 hover:text-white transition-colors h-10">
           <LogOut size={18} className="mr-2" />
           Sign Out
         </Button>

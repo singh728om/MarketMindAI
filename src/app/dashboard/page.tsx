@@ -12,7 +12,6 @@ import {
   X,
   Loader2,
   Video,
-  Briefcase,
   RefreshCw,
   BarChart3,
   ArrowRight,
@@ -34,66 +33,16 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { query, collection, where, orderBy, limit, onSnapshot } from "firebase/firestore";
-import { useFirestore, useUser } from "@/firebase";
 import { KPI_DATA as STATIC_KPI, PERFORMANCE_CHART } from "@/lib/mock-data";
-import { errorEmitter } from "@/firebase/error-emitter";
-import { FirestorePermissionError } from "@/firebase/errors";
 import { cn } from "@/lib/utils";
 
 export default function Dashboard() {
   const [showTrialBanner, setShowTrialBanner] = useState(true);
-  const [ceoAnalysis, setCeoAnalysis] = useState<any>(null);
-  const [isLoadingAnalysis, setIsLoadingAnalysis] = useState(true);
   const [hasMounted, setHasMounted] = useState(false);
   
-  const db = useFirestore();
-  const { user, isUserLoading } = useUser();
-
   useEffect(() => {
     setHasMounted(true);
   }, []);
-
-  useEffect(() => {
-    if (!hasMounted || isUserLoading || !user || !db) {
-      if (!isUserLoading && !user) setIsLoadingAnalysis(false);
-      return;
-    }
-
-    const analysesRef = collection(db, "ceoAnalyses");
-    const q = query(
-      analysesRef,
-      where("userProfileId", "==", user.uid),
-      orderBy("createdAt", "desc"),
-      limit(1)
-    );
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      if (!snapshot.empty) {
-        setCeoAnalysis(snapshot.docs[0].data());
-      }
-      setIsLoadingAnalysis(false);
-    }, (err) => {
-      errorEmitter.emit('permission-error', new FirestorePermissionError({
-        path: "ceoAnalyses",
-        operation: 'list',
-      }));
-      setIsLoadingAnalysis(false);
-    });
-
-    return () => unsubscribe();
-  }, [db, user, isUserLoading, hasMounted]);
-
-  const kpis = useMemo(() => {
-    if (!ceoAnalysis) return STATIC_KPI;
-    const m = ceoAnalysis.metrics || {};
-    return [
-      { title: "Total Sales", value: `₹${((m.totalSales || 0) / 100000).toFixed(1)}L`, change: "+12.5%", trend: "up" },
-      { title: "CTR", value: `${m.ctr || 0}%`, change: "+0.4%", trend: "up" },
-      { title: "Return Rate", value: `${m.returnRate || 0}%`, change: "-0.2%", trend: "down" },
-      { title: "ROAS", value: `${m.roas || 0}x`, change: "+0.5x", trend: "up" }
-    ];
-  }, [ceoAnalysis]);
 
   if (!hasMounted) {
     return (
@@ -124,7 +73,7 @@ export default function Dashboard() {
                 <h2 className="text-xl font-headline font-bold text-white">7 Days Remaining in Your Free Trial</h2>
               </div>
               <p className="text-slate-400 max-w-2xl text-sm">
-                Experience the power of Astra Intelligence Node: AS-S1-V4. Upgrade now to unlock unlimited AI Photoshoots and growth intelligence.
+                Unlock unlimited AI Photoshoots and growth intelligence with a premium node.
               </p>
             </div>
             
@@ -139,22 +88,10 @@ export default function Dashboard() {
 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-3xl font-headline font-bold text-white">Brand Overview</h1>
-            {ceoAnalysis && (
-              <Badge variant="outline" className="bg-amber-500/10 text-amber-500 border-amber-500/30 font-bold text-[10px] uppercase tracking-widest">
-                <Briefcase size={10} className="mr-1" /> Astra Active
-              </Badge>
-            )}
-          </div>
-          <p className="text-slate-400 text-sm">Performance is {ceoAnalysis ? `synchronized for ${ceoAnalysis.marketplace}` : 'optimized for growth'}.</p>
+          <h1 className="text-3xl font-headline font-bold text-white mb-1">Brand Overview</h1>
+          <p className="text-slate-400 text-sm">Real-time marketplace performance optimized for growth.</p>
         </div>
         <div className="flex items-center gap-3">
-          <Button size="sm" className="bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20" asChild>
-            <Link href="/dashboard/ceo-hub">
-              <RefreshCw className="w-4 h-4 mr-2" /> Run Audit
-            </Link>
-          </Button>
           <Button size="sm" variant="outline" className="border-white/5 bg-slate-900 text-white" asChild>
             <Link href="/dashboard/projects">
               <Plus className="w-4 h-4 mr-2" /> New Project
@@ -164,7 +101,7 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {kpis.map((kpi) => (
+        {STATIC_KPI.map((kpi) => (
           <Card key={kpi.title} className="rounded-2xl border-white/5 bg-slate-900/50">
             <CardContent className="p-6">
               <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">{kpi.title}</p>
@@ -189,7 +126,7 @@ export default function Dashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="font-headline text-white">Marketplace Velocity</CardTitle>
-                  <CardDescription className="text-slate-500">Live correlation between ad spend and direct conversion.</CardDescription>
+                  <CardDescription className="text-slate-500">Correlation between ad spend and conversion.</CardDescription>
                 </div>
                 <Badge variant="outline" className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[10px]">
                   <Activity size={12} className="mr-1" /> Real-time
@@ -257,7 +194,7 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent className="pt-4 flex flex-col items-center justify-center min-h-[120px] text-center">
                 <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">Untapped Potential</p>
-                <h3 className="text-3xl font-headline font-bold text-emerald-500">₹{(ceoAnalysis ? ((ceoAnalysis.metrics?.totalSales || 0) * 0.4 / 100000).toFixed(1) : '12.4')}L</h3>
+                <h3 className="text-3xl font-headline font-bold text-emerald-500">₹12.4L</h3>
                 <p className="text-[10px] text-slate-400 mt-2">Targeted monthly lift via AI optimization.</p>
               </CardContent>
             </Card>
@@ -284,9 +221,6 @@ export default function Dashboard() {
                   <p className="text-xs text-slate-300 leading-relaxed">{item.text}</p>
                 </div>
               ))}
-              <Button variant="ghost" className="w-full text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:text-white" asChild>
-                <Link href="/dashboard/ceo-hub">Enter Command Center <ArrowRight size={12} className="ml-1" /></Link>
-              </Button>
             </CardContent>
           </Card>
 
@@ -296,7 +230,6 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent className="grid grid-cols-1 gap-2">
               {[
-                { icon: Briefcase, label: "Command Center", href: "/dashboard/ceo-hub", color: "text-primary" },
                 { icon: Video, label: "Create AI Ad", href: "/dashboard/agents?agent=video", color: "text-rose-500" },
                 { icon: ShoppingBag, label: "New Project", href: "/dashboard/projects", color: "text-emerald-500" }
               ].map((link) => (
