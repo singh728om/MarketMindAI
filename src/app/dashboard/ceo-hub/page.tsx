@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -23,7 +24,8 @@ import {
   Info,
   FileUp,
   CheckCircle2,
-  Settings
+  Settings,
+  Cpu
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -99,7 +101,11 @@ export default function CEOHubPage() {
   };
 
   const handleRunAudit = async () => {
-    if (!user || !db) return;
+    if (!user || !db) {
+      toast({ variant: "destructive", title: "Auth Sync Required", description: "Please ensure your session is active before running board-level audits." });
+      return;
+    }
+    
     setIsAuditing(true);
 
     try {
@@ -110,8 +116,8 @@ export default function CEOHubPage() {
       if (!apiKey) {
         toast({
           variant: "destructive",
-          title: "System Node Offline",
-          description: "Astra's intelligence core requires a Gemini API Key. Please visit System Config in the Ops Console."
+          title: "Astra Core Node Offline",
+          description: "This executive feature requires a specialized API Node. Configure your node in the Internal Ops Console."
         });
         setIsAuditing(false);
         return;
@@ -119,7 +125,7 @@ export default function CEOHubPage() {
 
       const result = await runAICeoAnalysis({
         marketplace: marketplace as any,
-        reportSummary: `Analysis of uploaded reports: ${uploadedFiles.join(', ')}. Mode: Boardroom Pillar Synthesis.`,
+        reportSummary: `Analysis of uploaded reports: ${uploadedFiles.join(', ')}. Mode: Boardroom Pillar Synthesis v4.`,
         apiKey: apiKey
       });
 
@@ -147,11 +153,11 @@ export default function CEOHubPage() {
           errorEmitter.emit('permission-error', permissionError);
         });
       
-      toast({ title: "Audit Complete", description: "Boardroom intelligence has been updated." });
+      toast({ title: "Boardroom Audit Complete", description: "Intelligence results have been mirrored to your dashboard." });
       setUploadedFiles([]);
     } catch (err: any) {
       console.error(err);
-      toast({ variant: "destructive", title: "Audit Failed", description: err.message || "The AI node is currently busy. Please retry." });
+      toast({ variant: "destructive", title: "Synthesis Error", description: err.message || "Astra Core is busy. Please re-trigger node in 10s." });
     } finally {
       setIsAuditing(false);
     }
@@ -166,7 +172,7 @@ export default function CEOHubPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
         <Loader2 className="animate-spin text-amber-500 w-12 h-12" />
-        <p className="text-slate-400 font-medium font-headline">Summoning Boardroom Intelligence...</p>
+        <p className="text-slate-400 font-medium font-headline">Syncing Astra Strategic Core...</p>
       </div>
     );
   }
@@ -186,22 +192,22 @@ export default function CEOHubPage() {
           </div>
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <h1 className="text-3xl font-headline font-bold text-white">CEO Department Hub</h1>
-              <Badge className="bg-amber-500 text-black font-bold text-[10px] uppercase">Astra Active</Badge>
+              <h1 className="text-3xl font-headline font-bold text-white">CEO Strategic Hub</h1>
+              <Badge className="bg-amber-500 text-black font-bold text-[10px] uppercase">Processing Node: Active</Badge>
             </div>
-            <p className="text-slate-400">Strategic command center operated by Astra AI.</p>
+            <p className="text-slate-400">Boardroom orchestration operated by Astra Intelligence.</p>
           </div>
         </div>
         {analysis && (
           <div className="flex items-center gap-3">
             <Button variant="outline" className="border-white/5 bg-slate-900 text-white h-12 px-6 rounded-xl">
-              <History className="mr-2 w-4 h-4" /> History
-            </Button>
+              <History className="mr-2 w-4 h-4" /> Audit Logs
+            </History>
             <Button 
               className="bg-amber-500 hover:bg-amber-600 text-black font-bold h-12 px-8 rounded-xl shadow-xl shadow-amber-500/20"
               onClick={() => setAnalysis(null)}
             >
-              <RefreshCw className="mr-2 w-4 h-4" /> New Audit
+              <RefreshCw className="mr-2 w-4 h-4" /> New Strategic Audit
             </Button>
           </div>
         )}
@@ -216,36 +222,36 @@ export default function CEOHubPage() {
                 <Target size={32} className={isAuditing ? "animate-pulse" : ""} />
               </div>
               <div className="space-y-4">
-                <h2 className="text-3xl font-headline font-bold text-white tracking-tight">Initiate Strategic Audit</h2>
+                <h2 className="text-3xl font-headline font-bold text-white tracking-tight">Initiate Global Audit</h2>
                 <p className="text-slate-400 text-lg leading-relaxed">
-                  Astra requires your latest marketplace data to generate boardroom metrics and detect profit leakage. Select your platform and upload current reports.
+                  Astra requires deep marketplace ingestion to synthesize your boardroom strategy. Please upload your latest financial and operational signals below.
                 </p>
               </div>
 
               <div className="space-y-6">
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Select Platform</Label>
+                  <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Target Marketplace</Label>
                   <Select value={marketplace} onValueChange={setMarketplace}>
                     <SelectTrigger className="bg-slate-800 border-white/5 h-14 rounded-xl text-white text-lg">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-slate-800 border-white/10 text-white">
-                      <SelectItem value="Amazon">Amazon India</SelectItem>
-                      <SelectItem value="Flipkart">Flipkart</SelectItem>
-                      <SelectItem value="Myntra">Myntra India</SelectItem>
-                      <SelectItem value="Ajio">Ajio</SelectItem>
-                      <SelectItem value="Nykaa">Nykaa</SelectItem>
+                      <SelectItem value="Amazon">Amazon Global / India</SelectItem>
+                      <SelectItem value="Flipkart">Flipkart Commerce</SelectItem>
+                      <SelectItem value="Myntra">Myntra Lifestyle</SelectItem>
+                      <SelectItem value="Ajio">Ajio Premium</SelectItem>
+                      <SelectItem value="Nykaa">Nykaa Beauty & Fashion</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-4">
-                  <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Ingest Financial Reports</Label>
+                  <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Ingest Departmental Signals</Label>
                   <div className="grid grid-cols-2 gap-3">
-                    <ReportUploadButton id="r1" label="Sales & Revenue" onFile={handleFileChange} />
-                    <ReportUploadButton id="r2" label="Ad Spends" onFile={handleFileChange} />
-                    <ReportUploadButton id="r3" label="Return/RTO" onFile={handleFileChange} />
-                    <ReportUploadButton id="r4" label="Inventory" onFile={handleFileChange} />
+                    <ReportUploadButton id="r1" label="Revenue & GMV" onFile={handleFileChange} />
+                    <ReportUploadButton id="r2" label="Ad Performance" onFile={handleFileChange} />
+                    <ReportUploadButton id="r3" label="Returns & RTO" onFile={handleFileChange} />
+                    <ReportUploadButton id="r4" label="Stock Velocity" onFile={handleFileChange} />
                   </div>
                   {uploadedFiles.length > 0 && (
                     <div className="flex flex-wrap gap-2 pt-2 animate-in fade-in zoom-in">
@@ -264,11 +270,11 @@ export default function CEOHubPage() {
                   onClick={handleRunAudit}
                 >
                   {isAuditing ? (
-                    <><RefreshCw className="mr-2 h-6 w-6 animate-spin" /> Synchronizing Intelligence...</>
+                    <><RefreshCw className="mr-2 h-6 w-6 animate-spin" /> Astra Core Processing...</>
                   ) : uploadedFiles.length === 0 ? (
-                    <><FileUp className="mr-2 h-6 w-6" /> Upload Reports to Begin</>
+                    <><FileUp className="mr-2 h-6 w-6" /> Upload Signals to Begin</>
                   ) : (
-                    <><Zap className="mr-2 h-6 w-6" /> Start Boardroom Audit</>
+                    <><Zap className="mr-2 h-6 w-6" /> Start Boardroom Synthesis</>
                   )}
                 </Button>
               </div>
@@ -279,27 +285,27 @@ export default function CEOHubPage() {
           <div className="space-y-6">
             <Card className="rounded-[2rem] border-white/5 bg-slate-900 p-8 space-y-8">
               <div className="space-y-2">
-                <h4 className="text-xs font-bold text-amber-500 uppercase tracking-[0.2em]">Audit Scope</h4>
-                <p className="text-slate-500 text-sm italic">Comprehensive Departmental Verification</p>
+                <h4 className="text-xs font-bold text-amber-500 uppercase tracking-[0.2em]">Synthesis Scope</h4>
+                <p className="text-slate-500 text-sm italic">Multivariate Operational Analysis</p>
               </div>
               
               <div className="space-y-8">
-                <AuditBenefit icon={TrendingUp} title="ROAS Efficiency" desc="Correlate ad spend against direct SKU performance." />
-                <AuditBenefit icon={ShieldAlert} title="Leakage Detection" desc="Identify margin erosion in returns and logistics." />
-                <AuditBenefit icon={Boxes} title="Inventory Logic" desc="Predict stock-outs and free up slow-moving capital." />
-                <AuditBenefit icon={BadgeCheck} title="Marketplace Health" desc="Monitor brand registry and listing policy compliance." />
+                <AuditBenefit icon={TrendingUp} title="Growth Velocity" desc="Cross-referencing ad spikes against organic ranking shifts." />
+                <AuditBenefit icon={ShieldAlert} title="Leakage Protection" desc="Real-time detection of margin erosion in RTO and shipping." />
+                <AuditBenefit icon={Boxes} title="Inventory Logic" desc="Capital reallocation based on predictive SKU velocity." />
+                <AuditBenefit icon={BadgeCheck} title="Regulatory Check" desc="Automated compliance audit against platform policies." />
               </div>
 
               <div className="pt-6 border-t border-white/5 space-y-4">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-amber-500">
-                    <Settings size={16} />
+                    <Cpu size={16} />
                   </div>
-                  <p className="text-xs font-bold text-slate-300">Model: Gemini 1.5 Pro</p>
+                  <p className="text-xs font-bold text-slate-300">Astra Intelligence Node: AS-S1-V4</p>
                 </div>
                 <div className="p-4 rounded-xl bg-white/5 border border-white/5">
                   <p className="text-[10px] text-slate-500 leading-relaxed italic">
-                    "Astra uses cross-platform logic to analyze reports. Results are calibrated for the Indian market ecosystem."
+                    "This node utilizes advanced neural synthesis to correlate raw marketplace CSV exports into boardroom-ready strategy."
                   </p>
                 </div>
               </div>
@@ -315,16 +321,16 @@ export default function CEOHubPage() {
               <CardHeader className="bg-gradient-to-r from-amber-500/10 to-transparent p-8 pb-4">
                 <div className="flex items-center gap-3 mb-2">
                   <Sparkles size={18} className="text-amber-500" />
-                  <span className="text-[10px] font-bold text-amber-500 uppercase tracking-[0.2em]">Astra's Executive Summary</span>
+                  <span className="text-[10px] font-bold text-amber-500 uppercase tracking-[0.2em]">Executive Strategy Briefing</span>
                 </div>
-                <CardTitle className="text-2xl md:text-3xl font-headline">Strategic Brand Pulse</CardTitle>
+                <CardTitle className="text-2xl md:text-3xl font-headline">Brand Strategic Pulse</CardTitle>
               </CardHeader>
               <CardContent className="p-8 pt-4">
                 <p className="text-slate-300 text-lg leading-relaxed italic">"{analysis.summary}"</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10 pt-8 border-t border-white/5">
                   <div className="space-y-4">
                     <h4 className="text-[10px] font-bold text-primary uppercase tracking-widest flex items-center gap-2">
-                      <TrendingUp size={14} /> Revenue Drivers
+                      <TrendingUp size={14} /> Revenue Accelerators
                     </h4>
                     {analysis.pillars?.revenueGrowth.map((rec: string, i: number) => (
                       <div key={i} className="p-4 rounded-2xl bg-white/5 border border-white/5 text-sm font-medium hover:border-primary/30 transition-colors">
@@ -334,7 +340,7 @@ export default function CEOHubPage() {
                   </div>
                   <div className="space-y-4">
                     <h4 className="text-[10px] font-bold text-rose-500 uppercase tracking-widest flex items-center gap-2">
-                      <TrendingDown size={14} /> Efficiency Gaps
+                      <TrendingDown size={14} /> Efficiency Vulnerabilities
                     </h4>
                     {analysis.pillars?.costOptimization.map((rec: string, i: number) => (
                       <div key={i} className="p-4 rounded-2xl bg-rose-500/5 border border-rose-500/10 text-sm font-medium hover:border-rose-500/30 transition-colors">
@@ -352,11 +358,11 @@ export default function CEOHubPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle className="font-headline text-xl flex items-center gap-2">
-                      <ShieldAlert className="text-rose-500" /> Financial Leakage Audit
+                      <ShieldAlert className="text-rose-500" /> Margin Leakage Audit
                     </CardTitle>
-                    <CardDescription>Identifying operational inefficiencies and margin erosion.</CardDescription>
+                    <CardDescription>Automated detection of operational inefficiencies.</CardDescription>
                   </div>
-                  <Badge variant="outline" className="bg-rose-500/10 text-rose-500 border-rose-500/20 px-3 py-1 font-bold">AUDIT ACTIVE</Badge>
+                  <Badge variant="outline" className="bg-rose-500/10 text-rose-500 border-rose-500/20 px-3 py-1 font-bold tracking-tighter uppercase">Audit Active</Badge>
                 </div>
               </CardHeader>
               <CardContent className="p-0">
@@ -373,7 +379,7 @@ export default function CEOHubPage() {
                         </div>
                       </div>
                       <div className="flex flex-col items-end shrink-0">
-                        <span className="text-[10px] font-bold text-slate-500 uppercase">Est. Monthly Loss</span>
+                        <span className="text-[10px] font-bold text-slate-500 uppercase">Estimated Impact</span>
                         <span className="text-xl font-headline font-bold text-rose-500">₹{metrics ? (metrics.loss * 0.3).toLocaleString() : '0'}</span>
                       </div>
                     </div>
@@ -387,7 +393,7 @@ export default function CEOHubPage() {
               <CardFooter className="bg-rose-500/5 p-6 border-t border-white/5">
                 <div className="flex items-center gap-3 text-xs text-rose-400">
                   <Info size={14} />
-                  <span>Astra suggests running the **Ad Tuning Flow** to recapture ~₹{metrics ? (metrics.loss * 0.4 / 1000).toFixed(1) : '0'}k this week.</span>
+                  <span>Astra suggests initiating the **Inventory Optimization Flow** to recapture ~₹{metrics ? (metrics.loss * 0.4 / 1000).toFixed(1) : '0'}k.</span>
                 </div>
               </CardFooter>
             </Card>
@@ -396,7 +402,7 @@ export default function CEOHubPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card className="rounded-3xl border-white/5 bg-slate-900 p-8 space-y-6">
                 <h4 className="text-lg font-headline font-bold flex items-center gap-2">
-                  <Target className="text-emerald-500" /> Inventory Strategy
+                  <Target className="text-emerald-500" /> Capital Efficiency
                 </h4>
                 <div className="space-y-4">
                   {analysis.pillars?.inventoryPlanning.map((item: string, i: number) => (
@@ -410,7 +416,7 @@ export default function CEOHubPage() {
 
               <Card className="rounded-3xl border-white/5 bg-slate-900 p-8 space-y-6">
                 <h4 className="text-lg font-headline font-bold flex items-center gap-2">
-                  <Boxes className="text-blue-500" /> Risk & Compliance
+                  <Boxes className="text-blue-500" /> Compliance & Risk
                 </h4>
                 <div className="space-y-4">
                   {analysis.pillars?.riskMonitoring.map((item: string, i: number) => (
@@ -437,20 +443,20 @@ export default function CEOHubPage() {
                 </div>
                 <div>
                   <h3 className="text-2xl font-headline font-bold">Astra</h3>
-                  <p className="text-xs font-bold text-amber-500 uppercase tracking-widest">AI CEO & Strategist</p>
+                  <p className="text-xs font-bold text-amber-500 uppercase tracking-widest">Strategic Intelligence Lead</p>
                 </div>
                 <div className="pt-4 border-t border-white/5 flex justify-center gap-6">
                   <div className="text-center">
                     <p className="text-[10px] font-bold text-slate-500 uppercase">Uptime</p>
-                    <p className="text-sm font-bold text-white">24/7</p>
+                    <p className="text-sm font-bold text-white">100%</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-[10px] font-bold text-slate-500 uppercase">Nodes</p>
+                    <p className="text-[10px] font-bold text-slate-500 uppercase">Latent</p>
+                    <p className="text-sm font-bold text-white">0.8ms</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-[10px] font-bold text-slate-500 uppercase">Sync</p>
                     <p className="text-sm font-bold text-white">AS-S1</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-[10px] font-bold text-slate-500 uppercase">Latency</p>
-                    <p className="text-sm font-bold text-white">~1.2s</p>
                   </div>
                 </div>
               </CardContent>
@@ -460,7 +466,7 @@ export default function CEOHubPage() {
             <Card className="rounded-3xl border-white/5 bg-slate-900 overflow-hidden">
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg font-headline flex items-center gap-2 text-white">
-                  <BarChart3 className="text-primary" size={18} /> CEO Metrics Pulse
+                  <BarChart3 className="text-primary" size={18} /> Boardroom Pulse
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-8 pt-4 space-y-6">
@@ -480,10 +486,10 @@ export default function CEOHubPage() {
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between text-xs font-bold uppercase tracking-widest">
-                    <span className="text-slate-500">Capital Free-flow</span>
-                    <span className="text-amber-500">72%</span>
+                    <span className="text-slate-500">Inventory Liquidity</span>
+                    <span className="text-amber-500">84%</span>
                   </div>
-                  <Progress value={72} className="h-1.5 bg-slate-800" />
+                  <Progress value={84} className="h-1.5 bg-slate-800" />
                 </div>
               </CardContent>
             </Card>
@@ -514,7 +520,7 @@ function ReportUploadButton({ id, label, onFile }: { id: string, label: string, 
     <div className="p-4 rounded-xl bg-slate-800 border border-white/5 flex flex-col items-center gap-3 hover:bg-slate-700 transition-colors cursor-pointer group relative">
       <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={onFile} />
       <FileUp size={20} className="text-slate-500 group-hover:text-amber-500 transition-colors" />
-      <span className="text-[10px] font-bold uppercase text-slate-400 group-hover:text-white transition-colors">{label}</span>
+      <span className="text-[10px] font-bold uppercase text-slate-400 group-hover:text-white transition-colors text-center">{label}</span>
     </div>
   );
 }
