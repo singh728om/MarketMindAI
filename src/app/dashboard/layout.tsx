@@ -19,9 +19,11 @@ export default function DashboardLayout({
   const [isChecking, setIsChecking] = useState(true);
   const [isExpired, setIsExpired] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {
-    // SIMULATION LOGIC:
+    setHasMounted(true);
+    // Simulation logic deferred to client-side only
     const joinedDate = new Date();
     joinedDate.setDate(joinedDate.getDate() - 2); 
 
@@ -34,62 +36,49 @@ export default function DashboardLayout({
       toast({
         variant: "destructive",
         title: "Trial Period Expired",
-        description: "Your 7-day access has ended. Please upgrade to a premium plan to regain access to your dashboard.",
+        description: "Your 7-day access has ended.",
       });
-      const timer = setTimeout(() => {
-        router.push("/");
-      }, 2000);
-      return () => clearTimeout(timer);
+      router.push("/");
     } else {
       setIsChecking(false);
     }
   }, [router, toast]);
 
-  if (isExpired || isChecking) {
+  if (!hasMounted || isChecking || isExpired) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background hero-gradient">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background hero-gradient text-white">
         <div className="text-center space-y-4">
           <Loader2 className="w-12 h-12 text-primary animate-spin mx-auto" />
-          <h2 className="text-xl font-headline font-bold">
-            {isExpired ? "Access Restricted" : "Verifying Trial Status..."}
-          </h2>
-          <p className="text-muted-foreground px-4">
-            {isExpired 
-              ? "Redirecting to landing page..." 
-              : "Checking your 7-day high-performance trial duration."}
-          </p>
+          <h2 className="text-xl font-headline font-bold">Initializing Brand Workspace...</h2>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen flex-col md:flex-row">
-      {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-64 h-screen fixed left-0 top-0 z-40 border-r">
+    <div className="flex min-h-screen flex-col md:flex-row bg-[#0a0a0c]">
+      <aside className="hidden md:flex w-64 h-screen fixed left-0 top-0 z-40 border-r border-white/5">
         <Sidebar />
       </aside>
 
-      {/* Mobile Header */}
-      <header className="md:hidden flex items-center justify-between px-4 h-16 border-b bg-card sticky top-0 z-50">
+      <header className="md:hidden flex items-center justify-between px-4 h-16 border-b border-white/5 bg-slate-950 sticky top-0 z-50">
         <div className="flex items-center gap-2">
           <BrainCircuit className="text-primary w-6 h-6" />
-          <span className="font-headline font-bold text-lg">MarketMind AI</span>
+          <span className="font-headline font-bold text-lg text-white">MarketMind AI</span>
         </div>
         <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" className="text-white">
               <Menu size={24} />
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="p-0 w-72">
+          <SheetContent side="left" className="p-0 w-72 bg-slate-950 border-white/5">
             <Sidebar onClose={() => setIsMobileMenuOpen(false)} />
           </SheetContent>
         </Sheet>
       </header>
 
-      {/* Main Content */}
-      <main className="flex-1 md:ml-64 bg-background/50 min-h-screen">
+      <main className="flex-1 md:ml-64 bg-background/50 min-h-screen text-white">
         <div className="max-w-7xl mx-auto p-4 md:p-8">
           {children}
         </div>
