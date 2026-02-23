@@ -42,6 +42,7 @@ const AI_EMPLOYEES = [
     name: "Astra",
     role: "AI CEO & Strategist",
     agentId: "ceo",
+    hubUrl: "/dashboard/ceo-hub",
     description: "Orchestrates top-level business intelligence, profit/loss monitoring, and investor-ready reporting.",
     skills: ["Financial Analysis", "Strategic Planning", "Leakage Detection"],
     icon: Briefcase,
@@ -143,7 +144,11 @@ export default function HireAIPage() {
 
   const handleHire = (employee: any) => {
     if (hiredRoles.includes(employee.role)) {
-      router.push(`/dashboard/agents?agent=${employee.agentId}`);
+      if (employee.hubUrl) {
+        router.push(employee.hubUrl);
+      } else {
+        router.push(`/dashboard/agents?agent=${employee.agentId}`);
+      }
       return;
     }
     
@@ -244,7 +249,7 @@ export default function HireAIPage() {
                   onClick={() => handleHire(emp)}
                 >
                   {isHired ? (
-                    <><ExternalLink size={16} className="mr-2" /> Go to Studio</>
+                    <><ExternalLink size={16} className="mr-2" /> {emp.id === 'ai-ceo' ? 'Open Hub' : 'Go to Studio'}</>
                   ) : (
                     "Hire Now"
                   )}
@@ -317,7 +322,7 @@ export default function HireAIPage() {
                 <div className="bg-primary/5 border border-primary/20 rounded-2xl p-5 flex items-center justify-between">
                   <div className="space-y-1">
                     <p className="text-xs font-bold text-primary uppercase">Contract Terms</p>
-                    <p className="text-xl font-bold">₹{selectedEmployee.price.toLocaleString()} / Month</p>
+                    <p className="text-xl font-bold">₹{selectedEmployee.price.toLocaleString()}/mo</p>
                   </div>
                   <Button 
                     className={cn(
@@ -327,7 +332,7 @@ export default function HireAIPage() {
                     onClick={() => handleHire(selectedEmployee)}
                   >
                     {hiredRoles.includes(selectedEmployee.role) ? (
-                      <><ExternalLink size={16} className="mr-2" /> Open AI Studio</>
+                      <><ExternalLink size={16} className="mr-2" /> Open {selectedEmployee.id === 'ai-ceo' ? 'Hub' : 'Studio'}</>
                     ) : (
                       <><ArrowRight size={16} className="mr-2" /> Recruit {selectedEmployee.name}</>
                     )}
