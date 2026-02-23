@@ -62,8 +62,13 @@ export default function Dashboard() {
   const currentPlan = useMemo(() => {
     const active = projects.filter(p => p.status !== 'Canceled');
     if (active.length === 0) return { name: "Free Trial", color: "bg-primary" };
-    const hasPro = active.some(p => Number(p.price) >= 10000);
-    return hasPro ? { name: "Pro Plan", color: "bg-amber-500" } : { name: "Plus Plan", color: "bg-emerald-500" };
+    
+    const totalValue = active.reduce((sum, p) => sum + (Number(p.price) || 0), 0);
+    
+    if (totalValue >= 50000) return { name: "Enterprise Plan", color: "bg-indigo-500" };
+    if (totalValue >= 10000) return { name: "Pro Plan", color: "bg-amber-500" };
+    
+    return { name: "Plus Plan", color: "bg-emerald-500" };
   }, [projects]);
 
   if (!hasMounted) {

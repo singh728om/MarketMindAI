@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
@@ -59,9 +58,11 @@ const PRICE_MAP: Record<string, number> = {
 export default function BillingPage() {
   const [isInvoiceOpen, setIsInvoiceOpen] = useState(false);
   const [projects, setProjects] = useState<any[]>([]);
+  const [hasMounted, setHasMounted] = useState(false);
   const { toast } = useToast();
   
   useEffect(() => {
+    setHasMounted(true);
     const loadProjects = () => {
       try {
         const saved = localStorage.getItem("marketmind_projects");
@@ -106,12 +107,14 @@ export default function BillingPage() {
       desc: "You have 7 days remaining in your high-performance agency trial." 
     };
     
-    const hasHighValue = activeProjects.some(p => {
-      const pPrice = Number(p.price) || PRICE_MAP[p.name] || 0;
-      return pPrice >= 10000;
-    });
+    if (totalInvestment >= 50000) return { 
+      name: "Enterprise Plan", 
+      badge: "Enterprise", 
+      color: "bg-indigo-500", 
+      desc: "Exclusive node capacity and dedicated strategic consultants." 
+    };
 
-    if (hasHighValue) return { 
+    if (totalInvestment >= 10000) return { 
       name: "Pro Plan", 
       badge: "Professional", 
       color: "bg-amber-500", 
@@ -124,7 +127,7 @@ export default function BillingPage() {
       color: "bg-emerald-500", 
       desc: "Core agency services active with enhanced growth intelligence." 
     };
-  }, [activeProjects]);
+  }, [activeProjects, totalInvestment]);
 
   const gst = Math.round(totalInvestment * 0.18);
   const grandTotal = totalInvestment + gst;
@@ -136,6 +139,8 @@ export default function BillingPage() {
     });
   };
 
+  if (!hasMounted) return null;
+
   return (
     <div className="space-y-8 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -143,7 +148,7 @@ export default function BillingPage() {
           <h1 className="text-3xl font-headline font-bold mb-1 text-white">Billing & Plans</h1>
           <p className="text-muted-foreground">Manage your marketplace investment and premium subscriptions.</p>
         </div>
-        <Link href="/pricing">
+        <Link href="/pricing" asChild>
           <Button className="rounded-xl h-12 px-6 shadow-lg shadow-primary/20 font-bold">
             <Plus className="w-4 h-4 mr-2" /> Add New Service
           </Button>
@@ -154,6 +159,7 @@ export default function BillingPage() {
         {/* Active Plan Card */}
         <Card className={cn(
           "rounded-3xl border-primary/20 relative overflow-hidden lg:col-span-1",
+          currentPlan.name === 'Enterprise Plan' ? "bg-indigo-500/5 border-indigo-500/20" :
           currentPlan.name === 'Pro Plan' ? "bg-amber-500/5 border-amber-500/20" : 
           currentPlan.name === 'Plus Plan' ? "bg-emerald-500/5 border-emerald-500/20" : 
           "bg-primary/5 border-primary/20"
@@ -191,13 +197,14 @@ export default function BillingPage() {
             </div>
           </CardContent>
           <CardFooter>
-            <Link href="/pricing" className="w-full">
+            <Link href="/pricing" className="w-full" asChild>
               <Button className={cn(
                 "w-full h-12 rounded-xl font-bold shadow-xl",
+                currentPlan.name === 'Enterprise Plan' ? "bg-indigo-500 hover:bg-indigo-600 text-white shadow-indigo-500/20" :
                 currentPlan.name === 'Pro Plan' ? "bg-amber-500 hover:bg-amber-600 text-black shadow-amber-500/20" : 
                 "bg-primary shadow-primary/20"
               )}>
-                {currentPlan.name === 'Pro Plan' ? "Manage Enterprise Terms" : "Manage Subscription"}
+                {currentPlan.name === 'Enterprise Plan' || currentPlan.name === 'Pro Plan' ? "Manage Enterprise Terms" : "Manage Subscription"}
               </Button>
             </Link>
           </CardFooter>

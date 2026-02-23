@@ -67,8 +67,10 @@ export function Sidebar({ onClose }: SidebarProps) {
     const active = projects.filter(p => p.status !== 'Canceled');
     if (active.length === 0) return { name: "Free Trial", color: "text-primary", badge: "Trial" };
     
-    const hasPro = active.some(p => Number(p.price) >= 10000);
-    if (hasPro) return { name: "Pro Plan", color: "text-amber-500", badge: "Pro" };
+    const totalValue = active.reduce((sum, p) => sum + (Number(p.price) || 0), 0);
+    
+    if (totalValue >= 50000) return { name: "Enterprise Plan", color: "text-indigo-500", badge: "Enterprise" };
+    if (totalValue >= 10000) return { name: "Pro Plan", color: "text-amber-500", badge: "Pro" };
     
     return { name: "Plus Plan", color: "text-emerald-500", badge: "Plus" };
   }, [projects]);
