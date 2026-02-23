@@ -20,7 +20,8 @@ import {
   Briefcase,
   Download,
   HardDrive,
-  Copy
+  Copy,
+  CheckCircle2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -53,9 +54,9 @@ import { Textarea } from "@/components/ui/textarea";
 
 const AGENTS = [
   { id: "photoshoot", title: "AI Photoshoot Studio", icon: Camera, desc: "Professional studio reshoots with model and environment control.", color: "text-purple-500" },
+  { id: "video", title: "Product to AI Video Ads", icon: Video, desc: "Transform product images into 5s cinematic UGC video ads.", color: "text-rose-500" },
   { id: "listing", title: "Listing Optimizer", icon: FileText, desc: "SEO-friendly titles, bullets, and descriptions via Gemini Vision.", color: "text-blue-500" },
   { id: "catalog", title: "Catalog Automation", icon: LayoutGrid, desc: "Template generation + marketplace rule validation.", color: "text-emerald-500" },
-  { id: "video", title: "Product to AI Video Ads", icon: Video, desc: "Transform product images into 5s cinematic UGC video ads.", color: "text-rose-500" },
   { id: "ugc", title: "UGC Script Studio", icon: Users, desc: "Creative hooks + detailed scripts.", color: "text-orange-500" },
   { id: "ranking", title: "Ranking Keyword Finder", icon: Search, desc: "Discover 10 high-intent keywords to boost visibility.", color: "text-amber-500" },
   { id: "leads", title: "Lead Generation Agent", icon: Globe, desc: "Extract B2B leads via location or website analysis.", color: "text-cyan-500" },
@@ -88,6 +89,7 @@ function AgentsContent() {
     location: "",
     country: "India",
     websiteUrl: "",
+    style: "high-end commercial editorial, extremely detailed, realistic lighting",
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -139,15 +141,44 @@ function AgentsContent() {
     }
   };
 
-  const handleCopy = (text: string) => {
-    navigator.clipboard.writeText(text);
-    toast({ title: "Copied to Clipboard" });
+  const handleVaultOutput = () => {
+    if (!output) return;
+    setIsVaulting(true);
+    
+    setTimeout(() => {
+      try {
+        const savedFilesStr = localStorage.getItem("marketmind_vault_files");
+        const files = savedFilesStr ? JSON.parse(savedFilesStr) : [];
+        
+        const newFile = {
+          id: Date.now(),
+          name: `${selectedAgent.title}_Result_${Date.now().toString().slice(-4)}.${output.type === 'video' ? 'mp4' : 'png'}`,
+          type: output.type === 'video' ? 'VIDEO' : 'IMAGE',
+          size: "1.2 MB",
+          date: "Just now",
+          status: "Stored",
+          url: output.imageUrl || output.videoUrl
+        };
+        
+        localStorage.setItem("marketmind_vault_files", JSON.stringify([newFile, ...files]));
+        localStorage.setItem("marketmind_vault_active", "true");
+        
+        toast({
+          title: "Secured in Vault",
+          description: "This asset has been added to your storage service.",
+        });
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsVaulting(false);
+      }
+    }, 1000);
   };
 
   const handleRunAgent = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isApiActive) {
-      toast({ variant: "destructive", title: "API Node Offline", description: "Please check your settings." });
+      toast({ variant: "destructive", title: "API Node Offline", description: "Please enter your Gemini API Key in System Config." });
       return;
     }
 
@@ -164,16 +195,20 @@ function AgentsContent() {
             modelType: formData.modelType,
             kidAge: formData.modelType === 'kids' ? formData.kidAge : undefined,
             background: formData.background,
+            style: formData.style,
             apiKey: activeKey
           });
           setOutput({ imageUrl: result.generatedImageDataUri, type: 'creative' });
           break;
         case 'video':
+          if (!formData.base64Image) {
+            throw new Error("Base product photo required for video generation.");
+          }
           result = await generateVideoAdContent({
             productName: formData.productName,
             productCategory: formData.category,
             background: formData.background,
-            photoDataUri: formData.base64Image!,
+            photoDataUri: formData.base64Image,
             apiKey: activeKey
           });
           setOutput({ videoUrl: result.videoDataUri, type: 'video' });
@@ -206,11 +241,11 @@ function AgentsContent() {
           setOutput({ ...result, type: 'leads' });
           break;
         default:
-          throw new Error("Coming soon.");
+          throw new Error("Agent logic currently under maintenance.");
       }
-      toast({ title: "Execution Complete" });
+      toast({ title: "Execution Complete", description: "Agent has delivered the output." });
     } catch (err: any) {
-      toast({ variant: "destructive", title: "Error", description: err.message });
+      toast({ variant: "destructive", title: "Execution Failed", description: err.message });
     } finally {
       setIsRunning(false);
     }
@@ -219,7 +254,7 @@ function AgentsContent() {
   if (!hasMounted) return null;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-headline font-bold mb-1 text-white">AI Studio</h1>
@@ -235,7 +270,7 @@ function AgentsContent() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {AGENTS.map((agent) => (
-          <Card key={agent.id} className="group hover:border-primary/50 transition-all rounded-2xl border-white/5 bg-card overflow-hidden cursor-pointer shadow-xl" onClick={() => setSelectedAgent(agent)}>
+          <Card key={agent.id} className="group hover:border-primary/50 transition-all rounded-2xl border-white/5 bg-card overflow-hidden cursor-pointer shadow-xl" onClick={() => { setOutput(null); setSelectedAgent(agent); }}>
             <CardHeader>
               <div className={`w-12 h-12 rounded-xl bg-muted flex items-center justify-center mb-4 ${agent.color}`}>
                 <agent.icon size={24} />
@@ -244,9 +279,9 @@ function AgentsContent() {
               <CardDescription className="text-slate-400 text-sm">{agent.desc}</CardDescription>
             </CardHeader>
             <CardFooter className="pt-0 justify-between">
-              <span className="text-[10px] font-bold text-emerald-500 uppercase">Ready</span>
+              <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Ready</span>
               <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
-                Run <ChevronRight size={14} className="ml-1" />
+                Configure <ChevronRight size={14} className="ml-1" />
               </Button>
             </CardFooter>
           </Card>
@@ -257,7 +292,7 @@ function AgentsContent() {
         <DialogContent className="max-w-4xl bg-slate-900 border-white/10 rounded-3xl overflow-hidden max-h-[95vh] flex flex-col p-0 text-white shadow-2xl">
           {selectedAgent && (
             <>
-              <DialogHeader className="p-8 border-b border-white/5">
+              <DialogHeader className="p-8 border-b border-white/5 bg-slate-900/50">
                 <div className="flex items-center gap-4">
                   <div className={`w-12 h-12 rounded-xl bg-slate-800 flex items-center justify-center ${selectedAgent.color}`}>
                     <selectedAgent.icon size={24} />
@@ -272,10 +307,11 @@ function AgentsContent() {
               <ScrollArea className="flex-1">
                 <div className="p-8 pb-24">
                   {!output ? (
-                    <form onSubmit={handleRunAgent} className="space-y-6">
+                    <form onSubmit={handleRunAgent} className="space-y-8">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Common Fields */}
                         <div className="space-y-2">
-                          <Label className="text-xs uppercase font-bold text-slate-500">Marketplace</Label>
+                          <Label className="text-xs uppercase font-bold text-slate-500 tracking-widest">Marketplace Context</Label>
                           <Select value={formData.marketplace} onValueChange={(val) => handleInputChange("marketplace", val)}>
                             <SelectTrigger className="bg-slate-800 border-white/5 h-12 rounded-xl"><SelectValue /></SelectTrigger>
                             <SelectContent className="bg-slate-800 border-white/10 text-white">
@@ -286,56 +322,173 @@ function AgentsContent() {
                           </Select>
                         </div>
                         <div className="space-y-2">
-                          <Label className="text-xs uppercase font-bold text-slate-500">Product Name</Label>
-                          <Input placeholder="e.g. Silk Kurta" className="bg-slate-800 border-white/5 h-12 rounded-xl" value={formData.productName} onChange={(e) => handleInputChange("productName", e.target.value)} />
+                          <Label className="text-xs uppercase font-bold text-slate-500 tracking-widest">Product Name</Label>
+                          <Input placeholder="e.g. Premium Silk Kurta" className="bg-slate-800 border-white/5 h-12 rounded-xl" value={formData.productName} onChange={(e) => handleInputChange("productName", e.target.value)} required />
                         </div>
                         <div className="space-y-2">
-                          <Label className="text-xs uppercase font-bold text-slate-500">Category</Label>
+                          <Label className="text-xs uppercase font-bold text-slate-500 tracking-widest">Category</Label>
                           <Select value={formData.category} onValueChange={(val) => handleInputChange("category", val)}>
                             <SelectTrigger className="bg-slate-800 border-white/5 h-12 rounded-xl"><SelectValue /></SelectTrigger>
                             <SelectContent className="bg-slate-800 border-white/10 text-white">
-                              <SelectItem value="Fashion">Fashion</SelectItem>
+                              <SelectItem value="Fashion">Fashion & Apparel</SelectItem>
                               <SelectItem value="Home Decor">Home Decor</SelectItem>
                               <SelectItem value="Electronics">Electronics</SelectItem>
+                              <SelectItem value="Beauty">Beauty & Wellness</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
-                        
+
+                        {/* Photoshoot Specific Fields */}
+                        {selectedAgent.id === 'photoshoot' && (
+                          <>
+                            <div className="space-y-2">
+                              <Label className="text-xs uppercase font-bold text-slate-500 tracking-widest">Shot Angle</Label>
+                              <Select value={formData.shotAngle} onValueChange={(val) => handleInputChange("shotAngle", val)}>
+                                <SelectTrigger className="bg-slate-800 border-white/5 h-12 rounded-xl"><SelectValue /></SelectTrigger>
+                                <SelectContent className="bg-slate-800 border-white/10 text-white">
+                                  <SelectItem value="front">Straight-on Front</SelectItem>
+                                  <SelectItem value="back">Back View</SelectItem>
+                                  <SelectItem value="left-side">Left Side Profile</SelectItem>
+                                  <SelectItem value="right-side">Right Side Profile</SelectItem>
+                                  <SelectItem value="close">Macro Texture Close-up</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-xs uppercase font-bold text-slate-500 tracking-widest">Model Type</Label>
+                              <Select value={formData.modelType} onValueChange={(val) => handleInputChange("modelType", val)}>
+                                <SelectTrigger className="bg-slate-800 border-white/5 h-12 rounded-xl"><SelectValue /></SelectTrigger>
+                                <SelectContent className="bg-slate-800 border-white/10 text-white">
+                                  <SelectItem value="none">None (Product Only)</SelectItem>
+                                  <SelectItem value="mens">Professional Male Model</SelectItem>
+                                  <SelectItem value="womens">Professional Female Model</SelectItem>
+                                  <SelectItem value="kids">Child Model</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            {formData.modelType === 'kids' && (
+                              <div className="space-y-2">
+                                <Label className="text-xs uppercase font-bold text-slate-500 tracking-widest">Kid's Age Group</Label>
+                                <Input type="number" placeholder="5" className="bg-slate-800 border-white/5 h-12 rounded-xl" value={formData.kidAge} onChange={(e) => handleInputChange("kidAge", e.target.value)} />
+                              </div>
+                            )}
+                            <div className="space-y-2">
+                              <Label className="text-xs uppercase font-bold text-slate-500 tracking-widest">Environment Background</Label>
+                              <Select value={formData.background} onValueChange={(val) => handleInputChange("background", val)}>
+                                <SelectTrigger className="bg-slate-800 border-white/5 h-12 rounded-xl"><SelectValue /></SelectTrigger>
+                                <SelectContent className="bg-slate-800 border-white/10 text-white">
+                                  <SelectItem value="studio">High-Key Studio</SelectItem>
+                                  <SelectItem value="outdoor">Urban City Street</SelectItem>
+                                  <SelectItem value="sport">Gym / Fitness Center</SelectItem>
+                                  <SelectItem value="nature">Garden / Park</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="md:col-span-2 space-y-2">
+                              <Label className="text-xs uppercase font-bold text-slate-500 tracking-widest">Creative Style Direction</Label>
+                              <Textarea placeholder="e.g. cinematic lighting, vogue aesthetic..." className="bg-slate-800 border-white/5 rounded-xl min-h-[80px]" value={formData.style} onChange={(e) => handleInputChange("style", e.target.value)} />
+                            </div>
+                          </>
+                        )}
+
+                        {/* Video Specific Fields */}
+                        {selectedAgent.id === 'video' && (
+                          <div className="space-y-2">
+                            <Label className="text-xs uppercase font-bold text-slate-500 tracking-widest">Scene Environment</Label>
+                            <Select value={formData.background} onValueChange={(val) => handleInputChange("background", val)}>
+                              <SelectTrigger className="bg-slate-800 border-white/5 h-12 rounded-xl"><SelectValue /></SelectTrigger>
+                              <SelectContent className="bg-slate-800 border-white/10 text-white">
+                                <SelectItem value="luxury lounge">Luxury Lounge</SelectItem>
+                                <SelectItem value="modern kitchen">Modern Kitchen</SelectItem>
+                                <SelectItem value="bright studio">Bright Studio</SelectItem>
+                                <SelectItem value="nature park">Morning Nature Park</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )}
+
+                        {/* Asset Upload */}
                         {(selectedAgent.id === 'photoshoot' || selectedAgent.id === 'video' || selectedAgent.id === 'listing') && (
                           <div className="md:col-span-2 space-y-4">
-                            <Label className="text-xs uppercase font-bold text-slate-500">Upload Photo</Label>
-                            <div onClick={() => fileInputRef.current?.click()} className={cn("border-2 border-dashed rounded-2xl p-8 flex flex-col items-center justify-center gap-3 cursor-pointer transition-all", formData.base64Image ? "border-primary bg-primary/5" : "border-white/10 bg-slate-800/30")}>
+                            <Label className="text-xs uppercase font-bold text-slate-500 tracking-widest">Raw Product Image (vision context)</Label>
+                            <div onClick={() => fileInputRef.current?.click()} className={cn("border-2 border-dashed rounded-2xl p-10 flex flex-col items-center justify-center gap-4 cursor-pointer transition-all", formData.base64Image ? "border-primary bg-primary/5" : "border-white/10 bg-slate-800/30 hover:bg-slate-800/50")}>
                               <input type="file" className="hidden" ref={fileInputRef} onChange={handleFileChange} accept="image/*" />
-                              {formData.base64Image ? <img src={formData.base64Image} className="w-24 h-24 object-contain" /> : <><Upload className="text-primary" /><p className="text-xs">Click to upload</p></>}
+                              {formData.base64Image ? (
+                                <div className="relative group">
+                                  <img src={formData.base64Image} className="w-32 h-32 object-contain rounded-lg" />
+                                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
+                                    <p className="text-[10px] font-bold">Change File</p>
+                                  </div>
+                                </div>
+                              ) : (
+                                <>
+                                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                                    <Upload size={24} />
+                                  </div>
+                                  <div className="text-center">
+                                    <p className="text-sm font-bold">Drop product photo here</p>
+                                    <p className="text-xs text-slate-500 mt-1">PNG, JPG or WEBP (Max 5MB)</p>
+                                  </div>
+                                </>
+                              )}
                             </div>
                           </div>
                         )}
                       </div>
-                      <Button type="submit" className="w-full h-14 rounded-xl font-bold shadow-xl shadow-primary/20" disabled={isRunning}>
-                        {isRunning ? <><RefreshCw className="mr-2 animate-spin" /> Running...</> : <><Zap className="mr-2" /> Execute Agent</>}
+                      <Button type="submit" className="w-full h-16 rounded-2xl font-bold shadow-2xl shadow-primary/20 text-lg" disabled={isRunning}>
+                        {isRunning ? <><RefreshCw className="mr-2 animate-spin" /> Astra Processing...</> : <><Zap className="mr-2" /> Execute Agent</>}
                       </Button>
                     </form>
                   ) : (
                     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">
-                      <div className="p-10 rounded-3xl bg-slate-800/50 border border-white/5 space-y-6">
-                        {output.imageUrl && <img src={output.imageUrl} className="w-full max-w-sm mx-auto rounded-2xl" />}
-                        {output.videoUrl && <video src={output.videoUrl} className="w-full max-w-sm mx-auto rounded-2xl" controls autoPlay loop />}
+                      <div className="p-10 rounded-[2.5rem] bg-slate-800/50 border border-white/5 space-y-8">
+                        <div className="text-center space-y-2">
+                          <Badge className="bg-emerald-500 text-white uppercase font-bold text-[10px] tracking-widest mb-2">Success</Badge>
+                          <h3 className="text-3xl font-headline font-bold">Astra Intelligence Delivery</h3>
+                          <p className="text-slate-400">The agent has processed your request based on marketplace parameters.</p>
+                        </div>
+
+                        {output.imageUrl && (
+                          <div className="relative group max-w-lg mx-auto">
+                            <img src={output.imageUrl} className="w-full rounded-[2rem] shadow-2xl" />
+                            <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors rounded-[2rem]" />
+                          </div>
+                        )}
+                        {output.videoUrl && (
+                          <video src={output.videoUrl} className="w-full max-w-lg mx-auto rounded-[2rem] shadow-2xl" controls autoPlay loop />
+                        )}
+                        
                         {output.type === 'listing' && (
-                          <div className="space-y-4">
-                            <div className="p-4 bg-slate-900 rounded-xl">
-                              <Label className="text-[10px] uppercase font-bold text-primary">Optimized Title</Label>
-                              <p className="text-sm">{output.title}</p>
+                          <div className="space-y-6 max-w-2xl mx-auto">
+                            <div className="p-6 bg-slate-900 rounded-2xl border border-white/5">
+                              <Label className="text-[10px] uppercase font-bold text-primary tracking-widest mb-2 block">SEO Title</Label>
+                              <p className="text-lg font-bold">{output.title}</p>
                             </div>
-                            <div className="p-4 bg-slate-900 rounded-xl">
-                              <Label className="text-[10px] uppercase font-bold text-primary">Key Bullets</Label>
-                              <ul className="text-xs space-y-2 mt-2">{output.bulletPoints?.map((b: string, i: number) => <li key={i} className="flex gap-2"><Zap size={12} className="text-amber-500 shrink-0" /> {b}</li>)}</ul>
+                            <div className="p-6 bg-slate-900 rounded-2xl border border-white/5">
+                              <Label className="text-[10px] uppercase font-bold text-primary tracking-widest mb-4 block">Key Performance Bullets</Label>
+                              <ul className="space-y-3">
+                                {output.bulletPoints?.map((b: string, i: number) => (
+                                  <li key={i} className="flex gap-3 text-sm">
+                                    <CheckCircle2 size={16} className="text-emerald-500 shrink-0 mt-0.5" />
+                                    <span className="text-slate-300">{b}</span>
+                                  </li>
+                                ))}
+                              </ul>
                             </div>
                           </div>
                         )}
                       </div>
-                      <div className="flex gap-3">
-                        <Button variant="outline" className="flex-1 h-12 rounded-xl" onClick={() => setOutput(null)}>Reset</Button>
-                        <Button className="flex-1 h-12 rounded-xl" onClick={() => toast({ title: "Downloading..." })}>Download</Button>
+
+                      <div className="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto">
+                        <Button variant="outline" className="flex-1 h-14 rounded-2xl border-white/10" onClick={() => setOutput(null)}>
+                          Discard Result
+                        </Button>
+                        <Button className="flex-1 h-14 rounded-2xl font-bold shadow-xl shadow-primary/20" onClick={handleVaultOutput} disabled={isVaulting}>
+                          {isVaulting ? <><Loader2 className="mr-2 animate-spin" /> Securing...</> : <><HardDrive className="mr-2" /> Vault Asset</>}
+                        </Button>
+                        <Button variant="secondary" className="flex-1 h-14 rounded-2xl font-bold" onClick={() => toast({ title: "Initiating Download..." })}>
+                          <Download className="mr-2" /> Download
+                        </Button>
                       </div>
                     </div>
                   )}
@@ -351,7 +504,7 @@ function AgentsContent() {
 
 export default function AgentsPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-primary w-12 h-12" /></div>}>
       <AgentsContent />
     </Suspense>
   );
