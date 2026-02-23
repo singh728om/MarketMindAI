@@ -212,7 +212,7 @@ export default function BillingPage() {
           </CardHeader>
           <CardContent className="flex-1 p-0">
              <div className="overflow-x-auto">
-               <table className="w-full text-left">
+               <table className="w-full text-left min-w-[600px]">
                  <thead>
                    <tr className="bg-muted/30 text-[10px] uppercase tracking-wider font-bold text-muted-foreground border-b border-white/5">
                      <th className="px-8 py-4">Service Description</th>
@@ -250,99 +250,105 @@ export default function BillingPage() {
                </table>
              </div>
           </CardContent>
-          <CardFooter className="bg-primary/5 p-8 border-t border-white/5 flex items-center justify-between">
-            <div className="space-y-1">
+          <CardFooter className="bg-primary/5 p-8 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="space-y-1 text-center sm:text-left">
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Active Investment (Subtotal)</p>
               <h3 className="text-3xl font-headline font-bold text-primary">₹{totalInvestment.toLocaleString()}</h3>
             </div>
-            <Button variant="outline" className="rounded-xl h-12 px-6" onClick={() => setIsInvoiceOpen(true)}>
+            <Button variant="outline" className="rounded-xl h-12 px-8 w-full sm:w-auto" onClick={() => setIsInvoiceOpen(true)}>
               View Final Bill
             </Button>
           </CardFooter>
         </Card>
       </div>
 
-      {/* Invoice History Detail Dialog */}
+      {/* Invoice History Detail Dialog - Optimized for Card View & Responsiveness */}
       <Dialog open={isInvoiceOpen} onOpenChange={setIsInvoiceOpen}>
-        <DialogContent className="max-w-2xl bg-card border-white/10 rounded-3xl overflow-hidden p-0">
-          <DialogHeader className="p-8 bg-primary text-primary-foreground">
-            <div className="flex justify-between items-start">
+        <DialogContent className="max-w-lg bg-slate-900 border-white/10 rounded-[2.5rem] overflow-hidden p-0 text-white shadow-2xl">
+          <DialogHeader className="p-8 bg-primary text-primary-foreground relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-8 opacity-10">
+              <FileText size={140} strokeWidth={1} />
+            </div>
+            <div className="flex justify-between items-start relative z-10">
               <div className="space-y-1">
-                <DialogTitle className="text-3xl font-headline font-bold flex items-center gap-2">
-                  <FileText size={28} /> Pro-forma Statement
+                <DialogTitle className="text-2xl font-headline font-bold flex items-center gap-2">
+                  <ReceiptText size={24} /> Pro-forma Statement
                 </DialogTitle>
-                <DialogDescription className="text-primary-foreground/70">
-                  MarketMind Agency Billing • {currentPlan.name}
+                <DialogDescription className="text-primary-foreground/70 text-xs font-bold uppercase tracking-widest">
+                  MarketMind AI Agency • {currentPlan.name}
                 </DialogDescription>
               </div>
-              <Badge className="bg-white/20 text-white border-white/20 backdrop-blur-sm px-3 py-1">
-                {currentPlan.name === 'Free Trial' ? 'TRIAL OFFSET' : 'ACTIVE PLAN'}
+              <Badge className="bg-white/20 text-white border-white/20 backdrop-blur-md px-3 py-1 font-bold text-[9px]">
+                {currentPlan.name === 'Free Trial' ? 'TRIAL OFFSET' : 'PAYMENT DUE'}
               </Badge>
             </div>
           </DialogHeader>
 
-          <div className="p-8 space-y-8">
+          <div className="p-6 md:p-8 space-y-6">
             <div className="space-y-4">
-              <div className="grid grid-cols-4 gap-4 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                <span className="col-span-2">Service Description</span>
-                <span className="text-center">Category</span>
-                <span className="text-right">Amount</span>
+              <div className="flex justify-between items-center px-2 text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">
+                <span>Enrolled Services</span>
+                <span>Amount</span>
               </div>
-              <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
-                {billingSummary.map((item, idx) => (
-                  <div key={idx} className="grid grid-cols-4 gap-4 p-4 rounded-xl bg-secondary/20 border border-white/5 text-sm items-center">
-                    <div className="col-span-2 flex flex-col">
-                      <span className="font-bold">{item.name}</span>
-                      <span className="text-[10px] text-muted-foreground">{item.date}</span>
+              <ScrollArea className="max-h-[280px] pr-2">
+                <div className="space-y-3">
+                  {billingSummary.map((item, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5 group hover:border-primary/30 transition-colors">
+                      <div className="flex flex-col gap-1 min-w-0 pr-4">
+                        <span className="font-bold text-sm truncate">{item.name}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[9px] text-slate-500 font-bold uppercase">{item.type}</span>
+                          <div className="w-1 h-1 rounded-full bg-slate-700" />
+                          <span className="text-[9px] text-slate-500">{item.date}</span>
+                        </div>
+                      </div>
+                      <span className="font-mono font-bold text-sm shrink-0">₹{item.price.toLocaleString()}</span>
                     </div>
-                    <div className="flex justify-center">
-                      <Badge variant="secondary" className="text-[9px] h-4">{item.type}</Badge>
+                  ))}
+                  {billingSummary.length === 0 && (
+                    <div className="text-center py-12 bg-secondary/10 rounded-[2rem] border border-dashed border-white/10">
+                      <p className="text-xs text-slate-500 font-medium">No active billable line items detected.</p>
                     </div>
-                    <span className="text-right font-mono font-bold">₹{item.price.toLocaleString()}</span>
-                  </div>
-                ))}
-                {billingSummary.length === 0 && (
-                  <div className="text-center py-10 bg-secondary/10 rounded-2xl border border-dashed border-white/5">
-                    <p className="text-xs text-slate-500">No active billable line items.</p>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
+              </ScrollArea>
             </div>
 
-            <div className="space-y-3 pt-4 border-t border-white/5">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Subtotal (Active Services)</span>
-                <span className="font-mono">₹{totalInvestment.toLocaleString()}</span>
+            <div className="space-y-3 pt-6 border-t border-white/5">
+              <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-slate-400 px-2">
+                <span>Subtotal</span>
+                <span className="font-mono text-white">₹{totalInvestment.toLocaleString()}</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">GST (18%)</span>
-                <span className="font-mono">₹{gst.toLocaleString()}</span>
+              <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-slate-400 px-2">
+                <span>GST (18%)</span>
+                <span className="font-mono text-white">₹{gst.toLocaleString()}</span>
               </div>
-              <div className="flex justify-between font-bold text-2xl pt-4 border-t border-white/5">
-                <span className="text-primary font-headline">Final Bill</span>
-                <span className="text-primary font-mono">₹{grandTotal.toLocaleString()}</span>
+              <div className="flex justify-between items-center pt-4 border-t border-white/10 px-2">
+                <div className="space-y-0.5">
+                  <span className="text-xs font-bold uppercase tracking-[0.3em] text-primary">Final Bill</span>
+                  <p className="text-[9px] text-slate-500 font-bold italic">Inclusive of all AI node compute</p>
+                </div>
+                <span className="text-3xl font-headline font-bold text-primary">₹{grandTotal.toLocaleString()}</span>
               </div>
             </div>
 
             <div className="bg-amber-500/5 border border-amber-500/20 p-4 rounded-2xl flex items-start gap-3">
-              <Clock size={20} className="text-amber-500 shrink-0 mt-0.5" />
+              <Clock size={18} className="text-amber-500 shrink-0 mt-0.5" />
               <div className="space-y-1">
-                <p className="text-xs font-bold text-amber-500">
-                  {currentPlan.name === 'Free Trial' ? "Payment Status: Free Tier Offset" : "Plan Activation: Verified"}
-                </p>
-                <p className="text-[10px] text-muted-foreground leading-relaxed">
-                  Your billing amount is dynamically updated based on your active service enrollments. All charges include proprietary AI node access and expert fulfillment oversight.
+                <p className="text-[10px] font-bold text-amber-500 uppercase tracking-widest">Fulfillment Notice</p>
+                <p className="text-[10px] text-slate-400 leading-relaxed">
+                  Statement generated dynamically based on real-time marketplace sync. Payment includes 24/7 priority node access and human expert audit.
                 </p>
               </div>
             </div>
           </div>
 
-          <DialogFooter className="p-6 bg-muted/20 border-t flex gap-2">
-            <Button variant="outline" className="flex-1 rounded-xl" onClick={() => setIsInvoiceOpen(false)}>
+          <DialogFooter className="p-6 bg-slate-800/30 border-t border-white/5 flex gap-3 flex-col sm:flex-row">
+            <Button variant="ghost" className="flex-1 rounded-xl text-slate-400 hover:text-white" onClick={() => setIsInvoiceOpen(false)}>
               Close
             </Button>
-            <Button className="flex-1 rounded-xl shadow-lg shadow-primary/20" onClick={() => handleDownloadInvoice('MND-LATEST')}>
-              <Printer size={16} className="mr-2" /> Download Statement
+            <Button className="flex-1 rounded-xl bg-primary shadow-xl shadow-primary/20 font-bold" onClick={() => handleDownloadInvoice('MND-INV-' + Date.now().toString().slice(-4))}>
+              <Printer size={16} className="mr-2" /> Download PDF
             </Button>
           </DialogFooter>
         </DialogContent>
