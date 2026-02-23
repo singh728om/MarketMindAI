@@ -37,12 +37,34 @@ import { KPI_DATA as STATIC_KPI, PERFORMANCE_CHART } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
 export default function Dashboard() {
-  const [showTrialBanner, setShowTrialBanner] = useState(true);
+  const [showTrialBanner, setShowTrialBanner] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
+  const [projects, setProjects] = useState<any[]>([]);
   
   useEffect(() => {
     setHasMounted(true);
+    const loadProjects = () => {
+      try {
+        const saved = localStorage.getItem("marketmind_projects");
+        const parsed = saved ? JSON.parse(saved) : [];
+        setProjects(parsed);
+        // Only show banner if on free trial (no active projects)
+        if (parsed.filter((p: any) => p.status !== 'Canceled').length === 0) {
+          setShowTrialBanner(true);
+        }
+      } catch (e) {}
+    };
+    loadProjects();
+    window.addEventListener('storage', loadProjects);
+    return () => window.removeEventListener('storage', loadProjects);
   }, []);
+
+  const currentPlan = useMemo(() => {
+    const active = projects.filter(p => p.status !== 'Canceled');
+    if (active.length === 0) return { name: "Free Trial", color: "bg-primary" };
+    const hasPro = active.some(p => Number(p.price) >= 10000);
+    return hasPro ? { name: "Pro Plan", color: "bg-amber-500" } : { name: "Plus Plan", color: "bg-emerald-500" };
+  }, [projects]);
 
   if (!hasMounted) {
     return (
@@ -92,6 +114,9 @@ export default function Dashboard() {
           <p className="text-slate-400 text-sm">Real-time marketplace performance optimized for growth.</p>
         </div>
         <div className="flex items-center gap-3">
+          <Badge className={cn("px-4 py-1.5 rounded-xl border-none text-white font-bold uppercase tracking-widest text-[10px]", currentPlan.color)}>
+            {currentPlan.name} Tier
+          </Badge>
           <Button size="sm" variant="outline" className="border-white/5 bg-slate-900 text-white" asChild>
             <Link href="/dashboard/projects">
               <Plus className="w-4 h-4 mr-2" /> New Project

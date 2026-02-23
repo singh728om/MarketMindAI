@@ -143,6 +143,11 @@ export default function CEOBoardroomPage() {
     }
   };
 
+  const calculateMetric = (metric: any) => {
+    if (typeof metric === 'number') return metric;
+    return 0;
+  };
+
   if (!hasMounted) return <div className="min-h-[60vh] flex items-center justify-center"><Loader2 className="animate-spin text-primary w-12 h-12" /></div>;
 
   return (
@@ -321,13 +326,13 @@ export default function CEOBoardroomPage() {
                   <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest">
                     <span className="text-slate-500">Net Profit Margin</span>
                     <span className="text-emerald-500">
-                      {analysis.metrics?.totalSales && analysis.metrics.totalSales > 0 
-                        ? (Number(analysis.metrics.profit || 0) / analysis.metrics.totalSales * 100).toFixed(1) 
+                      {calculateMetric(analysis.metrics?.totalSales) > 0 
+                        ? (calculateMetric(analysis.metrics.profit) / analysis.metrics.totalSales * 100).toFixed(1) 
                         : "0.0"}%
                     </span>
                   </div>
                   <Progress 
-                    value={analysis.metrics?.totalSales && analysis.metrics.totalSales > 0 ? (Number(analysis.metrics.profit || 0) / analysis.metrics.totalSales * 100) : 0} 
+                    value={calculateMetric(analysis.metrics?.totalSales) > 0 ? (calculateMetric(analysis.metrics.profit) / analysis.metrics.totalSales * 100) : 0} 
                     className="h-1.5 bg-slate-800" 
                   />
                 </div>
@@ -337,7 +342,7 @@ export default function CEOBoardroomPage() {
                     <span className="text-amber-500">{analysis.metrics?.roas || "0.0"}x</span>
                   </div>
                   <Progress 
-                    value={Math.min(100, Number(analysis.metrics?.roas || 0) * 10)} 
+                    value={Math.min(100, calculateMetric(analysis.metrics?.roas) * 10)} 
                     className="h-1.5 bg-slate-800" 
                   />
                 </div>

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { 
   LayoutDashboard, 
   Sparkles, 
@@ -48,10 +48,30 @@ export function Sidebar({ onClose }: SidebarProps) {
   const router = useRouter();
   const { toast } = useToast();
   const [hasMounted, setHasMounted] = useState(false);
+  const [projects, setProjects] = useState<any[]>([]);
 
   useEffect(() => {
     setHasMounted(true);
+    const loadProjects = () => {
+      try {
+        const saved = localStorage.getItem("marketmind_projects");
+        if (saved) setProjects(JSON.parse(saved));
+      } catch (e) {}
+    };
+    loadProjects();
+    window.addEventListener('storage', loadProjects);
+    return () => window.removeEventListener('storage', loadProjects);
   }, []);
+
+  const currentPlan = useMemo(() => {
+    const active = projects.filter(p => p.status !== 'Canceled');
+    if (active.length === 0) return { name: "Free Trial", color: "text-primary", badge: "Trial" };
+    
+    const hasPro = active.some(p => Number(p.price) >= 10000);
+    if (hasPro) return { name: "Pro Plan", color: "text-amber-500", badge: "Pro" };
+    
+    return { name: "Plus Plan", color: "text-emerald-500", badge: "Plus" };
+  }, [projects]);
 
   const handleSignOut = () => {
     toast({ title: "Logged Out" });
@@ -105,11 +125,13 @@ export function Sidebar({ onClose }: SidebarProps) {
       <div className="p-4 border-t border-white/5 space-y-4">
         <div className="p-4 rounded-xl bg-primary/10 border border-primary/20">
           <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-1">Active Tier</p>
-          <p className="text-sm font-bold text-white flex items-center gap-2 mb-3">
-            Free Trial <Zap size={10} className="text-amber-500 fill-amber-500" />
+          <p className={cn("text-sm font-bold flex items-center gap-2 mb-3", currentPlan.color)}>
+            {currentPlan.name} <Zap size={10} className="fill-current" />
           </p>
           <Button size="sm" className="w-full h-8 text-[10px] font-bold uppercase tracking-widest rounded-lg bg-primary hover:bg-primary/90 text-white" asChild>
-            <Link href="/pricing" onClick={handleLinkClick}>Upgrade</Link>
+            <Link href="/pricing" onClick={handleLinkClick}>
+              {currentPlan.name === 'Free Trial' ? 'Upgrade' : 'Manage'}
+            </Link>
           </Button>
         </div>
         <Button variant="ghost" onClick={handleSignOut} className="w-full justify-start text-slate-500 hover:bg-white/5 hover:text-white transition-colors h-10">
