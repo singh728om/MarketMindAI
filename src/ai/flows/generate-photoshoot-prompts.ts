@@ -1,7 +1,7 @@
 'use server';
 /**
  * Professional AI Photoshoot Agent with Studio-Quality Prompting.
- * Engineered to avoid policy violations for children and fashion models using ultra-wholesome descriptors.
+ * Engineered for Virtual Try-On where models wear the specific product from the image.
  */
 
 import {genkit} from 'genkit';
@@ -37,11 +37,11 @@ export async function generatePhotoshoot(input: GeneratePhotoshootInput): Promis
   if (input.modelType === 'none') {
     modelText = 'the product alone as the central hero in a clean studio setting';
   } else if (input.modelType === 'kids') {
-    modelText = `a wholesome youthful brand ambassador in modest, family-friendly high-end commercial attire presenting the product`;
+    modelText = `a wholesome youthful brand ambassador WEARING the exact product from the image in a modest, family-friendly high-end commercial setting`;
   } else if (input.modelType === 'mens') {
-    modelText = `a professional male commercial talent in modest, high-end commercial attire`;
+    modelText = `a professional male commercial talent WEARING the exact product from the image in modest, high-end commercial attire`;
   } else if (input.modelType === 'womens') {
-    modelText = `a professional female commercial talent in modest, high-end commercial attire`;
+    modelText = `a professional female commercial talent WEARING the exact product from the image in modest, high-end commercial attire`;
   }
 
   let angleDescription = "";
@@ -72,7 +72,7 @@ export async function generatePhotoshoot(input: GeneratePhotoshootInput): Promis
         { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_ONLY_HIGH' }
       ]
     },
-    prompt: `You are a world-class commercial fashion photographer specializing in luxury studio catalogs. Write a highly detailed, professional photography prompt.
+    prompt: `You are a world-class commercial fashion photographer specializing in luxury studio catalogs. Write a highly detailed, professional photography prompt for a VIRTUAL TRY-ON.
     
     HERO PRODUCT: ${input.productType}
     CATEGORY: ${input.category || 'General'}
@@ -81,7 +81,7 @@ export async function generatePhotoshoot(input: GeneratePhotoshootInput): Promis
     BACKGROUND: ${backgroundText}
     AESTHETIC: ${input.style || 'high-end commercial editorial, modest, realistic high-key lighting, extremely detailed textures, 8k resolution, sharp focus'}
     
-    The prompt should prioritize realism, brand consistency, and professional commercial aesthetics. Ensure the product is the central focus. Output ONLY the final prompt text.`,
+    CORE REQUIREMENT: The model MUST be wearing the product from the image. Maintain IDENTICAL color and pattern. Output ONLY the final prompt text.`,
   });
 
   const finalPromptText = promptEngineeringResponse.text;
@@ -97,7 +97,7 @@ export async function generatePhotoshoot(input: GeneratePhotoshootInput): Promis
       },
       body: JSON.stringify({
         model: "dall-e-3",
-        prompt: finalPromptText,
+        prompt: `A high-end commercial studio photo. ${finalPromptText}. The model is wearing the exact product from the reference. Perfectly realistic.`,
         n: 1,
         size: "1024x1024",
         response_format: "b64_json"
@@ -122,12 +122,12 @@ export async function generatePhotoshoot(input: GeneratePhotoshootInput): Promis
       },
       prompt: [
         {media: {url: input.photoDataUri}},
-        {text: `Perform a professional, high-end studio reshoot based on this direction: ${finalPromptText}. CONSTRAINT: Identify the main product in the image. Keep this product IDENTICAL to the original image in design, pattern, and color. Place it in the new scene with professional lighting. Ensure the scene is modest, safe, and family-friendly.`},
+        {text: `Perform a professional, high-end studio virtual try-on based on this direction: ${finalPromptText}. CONSTRAINT: The model in the new image MUST be WEARING the product from the original image. Keep the product IDENTICAL in design, pattern, and color. Ensure the scene is modest, safe, and family-friendly.`},
       ],
     });
 
     const mediaPart = response.message?.content.find(p => !!p.media);
-    if (!mediaPart || !mediaPart.media) throw new Error('Astra Core failed to generate asset due to policy or technical constraints. Try a more wholesome style.');
+    if (!mediaPart || !mediaPart.media) throw new Error('Astra Core failed to generate asset. Ensure the product image is wholesome and clear.');
     return { generatedImageDataUri: mediaPart.media.url };
   } else {
     const { media } = await ai.generate({

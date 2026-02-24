@@ -2,7 +2,7 @@
 /**
  * @fileOverview Product to AI Video Ads Agent.
  * Generates cinematic commercial video content using Google Veo with Image-to-Video support.
- * Optimized with ultra-wholesome prompting to ensure policy compliance for commercial talent.
+ * Optimized for Virtual Try-On where models wear the specific product.
  */
 
 import { genkit } from 'genkit';
@@ -36,30 +36,30 @@ export async function generateVideoAdContent(input: GenerateVideoAdInput): Promi
 
   const styleContext = input.isUgc 
     ? "authentic User Generated Content (UGC) style, handheld camera feel, natural home lighting, relatable vibe"
-    : "high-end premium studio commercial, steady cinematic camera movement, dramatic fashion lighting, 8k resolution, professional color grading";
+    : "high-end premium studio commercial, steady cinematic camera movement, dramatic fashion lighting, 8k resolution, professional color grading, sharp focus";
 
   let modelContext = "";
   if (input.modelType === 'mens') {
-    modelContext = "The product is presented by a professional male commercial talent in a wholesome and modest manner.";
+    modelContext = "The video features a professional male commercial talent WEARING the exact product from the image. The talent is presenting the garment in a modest and wholesome manner.";
   } else if (input.modelType === 'womens') {
-    modelContext = "The product is presented by a professional female commercial talent in a wholesome and modest manner.";
+    modelContext = "The video features a professional female commercial talent WEARING the exact product from the image. The talent is presenting the garment in a modest and wholesome manner.";
   } else if (input.modelType === 'kids') {
-    modelContext = `The video features a wholesome youthful brand ambassador in a safe, modest, and family-oriented commercial setting. The talent is presenting the product in a professional, high-end commercial context.`;
+    modelContext = `The video features a wholesome youthful brand ambassador WEARING the exact product from the image in a safe, modest, and family-oriented commercial setting. The talent is presenting the product in a professional, high-end commercial context.`;
   } else {
-    modelContext = "The video features the product alone as the absolute hero in a clean, high-fidelity studio showcase without people.";
+    modelContext = "The video features the product alone as the absolute hero in a clean, high-fidelity studio showcase without people. Focus on the textures and design.";
   }
 
-  const promptText = `Act as a world-class commercial cinematographer. Create a high-end, professional studio-quality commercial video for the "${input.productName}". 
+  const promptText = `Act as a world-class commercial cinematographer and fashion director. Create a high-end, professional studio-quality commercial video for the "${input.productName}". 
 
-  CORE DIRECTIVE: The product in the provided image is the absolute HERO. Focus exclusively on maintaining its design, color, and integrity.
-  SCENE: The product is showcased in a ${input.background} environment with cinematic ${input.isUgc ? 'natural' : 'studio'} lighting.
+  CORE DIRECTIVE: The model MUST be WEARING the exact product shown in the provided image. Keep the garment's design, pattern, and color IDENTICAL to the original.
+  SCENE: The talent is showcased in a ${input.background} environment with cinematic ${input.isUgc ? 'natural' : 'studio'} lighting.
   TALENT: ${modelContext}
   STYLE: ${styleContext}.
   MARKETING CONTEXT: ${input.marketingText || 'Premium quality, high-fidelity commercial appeal.'}
   
-  MOTION: Subtle and elegant camera movement. Perform a slow cinematic zoom-in or a smooth orbital sweep around the product. Keep the product perfectly central and in sharp focus throughout the entire duration.
+  MOTION: Subtle and elegant camera movement. Perform a slow cinematic zoom-in or a smooth orbital sweep around the talent wearing the product. Keep the product central and in sharp focus throughout.
   
-  CONSTRAINT: The scene MUST be wholesome, professional, and suitable for a general commercial audience. Ensure all attire is modest and safe. No distractions, no random objects, only the product and its premium environment.`;
+  CONSTRAINT: The scene MUST be wholesome, professional, and suitable for a general commercial audience. Ensure all attire is modest and safe. Output only the highest quality studio rendering.`;
 
   try {
     let { operation } = await ai.generate({
@@ -100,6 +100,6 @@ export async function generateVideoAdContent(input: GenerateVideoAdInput): Promi
     };
   } catch (error: any) {
     console.error("Veo Generation Error:", error);
-    throw new Error("The AI Video node encountered a policy or technical constraint. Ensure your product image and branding are wholesome and commercial.");
+    throw new Error("The AI Video node encountered a constraint. Ensure your product image is wholesome and clearly shows the garment.");
   }
 }

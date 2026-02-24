@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, Suspense } from "react";
+import { useState, useRef, useEffect, Suspense, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { 
   Sparkles, 
@@ -59,8 +59,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 
 const AGENTS = [
-  { id: "photoshoot", title: "AI Photoshoot Studio", icon: Camera, desc: "Professional studio reshoots with model and environment control.", color: "text-purple-500" },
-  { id: "video", title: "Product to AI Video Ads", icon: Video, desc: "Transform product images into cinematic UGC video ads.", color: "text-rose-500" },
+  { id: "photoshoot", title: "AI Photoshoot Studio", icon: Camera, desc: "Virtual try-ons and professional studio reshoots.", color: "text-purple-500" },
+  { id: "video", title: "Product to AI Video Ads", icon: Video, desc: "Transform products into cinematic virtual try-on video ads.", color: "text-rose-500" },
   { id: "listing", title: "Listing Optimizer", icon: FileText, desc: "SEO-friendly titles, bullets, and descriptions via Gemini Vision.", color: "text-blue-500" },
   { id: "catalog", title: "Catalog Automation", icon: LayoutGrid, desc: "Template generation + marketplace rule validation.", color: "text-emerald-500" },
   { id: "ugc", title: "UGC Script Studio", icon: Users, desc: "Creative hooks + detailed scripts.", color: "text-orange-500" },
@@ -95,7 +95,7 @@ function AgentsContent() {
     location: "",
     country: "India",
     websiteUrl: "",
-    style: "high-end commercial editorial, extremely detailed, realistic lighting",
+    style: "high-end commercial editorial, extremely detailed, realistic lighting, luxury photoshoot",
     aiEngine: "gemini",
     duration: "5",
     isUgc: false,
@@ -144,7 +144,7 @@ function AgentsContent() {
       const reader = new FileReader();
       reader.onloadend = () => {
         setFormData(prev => ({ ...prev, base64Image: reader.result as string }));
-        toast({ title: "Asset Ingested", description: "Ready for AI processing." });
+        toast({ title: "Asset Ingested", description: "Ready for AI Virtual Try-On." });
       };
       reader.readAsDataURL(file);
     }
@@ -263,13 +263,15 @@ function AgentsContent() {
         default:
           throw new Error("Agent logic currently under maintenance.");
       }
-      toast({ title: "Execution Complete", description: "Agent has delivered the output." });
+      toast({ title: "Execution Complete", description: "Agent has delivered the studio output." });
     } catch (err: any) {
       toast({ variant: "destructive", title: "Execution Failed", description: err.message });
     } finally {
       setIsRunning(false);
     }
   };
+
+  const agentCards = useMemo(() => AGENTS, []);
 
   if (!hasMounted) return null;
 
@@ -289,7 +291,7 @@ function AgentsContent() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {AGENTS.map((agent) => (
+        {agentCards.map((agent) => (
           <Card key={agent.id} className="group hover:border-primary/50 transition-all rounded-2xl border-white/5 bg-card overflow-hidden cursor-pointer shadow-xl" onClick={() => { setOutput(null); setSelectedAgent(agent); }}>
             <CardHeader>
               <div className={`w-12 h-12 rounded-xl bg-muted flex items-center justify-center mb-4 ${agent.color}`}>
@@ -404,6 +406,7 @@ function AgentsContent() {
                                   <SelectItem value="modern kitchen">Modern Kitchen</SelectItem>
                                   <SelectItem value="bright studio">Bright Studio</SelectItem>
                                   <SelectItem value="nature park">Morning Nature Park</SelectItem>
+                                  <SelectItem value="high-key professional studio">Professional Studio</SelectItem>
                                 </SelectContent>
                               </Select>
                             </div>
@@ -411,7 +414,7 @@ function AgentsContent() {
                             {formData.category === 'Fashion' && (
                               <>
                                 <div className="space-y-2">
-                                  <Label className="text-[10px] uppercase font-bold text-slate-500 tracking-widest">Model Type</Label>
+                                  <Label className="text-[10px] uppercase font-bold text-slate-500 tracking-widest">Model Type (Try-On)</Label>
                                   <Select value={formData.modelType} onValueChange={(val) => handleInputChange("modelType", val)}>
                                     <SelectTrigger className="bg-slate-800 border-white/5 h-11 rounded-xl"><SelectValue /></SelectTrigger>
                                     <SelectContent className="bg-slate-800 border-white/10 text-white">
@@ -461,7 +464,7 @@ function AgentsContent() {
                               </Select>
                             </div>
                             <div className="space-y-2">
-                              <Label className="text-[10px] uppercase font-bold text-slate-500 tracking-widest">Model Type</Label>
+                              <Label className="text-[10px] uppercase font-bold text-slate-500 tracking-widest">Model Type (Wearing Product)</Label>
                               <Select value={formData.modelType} onValueChange={(val) => handleInputChange("modelType", val)}>
                                 <SelectTrigger className="bg-slate-800 border-white/5 h-11 rounded-xl"><SelectValue /></SelectTrigger>
                                 <SelectContent className="bg-slate-800 border-white/10 text-white">
@@ -487,12 +490,13 @@ function AgentsContent() {
                                   <SelectItem value="outdoor">Urban Street</SelectItem>
                                   <SelectItem value="sport">Gym / Fitness</SelectItem>
                                   <SelectItem value="nature">Garden / Park</SelectItem>
+                                  <SelectItem value="minimalist interior">Minimalist Interior</SelectItem>
                                 </SelectContent>
                               </Select>
                             </div>
                             <div className="md:col-span-2 space-y-2">
                               <Label className="text-[10px] uppercase font-bold text-slate-500 tracking-widest">Style Direction</Label>
-                              <Textarea placeholder="e.g. cinematic lighting, vogue aesthetic..." className="bg-slate-800 border-white/5 rounded-xl min-h-[70px] text-sm" value={formData.style} onChange={(e) => handleInputChange("style", e.target.value)} />
+                              <Textarea placeholder="e.g. cinematic lighting, vogue aesthetic, luxury catalog look..." className="bg-slate-800 border-white/5 rounded-xl min-h-[70px] text-sm" value={formData.style} onChange={(e) => handleInputChange("style", e.target.value)} />
                             </div>
                           </>
                         )}
@@ -500,7 +504,7 @@ function AgentsContent() {
                         {/* Asset Upload - Crucial for Video/Photoshoot */}
                         {(['photoshoot', 'video', 'listing'].includes(selectedAgent.id)) && (
                           <div className="md:col-span-2 space-y-3">
-                            <Label className="text-[10px] uppercase font-bold text-slate-500 tracking-widest">Raw Product Image (Reference)</Label>
+                            <Label className="text-[10px] uppercase font-bold text-slate-500 tracking-widest">Raw Product Image (Reference for Try-On)</Label>
                             <div onClick={() => fileInputRef.current?.click()} className={cn("border-2 border-dashed rounded-2xl p-6 md:p-8 flex flex-col items-center justify-center gap-3 cursor-pointer transition-all", formData.base64Image ? "border-primary bg-primary/5" : "border-white/10 bg-slate-800/30 hover:bg-slate-800/50")}>
                               <input type="file" className="hidden" ref={fileInputRef} onChange={handleFileChange} accept="image/*" />
                               {formData.base64Image ? (
@@ -531,7 +535,7 @@ function AgentsContent() {
                       <div className="p-6 md:p-10 rounded-[2.5rem] bg-slate-800/50 border border-white/5 space-y-8">
                         <div className="text-center space-y-2">
                           <Badge className="bg-emerald-500 text-white uppercase font-bold text-[10px] tracking-widest mb-2">Success</Badge>
-                          <h3 className="text-2xl md:text-3xl font-headline font-bold">Astra Intelligence Delivery</h3>
+                          <h3 className="text-2xl md:text-3xl font-headline font-bold">Astra Studio Delivery</h3>
                           <p className="text-slate-400 text-sm md:text-base">The agent has processed your request based on marketplace parameters.</p>
                         </div>
 
@@ -578,7 +582,7 @@ function AgentsContent() {
                     className="w-full h-14 md:h-16 rounded-2xl font-bold shadow-2xl shadow-primary/20 text-lg" 
                     disabled={isRunning}
                   >
-                    {isRunning ? <><RefreshCw className="mr-2 animate-spin" /> Astra Producing...</> : <><VideoIcon className="mr-2" /> Produce AI Video</>}
+                    {isRunning ? <><RefreshCw className="mr-2 animate-spin" /> Astra Producing...</> : <><Sparkles className="mr-2" /> Produce AI Content</>}
                   </Button>
                 ) : (
                   <div className="flex flex-col sm:flex-row gap-4 w-full">
