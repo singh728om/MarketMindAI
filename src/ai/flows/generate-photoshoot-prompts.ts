@@ -8,8 +8,6 @@ import {genkit} from 'genkit';
 import {googleAI} from '@genkit-ai/google-genai';
 import {z} from 'genkit';
 
-export const maxDuration = 60; // Ensure ample time for high-res studio rendering
-
 const GeneratePhotoshootInputSchema = z.object({
   photoDataUri: z.string().optional(),
   productType: z.string(),

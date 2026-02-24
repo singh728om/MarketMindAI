@@ -3,14 +3,11 @@
  * @fileOverview Product to AI Video Ads Agent.
  * Generates cinematic commercial video content using Google Veo with Image-to-Video support.
  * Optimized with ultra-wholesome prompting to ensure policy compliance for commercial talent.
- * Increased duration to handle long production cycles.
  */
 
 import { genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/google-genai';
 import { z } from 'genkit';
-
-export const maxDuration = 120; // Critical: Ensure server doesn't timeout during slow video generation
 
 const GenerateVideoAdInputSchema = z.object({
   productName: z.string(),
