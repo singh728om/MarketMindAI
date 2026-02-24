@@ -318,7 +318,7 @@ function AgentsContent() {
             <CardFooter className="pt-0 justify-between">
               <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Ready</span>
               <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
-                Configure <ChevronRight size={14} className="ml-1" />
+                Try Agent <ChevronRight size={14} className="ml-1" />
               </Button>
             </CardFooter>
           </Card>
