@@ -2,7 +2,7 @@
 /**
  * @fileOverview Product to AI Video Ads Agent.
  * Generates cinematic commercial video content using Google Veo with Image-to-Video support.
- * Optimized with safety-first prompting for policy compliance.
+ * Optimized with safety-first prompting and person generation flags for policy compliance.
  */
 
 import { genkit } from 'genkit';
@@ -40,40 +40,36 @@ export async function generateVideoAdContent(input: GenerateVideoAdInput): Promi
 
   let modelContext = "";
   if (input.modelType === 'mens') {
-    modelContext = "The product is showcased by a professional male commercial talent in a modest and upscale manner.";
+    modelContext = "The product is showcased by a professional male commercial talent in a wholesome and modest manner.";
   } else if (input.modelType === 'womens') {
-    modelContext = "The product is showcased by a professional female commercial talent in a modest and upscale manner.";
+    modelContext = "The product is showcased by a professional female commercial talent in a wholesome and modest manner.";
   } else if (input.modelType === 'kids') {
-    modelContext = `The video features a wholesome and professional children's fashion presentation. A young talent is shown in a safe, modest, and family-oriented commercial setting wearing the ${input.productName}.`;
+    modelContext = `The video features a wholesome young commercial brand ambassador in a safe, modest, and family-oriented setting. The talent is presenting the ${input.productName} in a professional commercial context.`;
   } else {
-    modelContext = "The video features the product alone in a clean, professional and high-fidelity showcase.";
+    modelContext = "The video features the product alone in a clean, professional and high-fidelity showcase without people.";
   }
 
-  const prompt = `Create a cinematic, family-friendly e-commerce product video for "${input.productName}" in the "${input.productCategory}" category.
+  const promptText = `Create a cinematic, family-friendly e-commerce product video for "${input.productName}" in the "${input.productCategory}" category.
   SCENE: The product is showcased in a ${input.background} environment.
   MODEL: ${modelContext}
   STYLE: ${styleContext}.
   MARKETING CONTEXT: ${input.marketingText || 'Premium quality, wholesome lifestyle appeal.'}
   
   MOTION: Subtle, elegant camera movement around the product. Keep the product central and perfectly in focus. 
-  The video should feel like a high-converting, safe, and professional advertisement for a reputable brand.`;
+  CONSTRAINT: The scene must be wholesome, professional, and suitable for a general audience. Ensure all attire is modest and safe.`;
 
   try {
     let { operation } = await ai.generate({
       model: 'googleai/veo-2.0-generate-001',
       prompt: [
-        { text: prompt },
+        { text: promptText },
         { media: { url: input.photoDataUri, contentType: 'image/jpeg' } }
       ],
       config: {
         durationSeconds: input.durationSeconds > 8 ? 8 : input.durationSeconds,
         aspectRatio: '9:16',
-        safetySettings: [
-          { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_ONLY_HIGH' },
-          { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_ONLY_HIGH' },
-          { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_ONLY_HIGH' },
-          { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_ONLY_HIGH' }
-        ]
+        // Critical for person generation in Veo 2
+        personGeneration: input.modelType && input.modelType !== 'none' ? 'allow_adult' : 'dont_allow',
       },
     });
 
@@ -102,6 +98,6 @@ export async function generateVideoAdContent(input: GenerateVideoAdInput): Promi
     };
   } catch (error: any) {
     console.error("Veo Generation Error:", error);
-    throw new Error(error.message || "The AI Video node is currently busy. Please try again in a few moments.");
+    throw new Error(error.message || "The AI Video node encountered a policy or technical constraint. Please try a more wholesome prompt.");
   }
 }

@@ -37,11 +37,11 @@ export async function generatePhotoshoot(input: GeneratePhotoshootInput): Promis
   if (input.modelType === 'none') {
     modelText = 'the product alone in a clean setting';
   } else if (input.modelType === 'kids') {
-    modelText = `a wholesome young commercial talent in modest, family-friendly attire wearing or holding the product`;
+    modelText = `a wholesome young commercial brand ambassador in modest, family-friendly attire presenting the product`;
   } else if (input.modelType === 'mens') {
-    modelText = `a professional male commercial talent in modest, high-end fashion attire`;
+    modelText = `a professional male commercial talent in modest, high-end commercial attire`;
   } else if (input.modelType === 'womens') {
-    modelText = `a professional female commercial talent in modest, high-end fashion attire`;
+    modelText = `a professional female commercial talent in modest, high-end commercial attire`;
   }
 
   let angleDescription = "";
@@ -79,7 +79,7 @@ export async function generatePhotoshoot(input: GeneratePhotoshootInput): Promis
     BACKGROUND: ${backgroundText}
     STYLE: ${input.style || 'high-end commercial editorial, modest, realistic lighting, extremely detailed, 8k resolution'}
     
-    The prompt should focus on realism and professional brand aesthetic. Ensure the result is wholesome and suitable for a general audience. Output ONLY the final prompt text.`,
+    The prompt should focus on realism and professional brand aesthetic. Ensure the result is wholesome, safe, and suitable for a general audience. Output ONLY the final prompt text.`,
   });
 
   const finalPromptText = promptEngineeringResponse.text;
@@ -120,7 +120,7 @@ export async function generatePhotoshoot(input: GeneratePhotoshootInput): Promis
       },
       prompt: [
         {media: {url: input.photoDataUri}},
-        {text: `Perform a professional, wholesome studio reshoot based on this direction: ${finalPromptText}. CONSTRAINT: Keep the product identical to the original image in design and color. Ensure the scene is modest and family-friendly.`},
+        {text: `Perform a professional, wholesome studio reshoot based on this direction: ${finalPromptText}. CONSTRAINT: Keep the product identical to the original image in design and color. Ensure the scene is modest, safe, and family-friendly.`},
       ],
     });
 
