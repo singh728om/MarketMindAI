@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { 
   Search, 
   ShoppingBag, 
@@ -52,16 +51,18 @@ export default function OrderHistoryPage() {
     }
   }, []);
 
-  const filteredOrders = orders.filter(o => 
-    o.name?.toLowerCase().includes(search.toLowerCase()) || 
-    o.id?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredOrders = useMemo(() => {
+    return orders.filter(o => 
+      o.name?.toLowerCase().includes(search.toLowerCase()) || 
+      o.id?.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [orders, search]);
 
-  const stats = {
+  const stats = useMemo(() => ({
     total: orders.length,
     active: orders.filter(o => o.status !== 'Canceled' && o.status !== 'Completed').length,
     canceled: orders.filter(o => o.status === 'Canceled').length
-  };
+  }), [orders]);
 
   if (isLoading) return <div className="flex items-center justify-center min-h-[60vh]"><Loader2 className="animate-spin text-primary w-12 h-12" /></div>;
 

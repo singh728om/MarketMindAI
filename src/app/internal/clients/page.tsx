@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { 
   Users, 
   Search, 
@@ -13,7 +12,8 @@ import {
   CheckCircle2, 
   Clock,
   ExternalLink,
-  Plus
+  Plus,
+  ChevronRight
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -36,10 +36,13 @@ const CLIENTS = [
 export default function ClientsPage() {
   const [search, setSearch] = useState("");
 
-  const filteredClients = CLIENTS.filter(c => 
-    c.name.toLowerCase().includes(search.toLowerCase()) || 
-    c.contact.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredClients = useMemo(() => {
+    return CLIENTS.filter(c => 
+      c.name.toLowerCase().includes(search.toLowerCase()) || 
+      c.contact.toLowerCase().includes(search.toLowerCase()) ||
+      c.id.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [search]);
 
   return (
     <div className="space-y-8">

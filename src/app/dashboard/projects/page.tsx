@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { 
   FolderKanban, 
@@ -209,11 +208,13 @@ export default function ProjectsPage() {
     toast({ title: "Project Canceled", description: "The service project has been moved to Order History." });
   };
 
-  const filteredProjects = projects.filter(p => p.status !== 'Canceled').filter(p => 
-    p.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.marketplace?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.type?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredProjects = useMemo(() => {
+    return projects.filter(p => p.status !== 'Canceled').filter(p => 
+      p.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.marketplace?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.type?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [projects, searchQuery]);
 
   return (
     <div className="space-y-8">

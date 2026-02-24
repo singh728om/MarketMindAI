@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { 
   Search, 
@@ -140,11 +139,13 @@ function OrdersContent() {
     }
   }, [orderIdParam, orders]);
 
-  const filteredOrders = orders.filter(o => 
-    o.client.toLowerCase().includes(search.toLowerCase()) || 
-    o.id.toLowerCase().includes(search.toLowerCase()) ||
-    o.service.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredOrders = useMemo(() => {
+    return orders.filter(o => 
+      o.client.toLowerCase().includes(search.toLowerCase()) || 
+      o.id.toLowerCase().includes(search.toLowerCase()) ||
+      o.service.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [orders, search]);
 
   const handleStartWork = (order: any) => {
     if (order.assignedTo === 'Unassigned') {

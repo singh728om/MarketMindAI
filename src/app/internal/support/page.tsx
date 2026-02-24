@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { 
   MessageSquare, 
   Search, 
@@ -31,6 +30,14 @@ const TICKETS = [
 export default function InternalSupportQueue() {
   const [search, setSearch] = useState("");
 
+  const filteredTickets = useMemo(() => {
+    return TICKETS.filter(t => 
+      t.subject.toLowerCase().includes(search.toLowerCase()) || 
+      t.client.toLowerCase().includes(search.toLowerCase()) ||
+      t.id.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [search]);
+
   return (
     <div className="space-y-8">
       <div>
@@ -55,7 +62,7 @@ export default function InternalSupportQueue() {
       </div>
 
       <div className="space-y-4">
-        {TICKETS.map((ticket) => (
+        {filteredTickets.map((ticket) => (
           <Card key={ticket.id} className="bg-slate-900 border-white/5 hover:border-accent/30 transition-all group cursor-pointer">
             <div className="flex flex-col lg:flex-row lg:items-center p-6 gap-6">
               <div className={cn(

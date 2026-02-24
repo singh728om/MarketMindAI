@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { 
   Ticket as TicketIcon, 
   Search, 
@@ -156,10 +155,12 @@ export default function SupportTicketsPage() {
     }, 1000);
   };
 
-  const filteredTickets = MOCK_TICKETS.filter(t => 
-    t.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    t.id.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredTickets = useMemo(() => {
+    return MOCK_TICKETS.filter(t => 
+      t.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      t.id.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [searchQuery]);
 
   return (
     <div className="space-y-8">
