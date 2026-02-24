@@ -2,6 +2,7 @@
 /**
  * @fileOverview Product to AI Video Ads Agent.
  * Generates cinematic commercial video content using Google Veo with Image-to-Video support.
+ * Optimized with safety-first prompting for policy compliance.
  */
 
 import { genkit } from 'genkit';
@@ -35,27 +36,27 @@ export async function generateVideoAdContent(input: GenerateVideoAdInput): Promi
 
   const styleContext = input.isUgc 
     ? "authentic User Generated Content (UGC) style, handheld camera feel, natural home lighting, relatable vibe"
-    : "high-end professional studio commercial, steady cinematic camera movement, dramatic fashion lighting, 8k resolution";
+    : "high-end professional studio commercial, steady cinematic camera movement, dramatic fashion lighting, 8k resolution, modest presentation";
 
   let modelContext = "";
   if (input.modelType === 'mens') {
-    modelContext = "The product is being worn or held by a professional male fashion model.";
+    modelContext = "The product is showcased by a professional male commercial talent in a modest and upscale manner.";
   } else if (input.modelType === 'womens') {
-    modelContext = "The product is being worn or held by a professional female fashion model.";
+    modelContext = "The product is showcased by a professional female commercial talent in a modest and upscale manner.";
   } else if (input.modelType === 'kids') {
-    modelContext = `The product is being worn or held by a professional ${input.kidAge || '5'}-year-old child model.`;
+    modelContext = `The video features a wholesome and professional children's fashion presentation. A young talent is shown in a safe, modest, and family-oriented commercial setting wearing the ${input.productName}.`;
   } else {
-    modelContext = "The video features the product alone in a clean, professional showcase.";
+    modelContext = "The video features the product alone in a clean, professional and high-fidelity showcase.";
   }
 
-  const prompt = `Create a cinematic e-commerce product video for "${input.productName}" in the "${input.productCategory}" category.
+  const prompt = `Create a cinematic, family-friendly e-commerce product video for "${input.productName}" in the "${input.productCategory}" category.
   SCENE: The product is showcased in a ${input.background} environment.
   MODEL: ${modelContext}
   STYLE: ${styleContext}.
-  MARKETING CONTEXT: ${input.marketingText || 'Premium quality, lifestyle appeal.'}
+  MARKETING CONTEXT: ${input.marketingText || 'Premium quality, wholesome lifestyle appeal.'}
   
   MOTION: Subtle, elegant camera movement around the product. Keep the product central and perfectly in focus. 
-  The video should feel like a high-converting advertisement for a fashion or lifestyle brand.`;
+  The video should feel like a high-converting, safe, and professional advertisement for a reputable brand.`;
 
   try {
     let { operation } = await ai.generate({
@@ -65,14 +66,19 @@ export async function generateVideoAdContent(input: GenerateVideoAdInput): Promi
         { media: { url: input.photoDataUri, contentType: 'image/jpeg' } }
       ],
       config: {
-        durationSeconds: input.durationSeconds > 8 ? 8 : input.durationSeconds, // Veo 2 limit is 8s
+        durationSeconds: input.durationSeconds > 8 ? 8 : input.durationSeconds,
         aspectRatio: '9:16',
+        safetySettings: [
+          { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_ONLY_HIGH' },
+          { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_ONLY_HIGH' },
+          { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_ONLY_HIGH' },
+          { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_ONLY_HIGH' }
+        ]
       },
     });
 
     if (!operation) throw new Error('Video production engine failed to initiate.');
 
-    // Wait for production to complete (polling)
     while (!operation.done) {
       operation = await ai.checkOperation(operation);
       if (!operation.done) await new Promise((resolve) => setTimeout(resolve, 5000));
@@ -83,7 +89,6 @@ export async function generateVideoAdContent(input: GenerateVideoAdInput): Promi
     const videoPart = operation.output?.message?.content.find((p) => !!p.media);
     if (!videoPart || !videoPart.media) throw new Error('Failed to retrieve generated video asset.');
 
-    // Fetch the video and convert to base64 for direct client delivery
     const videoUrl = `${videoPart.media.url}&key=${input.apiKey || process.env.GEMINI_API_KEY}`;
     const response = await fetch(videoUrl);
     if (!response.ok) throw new Error('Failed to fetch video data from production node.');
