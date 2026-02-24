@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useRef, useEffect, Suspense } from "react";
@@ -24,7 +23,9 @@ import {
   Copy,
   CheckCircle2,
   Cpu,
-  X
+  X,
+  Clock,
+  VideoIcon
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -55,10 +56,11 @@ import { generateB2BLeads } from "@/ai/flows/generate-b2b-leads";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 
 const AGENTS = [
   { id: "photoshoot", title: "AI Photoshoot Studio", icon: Camera, desc: "Professional studio reshoots with model and environment control.", color: "text-purple-500" },
-  { id: "video", title: "Product to AI Video Ads", icon: Video, desc: "Transform product images into 5s cinematic UGC video ads.", color: "text-rose-500" },
+  { id: "video", title: "Product to AI Video Ads", icon: Video, desc: "Transform product images into cinematic UGC video ads.", color: "text-rose-500" },
   { id: "listing", title: "Listing Optimizer", icon: FileText, desc: "SEO-friendly titles, bullets, and descriptions via Gemini Vision.", color: "text-blue-500" },
   { id: "catalog", title: "Catalog Automation", icon: LayoutGrid, desc: "Template generation + marketplace rule validation.", color: "text-emerald-500" },
   { id: "ugc", title: "UGC Script Studio", icon: Users, desc: "Creative hooks + detailed scripts.", color: "text-orange-500" },
@@ -95,6 +97,8 @@ function AgentsContent() {
     websiteUrl: "",
     style: "high-end commercial editorial, extremely detailed, realistic lighting",
     aiEngine: "gemini",
+    duration: "5",
+    isUgc: false,
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -130,7 +134,7 @@ function AgentsContent() {
     return () => window.removeEventListener('storage', checkKeys);
   }, []);
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -221,6 +225,8 @@ function AgentsContent() {
             productCategory: formData.category,
             background: formData.background,
             photoDataUri: formData.base64Image,
+            durationSeconds: parseInt(formData.duration),
+            isUgc: formData.isUgc,
             apiKey: activeKeys.gemini
           });
           setOutput({ videoUrl: result.videoDataUri, type: 'video' });
@@ -326,7 +332,7 @@ function AgentsContent() {
                   {!output ? (
                     <form id="agent-config-form" onSubmit={handleRunAgent} className="space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
-                        {/* AI Engine Selection */}
+                        {/* AI Engine Selection - Rebranded */}
                         {selectedAgent.id === 'photoshoot' && (
                           <div className="md:col-span-2 space-y-2 pb-2 border-b border-white/5">
                             <Label className="text-[10px] uppercase font-bold text-primary tracking-widest flex items-center gap-2 mb-1">
@@ -370,6 +376,47 @@ function AgentsContent() {
                             </SelectContent>
                           </Select>
                         </div>
+
+                        {/* Video Specific Controls */}
+                        {selectedAgent.id === 'video' && (
+                          <>
+                            <div className="space-y-2">
+                              <Label className="text-[10px] uppercase font-bold text-slate-500 tracking-widest flex items-center gap-2">
+                                <Clock size={12} /> Video Duration
+                              </Label>
+                              <Select value={formData.duration} onValueChange={(val) => handleInputChange("duration", val)}>
+                                <SelectTrigger className="bg-slate-800 border-white/5 h-11 rounded-xl"><SelectValue /></SelectTrigger>
+                                <SelectContent className="bg-slate-800 border-white/10 text-white">
+                                  <SelectItem value="5">5 Seconds (Optimal)</SelectItem>
+                                  <SelectItem value="8">8 Seconds (Cinematic)</SelectItem>
+                                  <SelectItem value="15">15 Seconds (Premium)</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-[10px] uppercase font-bold text-slate-500 tracking-widest">Environment</Label>
+                              <Select value={formData.background} onValueChange={(val) => handleInputChange("background", val)}>
+                                <SelectTrigger className="bg-slate-800 border-white/5 h-11 rounded-xl"><SelectValue /></SelectTrigger>
+                                <SelectContent className="bg-slate-800 border-white/10 text-white">
+                                  <SelectItem value="luxury lounge">Luxury Lounge</SelectItem>
+                                  <SelectItem value="modern kitchen">Modern Kitchen</SelectItem>
+                                  <SelectItem value="bright studio">Bright Studio</SelectItem>
+                                  <SelectItem value="nature park">Morning Nature Park</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="md:col-span-2 p-4 rounded-xl bg-slate-800/50 border border-white/5 flex items-center justify-between">
+                              <div className="space-y-0.5">
+                                <p className="text-xs font-bold text-white">Generate as UGC Content</p>
+                                <p className="text-[10px] text-slate-500">Authentic creator-style handheld look.</p>
+                              </div>
+                              <Switch 
+                                checked={formData.isUgc} 
+                                onCheckedChange={(val) => handleInputChange("isUgc", val)} 
+                              />
+                            </div>
+                          </>
+                        )}
 
                         {/* Photoshoot Specific */}
                         {selectedAgent.id === 'photoshoot' && (
@@ -424,26 +471,10 @@ function AgentsContent() {
                           </>
                         )}
 
-                        {/* Video Specific */}
-                        {selectedAgent.id === 'video' && (
-                          <div className="space-y-2">
-                            <Label className="text-[10px] uppercase font-bold text-slate-500 tracking-widest">Scene Environment</Label>
-                            <Select value={formData.background} onValueChange={(val) => handleInputChange("background", val)}>
-                              <SelectTrigger className="bg-slate-800 border-white/5 h-11 rounded-xl"><SelectValue /></SelectTrigger>
-                              <SelectContent className="bg-slate-800 border-white/10 text-white">
-                                <SelectItem value="luxury lounge">Luxury Lounge</SelectItem>
-                                <SelectItem value="modern kitchen">Modern Kitchen</SelectItem>
-                                <SelectItem value="bright studio">Bright Studio</SelectItem>
-                                <SelectItem value="nature park">Morning Nature Park</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        )}
-
-                        {/* Asset Upload */}
+                        {/* Asset Upload - Crucial for Video/Photoshoot */}
                         {(['photoshoot', 'video', 'listing'].includes(selectedAgent.id)) && (
                           <div className="md:col-span-2 space-y-3">
-                            <Label className="text-[10px] uppercase font-bold text-slate-500 tracking-widest">Raw Product Image</Label>
+                            <Label className="text-[10px] uppercase font-bold text-slate-500 tracking-widest">Raw Product Image (Reference)</Label>
                             <div onClick={() => fileInputRef.current?.click()} className={cn("border-2 border-dashed rounded-2xl p-6 md:p-8 flex flex-col items-center justify-center gap-3 cursor-pointer transition-all", formData.base64Image ? "border-primary bg-primary/5" : "border-white/10 bg-slate-800/30 hover:bg-slate-800/50")}>
                               <input type="file" className="hidden" ref={fileInputRef} onChange={handleFileChange} accept="image/*" />
                               {formData.base64Image ? (
@@ -521,7 +552,7 @@ function AgentsContent() {
                     className="w-full h-14 md:h-16 rounded-2xl font-bold shadow-2xl shadow-primary/20 text-lg" 
                     disabled={isRunning}
                   >
-                    {isRunning ? <><RefreshCw className="mr-2 animate-spin" /> Astra Processing...</> : <><Zap className="mr-2" /> Execute Agent</>}
+                    {isRunning ? <><RefreshCw className="mr-2 animate-spin" /> Astra Producing...</> : <><VideoIcon className="mr-2" /> Produce AI Video</>}
                   </Button>
                 ) : (
                   <div className="flex flex-col sm:flex-row gap-4 w-full">

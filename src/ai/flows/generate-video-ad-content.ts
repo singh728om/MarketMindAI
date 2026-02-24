@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview Product to AI Video Ads Agent.
- * Generates cinematic 5s commercial video content using Google Veo.
+ * Generates cinematic commercial video content using Google Veo with Image-to-Video support.
  */
 
 import { genkit } from 'genkit';
@@ -14,6 +14,8 @@ const GenerateVideoAdInputSchema = z.object({
   background: z.string(),
   marketingText: z.string().optional(),
   photoDataUri: z.string().describe("Base64 data URI of the product image."),
+  durationSeconds: z.number().default(5),
+  isUgc: z.boolean().default(false),
   apiKey: z.string().optional(),
 });
 export type GenerateVideoAdInput = z.infer<typeof GenerateVideoAdInputSchema>;
@@ -29,11 +31,17 @@ export async function generateVideoAdContent(input: GenerateVideoAdInput): Promi
     plugins: [googleAI({ apiKey: input.apiKey })],
   });
 
-  const prompt = `Create a high-end, 5-second cinematic UGC product commercial for "${input.productName}" in the "${input.productCategory}" category.
-  The product should be showcased in a ${input.background} environment with professional studio lighting and smooth camera movement.
+  const styleContext = input.isUgc 
+    ? "authentic User Generated Content (UGC) style, handheld camera feel, natural home lighting, relatable vibe"
+    : "high-end professional studio commercial, steady cinematic camera movement, dramatic fashion lighting, 8k resolution";
+
+  const prompt = `Create a cinematic e-commerce product video for "${input.productName}" in the "${input.productCategory}" category.
+  SCENE: The product is showcased in a ${input.background} environment.
+  STYLE: ${styleContext}.
   MARKETING CONTEXT: ${input.marketingText || 'Premium quality, lifestyle appeal.'}
   
-  Keep the video focused on the product. The style should be vibrant, clean, and optimized for social media engagement.`;
+  MOTION: Subtle, elegant camera movement around the product. Keep the product central and perfectly in focus. 
+  The video should feel like a high-converting advertisement for a fashion or lifestyle brand.`;
 
   try {
     let { operation } = await ai.generate({
@@ -43,7 +51,7 @@ export async function generateVideoAdContent(input: GenerateVideoAdInput): Promi
         { media: { url: input.photoDataUri, contentType: 'image/jpeg' } }
       ],
       config: {
-        durationSeconds: 5,
+        durationSeconds: input.durationSeconds > 8 ? 8 : input.durationSeconds, // Veo 2 limit is 8s
         aspectRatio: '9:16',
       },
     });
@@ -71,7 +79,7 @@ export async function generateVideoAdContent(input: GenerateVideoAdInput): Promi
 
     return {
       videoDataUri: `data:video/mp4;base64,${base64Video}`,
-      description: `Professional UGC ad for ${input.productName} generated successfully.`
+      description: `Professional ${input.isUgc ? 'UGC' : 'Studio'} ad for ${input.productName} generated successfully.`
     };
   } catch (error: any) {
     console.error("Veo Generation Error:", error);
