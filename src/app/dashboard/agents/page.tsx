@@ -150,6 +150,21 @@ function AgentsContent() {
     }
   };
 
+  const handleDownload = () => {
+    if (!output) return;
+    const url = output.imageUrl || output.videoUrl;
+    if (!url) return;
+
+    const link = document.createElement("a");
+    link.href = url;
+    const extension = output.type === 'video' ? 'mp4' : 'png';
+    link.download = `MarketMind_${selectedAgent.id}_${Date.now()}.${extension}`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast({ title: "Download Started", description: "Exporting high-fidelity Astra Studio asset." });
+  };
+
   const handleVaultOutput = () => {
     if (!output) return;
     setIsVaulting(true);
@@ -592,7 +607,7 @@ function AgentsContent() {
                     <Button className="flex-1 h-14 rounded-2xl font-bold shadow-xl shadow-primary/20" onClick={handleVaultOutput} disabled={isVaulting}>
                       {isVaulting ? <><Loader2 className="mr-2 animate-spin" /> Securing...</> : <><HardDrive className="mr-2" /> Vault Asset</>}
                     </Button>
-                    <Button variant="secondary" className="flex-1 h-14 rounded-2xl font-bold" onClick={() => toast({ title: "Initiating Download..." })}>
+                    <Button variant="secondary" className="flex-1 h-14 rounded-2xl font-bold" onClick={handleDownload}>
                       <Download className="mr-2" /> Download
                     </Button>
                   </div>
