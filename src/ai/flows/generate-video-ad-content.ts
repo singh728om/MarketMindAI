@@ -3,11 +3,14 @@
  * @fileOverview Product to AI Video Ads Agent.
  * Generates cinematic commercial video content using Google Veo with Image-to-Video support.
  * Optimized with ultra-wholesome prompting to ensure policy compliance for commercial talent.
+ * Increased duration to handle long production cycles.
  */
 
 import { genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/google-genai';
 import { z } from 'genkit';
+
+export const maxDuration = 120; // Critical: Ensure server doesn't timeout during slow video generation
 
 const GenerateVideoAdInputSchema = z.object({
   productName: z.string(),
@@ -45,7 +48,7 @@ export async function generateVideoAdContent(input: GenerateVideoAdInput): Promi
     modelContext = "The product is showcased by a professional female commercial talent in a wholesome and modest manner.";
   } else if (input.modelType === 'kids') {
     // Sanitized for policy: Avoid "kids/child" in prompt, use "youthful brand ambassador"
-    modelContext = `The video features a wholesome youthful brand ambassador in a safe, modest, and family-oriented commercial setting. The talent is presenting the ${input.productName} in a professional commercial context.`;
+    modelContext = `The video features a wholesome youthful brand ambassador in a safe, modest, and family-oriented commercial setting. The talent is presenting the product in a professional commercial context.`;
   } else {
     modelContext = "The video features the product alone in a clean, professional and high-fidelity showcase without people.";
   }
@@ -69,7 +72,6 @@ export async function generateVideoAdContent(input: GenerateVideoAdInput): Promi
       config: {
         durationSeconds: input.durationSeconds > 8 ? 8 : input.durationSeconds,
         aspectRatio: '9:16',
-        // allow_adult is safer for general people generation in Veo 2
         personGeneration: input.modelType && input.modelType !== 'none' ? 'allow_adult' : 'dont_allow',
       },
     });
