@@ -36,28 +36,30 @@ export async function generateVideoAdContent(input: GenerateVideoAdInput): Promi
 
   const styleContext = input.isUgc 
     ? "authentic User Generated Content (UGC) style, handheld camera feel, natural home lighting, relatable vibe"
-    : "high-end professional studio commercial, steady cinematic camera movement, dramatic fashion lighting, 8k resolution, modest presentation";
+    : "high-end premium studio commercial, steady cinematic camera movement, dramatic fashion lighting, 8k resolution, professional color grading";
 
   let modelContext = "";
   if (input.modelType === 'mens') {
-    modelContext = "The product is showcased by a professional male commercial talent in a wholesome and modest manner.";
+    modelContext = "The product is presented by a professional male commercial talent in a wholesome and modest manner.";
   } else if (input.modelType === 'womens') {
-    modelContext = "The product is showcased by a professional female commercial talent in a wholesome and modest manner.";
+    modelContext = "The product is presented by a professional female commercial talent in a wholesome and modest manner.";
   } else if (input.modelType === 'kids') {
-    // Sanitized for policy: Avoid "kids/child" in prompt, use "youthful brand ambassador"
-    modelContext = `The video features a wholesome youthful brand ambassador in a safe, modest, and family-oriented commercial setting. The talent is presenting the product in a professional commercial context.`;
+    modelContext = `The video features a wholesome youthful brand ambassador in a safe, modest, and family-oriented commercial setting. The talent is presenting the product in a professional, high-end commercial context.`;
   } else {
-    modelContext = "The video features the product alone in a clean, professional and high-fidelity showcase without people.";
+    modelContext = "The video features the product alone as the absolute hero in a clean, high-fidelity studio showcase without people.";
   }
 
-  const promptText = `Create a cinematic, family-friendly e-commerce product video for "${input.productName}" in the "${input.productCategory}" category.
-  SCENE: The product is showcased in a ${input.background} environment.
+  const promptText = `Act as a world-class commercial cinematographer. Create a high-end, professional studio-quality commercial video for the "${input.productName}". 
+
+  CORE DIRECTIVE: The product in the provided image is the absolute HERO. Focus exclusively on maintaining its design, color, and integrity.
+  SCENE: The product is showcased in a ${input.background} environment with cinematic ${input.isUgc ? 'natural' : 'studio'} lighting.
   TALENT: ${modelContext}
   STYLE: ${styleContext}.
-  MARKETING CONTEXT: ${input.marketingText || 'Premium quality, wholesome lifestyle appeal.'}
+  MARKETING CONTEXT: ${input.marketingText || 'Premium quality, high-fidelity commercial appeal.'}
   
-  MOTION: Subtle, elegant camera movement around the product. Keep the product central and perfectly in focus. 
-  CONSTRAINT: The scene must be wholesome, professional, and suitable for a general audience. Ensure all attire is modest and safe. No sensitive or non-commercial content.`;
+  MOTION: Subtle and elegant camera movement. Perform a slow cinematic zoom-in or a smooth orbital sweep around the product. Keep the product perfectly central and in sharp focus throughout the entire duration.
+  
+  CONSTRAINT: The scene MUST be wholesome, professional, and suitable for a general commercial audience. Ensure all attire is modest and safe. No distractions, no random objects, only the product and its premium environment.`;
 
   try {
     let { operation } = await ai.generate({

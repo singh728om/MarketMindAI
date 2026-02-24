@@ -1,6 +1,6 @@
 'use server';
 /**
- * Professional AI Photoshoot Agent with Safety-Optimized Prompting.
+ * Professional AI Photoshoot Agent with Studio-Quality Prompting.
  * Engineered to avoid policy violations for children and fashion models using ultra-wholesome descriptors.
  */
 
@@ -35,10 +35,9 @@ export async function generatePhotoshoot(input: GeneratePhotoshootInput): Promis
 
   let modelText = "";
   if (input.modelType === 'none') {
-    modelText = 'the product alone in a clean setting';
+    modelText = 'the product alone as the central hero in a clean studio setting';
   } else if (input.modelType === 'kids') {
-    // Sanitized: Use "youthful brand ambassador" instead of children labels
-    modelText = `a wholesome youthful brand ambassador in modest, family-friendly commercial attire presenting the product`;
+    modelText = `a wholesome youthful brand ambassador in modest, family-friendly high-end commercial attire presenting the product`;
   } else if (input.modelType === 'mens') {
     modelText = `a professional male commercial talent in modest, high-end commercial attire`;
   } else if (input.modelType === 'womens') {
@@ -47,21 +46,21 @@ export async function generatePhotoshoot(input: GeneratePhotoshootInput): Promis
 
   let angleDescription = "";
   switch (input.shotAngle) {
-    case 'front': angleDescription = "straight-on eye-level front view"; break;
-    case 'back': angleDescription = "view from behind showing back details"; break;
-    case 'left-side': angleDescription = "left-side profile view"; break;
-    case 'right-side': angleDescription = "right-side profile view"; break;
-    case 'close': angleDescription = "macro close-up focus on textures and fine craftsmanship"; break;
-    default: angleDescription = "standard commercial angle";
+    case 'front': angleDescription = "straight-on eye-level front view, perfectly symmetrical"; break;
+    case 'back': angleDescription = "view from behind showing high-fidelity back details"; break;
+    case 'left-side': angleDescription = "left-side profile view, sharp focus"; break;
+    case 'right-side': angleDescription = "right-side profile view, sharp focus"; break;
+    case 'close': angleDescription = "macro close-up focus on premium textures and fine craftsmanship"; break;
+    default: angleDescription = "standard high-end commercial angle";
   }
 
   let backgroundText = "";
   switch (input.background) {
-    case 'studio': backgroundText = "clean professional high-key studio with soft shadows"; break;
-    case 'outdoor': backgroundText = "natural daylight outdoor city or street setting"; break;
-    case 'sport': backgroundText = "dynamic fitness gym or stadium environment"; break;
-    case 'nature': backgroundText = "serene natural environment like a park or forest"; break;
-    default: backgroundText = input.background || "professional studio";
+    case 'studio': backgroundText = "clean professional high-key studio with soft shadows and neutral backdrop"; break;
+    case 'outdoor': backgroundText = "natural daylight urban city or street setting, blurred background"; break;
+    case 'sport': backgroundText = "dynamic high-performance fitness gym or stadium environment"; break;
+    case 'nature': backgroundText = "serene natural environment like a park or forest with soft bokeh"; break;
+    default: backgroundText = input.background || "professional luxury studio";
   }
   
   const promptEngineeringResponse = await ai.generate({
@@ -73,15 +72,16 @@ export async function generatePhotoshoot(input: GeneratePhotoshootInput): Promis
         { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_ONLY_HIGH' }
       ]
     },
-    prompt: `You are a world-class commercial fashion photographer. Write a highly detailed, safe, and professional photography prompt.
-    PRODUCT: ${input.productType}
+    prompt: `You are a world-class commercial fashion photographer specializing in luxury studio catalogs. Write a highly detailed, professional photography prompt.
+    
+    HERO PRODUCT: ${input.productType}
     CATEGORY: ${input.category || 'General'}
     TALENT: ${modelText}
     ANGLE: ${angleDescription}
     BACKGROUND: ${backgroundText}
-    STYLE: ${input.style || 'high-end commercial editorial, modest, realistic lighting, extremely detailed, 8k resolution'}
+    AESTHETIC: ${input.style || 'high-end commercial editorial, modest, realistic high-key lighting, extremely detailed textures, 8k resolution, sharp focus'}
     
-    The prompt should focus on realism and professional brand aesthetic. Ensure the result is wholesome, safe, and suitable for a general commercial audience. Output ONLY the final prompt text.`,
+    The prompt should prioritize realism, brand consistency, and professional commercial aesthetics. Ensure the product is the central focus. Output ONLY the final prompt text.`,
   });
 
   const finalPromptText = promptEngineeringResponse.text;
@@ -122,7 +122,7 @@ export async function generatePhotoshoot(input: GeneratePhotoshootInput): Promis
       },
       prompt: [
         {media: {url: input.photoDataUri}},
-        {text: `Perform a professional, wholesome studio reshoot based on this direction: ${finalPromptText}. CONSTRAINT: Keep the product identical to the original image in design and color. Ensure the scene is modest, safe, and family-friendly. No sensitive content.`},
+        {text: `Perform a professional, high-end studio reshoot based on this direction: ${finalPromptText}. CONSTRAINT: Identify the main product in the image. Keep this product IDENTICAL to the original image in design, pattern, and color. Place it in the new scene with professional lighting. Ensure the scene is modest, safe, and family-friendly.`},
       ],
     });
 
