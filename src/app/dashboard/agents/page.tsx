@@ -335,8 +335,8 @@ function AgentsContent() {
                             <Select value={formData.aiEngine} onValueChange={(val) => handleInputChange("aiEngine", val)}>
                               <SelectTrigger className="bg-slate-800 border-white/5 h-11 rounded-xl"><SelectValue /></SelectTrigger>
                               <SelectContent className="bg-slate-800 border-white/10 text-white">
-                                <SelectItem value="gemini">Google Gemini (Astra Core)</SelectItem>
-                                <SelectItem value="openai">OpenAI DALL-E 3</SelectItem>
+                                <SelectItem value="gemini">Astra Core</SelectItem>
+                                <SelectItem value="openai">Astra Plus</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
