@@ -44,14 +44,18 @@ export async function generateVideoAdContent(input: GenerateVideoAdInput): Promi
   } else if (input.modelType === 'womens') {
     modelContext = "The video features a professional female commercial talent WEARING the exact product from the image. The talent is presenting the garment in a modest and wholesome manner.";
   } else if (input.modelType === 'kids') {
-    modelContext = `The video features a wholesome youthful brand ambassador WEARING the exact product from the image in a safe, modest, and family-oriented commercial setting. The talent is presenting the product in a professional, high-end commercial context.`;
+    const age = input.kidAge || "5";
+    modelContext = `The video features a ${age}-year-old wholesome youthful brand ambassador WEARING the exact product from the image. The talent is a young child presenting the product in a safe, modest, and family-oriented commercial setting.`;
   } else {
     modelContext = "The video features the product alone as the absolute hero in a clean, high-fidelity studio showcase without people. Focus on the textures and design.";
   }
 
-  const promptText = `Act as a world-class commercial cinematographer and fashion director. Create a high-end, professional studio-quality commercial video for the "${input.productName}". 
+  const promptText = `Act as a world-class commercial cinematographer. Create a high-end, professional studio-quality commercial video for the "${input.productName}". 
 
   CORE DIRECTIVE: The model MUST be WEARING the exact product shown in the provided image. Keep the garment's design, pattern, and color IDENTICAL to the original.
+  
+  CLEAN OUTPUT REQUIREMENT: Produce a SINGLE cinematic scene. NO split screens, NO side-by-side comparisons, and NO original image overlays. Show ONLY the final result of the model wearing the product.
+  
   SCENE: The talent is showcased in a ${input.background} environment with cinematic ${input.isUgc ? 'natural' : 'studio'} lighting.
   TALENT: ${modelContext}
   STYLE: ${styleContext}.

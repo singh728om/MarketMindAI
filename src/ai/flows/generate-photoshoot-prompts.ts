@@ -37,7 +37,8 @@ export async function generatePhotoshoot(input: GeneratePhotoshootInput): Promis
   if (input.modelType === 'none') {
     modelText = 'the product alone as the central hero in a clean studio setting';
   } else if (input.modelType === 'kids') {
-    modelText = `a wholesome youthful brand ambassador WEARING the exact product from the image in a modest, family-friendly high-end commercial setting`;
+    const age = input.kidAge || "5";
+    modelText = `a ${age}-year-old wholesome youthful brand ambassador. The talent is a young child WEARING the exact product from the image in a modest, family-friendly high-end commercial setting`;
   } else if (input.modelType === 'mens') {
     modelText = `a professional male commercial talent WEARING the exact product from the image in modest, high-end commercial attire`;
   } else if (input.modelType === 'womens') {
@@ -72,7 +73,7 @@ export async function generatePhotoshoot(input: GeneratePhotoshootInput): Promis
         { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_ONLY_HIGH' }
       ]
     },
-    prompt: `You are a world-class commercial fashion photographer specializing in luxury studio catalogs. Write a highly detailed, professional photography prompt for a VIRTUAL TRY-ON.
+    prompt: `You are a world-class commercial fashion photographer. Write a highly detailed photography prompt for a CLEAN VIRTUAL TRY-ON.
     
     HERO PRODUCT: ${input.productType}
     CATEGORY: ${input.category || 'General'}
@@ -80,6 +81,8 @@ export async function generatePhotoshoot(input: GeneratePhotoshootInput): Promis
     ANGLE: ${angleDescription}
     BACKGROUND: ${backgroundText}
     AESTHETIC: ${input.style || 'high-end commercial editorial, modest, realistic high-key lighting, extremely detailed textures, 8k resolution, sharp focus'}
+    
+    CLEAN OUTPUT REQUIREMENT: Produce a SINGLE professional image. NO split screens, NO side-by-side views, and NO original image overlays. Show ONLY the final result of the model wearing the product.
     
     CORE REQUIREMENT: The model MUST be wearing the product from the image. Maintain IDENTICAL color and pattern. Output ONLY the final prompt text.`,
   });
@@ -97,7 +100,7 @@ export async function generatePhotoshoot(input: GeneratePhotoshootInput): Promis
       },
       body: JSON.stringify({
         model: "dall-e-3",
-        prompt: `A high-end commercial studio photo. ${finalPromptText}. The model is wearing the exact product from the reference. Perfectly realistic.`,
+        prompt: `A high-end commercial studio photo. ${finalPromptText}. Show ONLY the model. NO text, NO split screens, NO original image overlays. Perfectly realistic.`,
         n: 1,
         size: "1024x1024",
         response_format: "b64_json"
@@ -122,7 +125,11 @@ export async function generatePhotoshoot(input: GeneratePhotoshootInput): Promis
       },
       prompt: [
         {media: {url: input.photoDataUri}},
-        {text: `Perform a professional, high-end studio virtual try-on based on this direction: ${finalPromptText}. CONSTRAINT: The model in the new image MUST be WEARING the product from the original image. Keep the product IDENTICAL in design, pattern, and color. Ensure the scene is modest, safe, and family-friendly.`},
+        {text: `Perform a professional virtual try-on based on this direction: ${finalPromptText}. 
+        
+        CLEAN OUTPUT CONSTRAINT: Show ONLY the model wearing the product. NO split screens, NO side-by-side views, and NO original image overlays in the final output.
+        
+        CONSTRAINT: The model in the new image MUST be WEARING the product from the original image. Keep the product IDENTICAL in design, pattern, and color. Ensure the scene is modest, safe, and family-friendly.`},
       ],
     });
 
@@ -132,7 +139,7 @@ export async function generatePhotoshoot(input: GeneratePhotoshootInput): Promis
   } else {
     const { media } = await ai.generate({
       model: 'googleai/imagen-4.0-fast-generate-001',
-      prompt: finalPromptText,
+      prompt: `${finalPromptText}. CLEAN OUTPUT: Show ONLY the model. NO overlays, NO split screens.`,
       config: {
         safetySettings: [
           { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_ONLY_HIGH' }
