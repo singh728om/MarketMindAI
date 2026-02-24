@@ -16,6 +16,8 @@ const GenerateVideoAdInputSchema = z.object({
   photoDataUri: z.string().describe("Base64 data URI of the product image."),
   durationSeconds: z.number().default(5),
   isUgc: z.boolean().default(false),
+  modelType: z.string().optional(),
+  kidAge: z.string().optional(),
   apiKey: z.string().optional(),
 });
 export type GenerateVideoAdInput = z.infer<typeof GenerateVideoAdInputSchema>;
@@ -35,8 +37,20 @@ export async function generateVideoAdContent(input: GenerateVideoAdInput): Promi
     ? "authentic User Generated Content (UGC) style, handheld camera feel, natural home lighting, relatable vibe"
     : "high-end professional studio commercial, steady cinematic camera movement, dramatic fashion lighting, 8k resolution";
 
+  let modelContext = "";
+  if (input.modelType === 'mens') {
+    modelContext = "The product is being worn or held by a professional male fashion model.";
+  } else if (input.modelType === 'womens') {
+    modelContext = "The product is being worn or held by a professional female fashion model.";
+  } else if (input.modelType === 'kids') {
+    modelContext = `The product is being worn or held by a professional ${input.kidAge || '5'}-year-old child model.`;
+  } else {
+    modelContext = "The video features the product alone in a clean, professional showcase.";
+  }
+
   const prompt = `Create a cinematic e-commerce product video for "${input.productName}" in the "${input.productCategory}" category.
   SCENE: The product is showcased in a ${input.background} environment.
+  MODEL: ${modelContext}
   STYLE: ${styleContext}.
   MARKETING CONTEXT: ${input.marketingText || 'Premium quality, lifestyle appeal.'}
   

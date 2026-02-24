@@ -227,6 +227,8 @@ function AgentsContent() {
             photoDataUri: formData.base64Image,
             durationSeconds: parseInt(formData.duration),
             isUgc: formData.isUgc,
+            modelType: formData.category === 'Fashion' ? formData.modelType : 'none',
+            kidAge: formData.modelType === 'kids' ? formData.kidAge : undefined,
             apiKey: activeKeys.gemini
           });
           setOutput({ videoUrl: result.videoDataUri, type: 'video' });
@@ -405,6 +407,30 @@ function AgentsContent() {
                                 </SelectContent>
                               </Select>
                             </div>
+                            
+                            {formData.category === 'Fashion' && (
+                              <>
+                                <div className="space-y-2">
+                                  <Label className="text-[10px] uppercase font-bold text-slate-500 tracking-widest">Model Type</Label>
+                                  <Select value={formData.modelType} onValueChange={(val) => handleInputChange("modelType", val)}>
+                                    <SelectTrigger className="bg-slate-800 border-white/5 h-11 rounded-xl"><SelectValue /></SelectTrigger>
+                                    <SelectContent className="bg-slate-800 border-white/10 text-white">
+                                      <SelectItem value="none">None (Product Only)</SelectItem>
+                                      <SelectItem value="mens">Male Model</SelectItem>
+                                      <SelectItem value="womens">Female Model</SelectItem>
+                                      <SelectItem value="kids">Child Model</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                {formData.modelType === 'kids' && (
+                                  <div className="space-y-2">
+                                    <Label className="text-[10px] uppercase font-bold text-slate-500 tracking-widest">Age Group</Label>
+                                    <Input type="number" placeholder="5" className="bg-slate-800 border-white/5 h-11 rounded-xl" value={formData.kidAge} onChange={(e) => handleInputChange("kidAge", e.target.value)} />
+                                  </div>
+                                )}
+                              </>
+                            )}
+
                             <div className="md:col-span-2 p-4 rounded-xl bg-slate-800/50 border border-white/5 flex items-center justify-between">
                               <div className="space-y-0.5">
                                 <p className="text-xs font-bold text-white">Generate as UGC Content</p>
