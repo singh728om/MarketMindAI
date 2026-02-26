@@ -78,7 +78,7 @@ function AgentsContent() {
   const [isApiActive, setIsApiActive] = useState(false);
   const [activeKeys, setActiveKeys] = useState<{ gemini: string; openai: string }>({ gemini: "", openai: "" });
   const [hiredRoles, setHiredRoles] = useState<string[]>([]);
-  const [photoshootTrial, setPhotoshootTrial] = useState(0);
+  const [agentTrials, setAgentTrials] = useState<Record<string, number>>({});
   const [hasMounted, setHasMounted] = useState(false);
   
   const searchParams = useSearchParams();
@@ -119,8 +119,10 @@ function AgentsContent() {
           setHiredRoles(projects.filter((p: any) => p.status !== 'Canceled').map((p: any) => p.name));
         }
         
-        const trialCount = parseInt(localStorage.getItem("marketmind_photoshoot_trial") || "0");
-        setPhotoshootTrial(trialCount);
+        const trialsStr = localStorage.getItem("marketmind_agent_trials");
+        if (trialsStr) {
+          setAgentTrials(JSON.parse(trialsStr));
+        }
       } catch (e) {}
     };
 
@@ -156,16 +158,14 @@ function AgentsContent() {
 
   const getLockStatus = (agent: any) => {
     const isPaid = hiredRoles.some(role => agent.services.includes(role));
+    if (isPaid) return { locked: false, label: "Premium Active", type: 'paid' };
     
-    if (agent.id === 'photoshoot') {
-      if (isPaid) return { locked: false, label: "Premium Active", type: 'paid' };
-      if (photoshootTrial < 3) return { locked: false, label: `${3 - photoshootTrial} Trial Images Left`, type: 'trial' };
-      return { locked: true, label: "Trial Ended", type: 'locked' };
+    const trialCount = agentTrials[agent.id] || 0;
+    if (trialCount < 3) {
+      return { locked: false, label: `${3 - trialCount} Trial Uses Left`, type: 'trial' };
     }
     
-    return isPaid 
-      ? { locked: false, label: "Premium Active", type: 'paid' }
-      : { locked: true, label: "Requires Subscription", type: 'locked' };
+    return { locked: true, label: "Trial Ended", type: 'locked' };
   };
 
   const handleInputChange = (field: string, value: any) => {
@@ -265,13 +265,6 @@ function AgentsContent() {
             aiEngine: formData.aiEngine as any
           });
           setOutput({ imageUrl: result.generatedImageDataUri, type: 'creative' });
-          
-          // Increment trial if not paid
-          if (status.type === 'trial') {
-            const nextTrial = photoshootTrial + 1;
-            setPhotoshootTrial(nextTrial);
-            localStorage.setItem("marketmind_photoshoot_trial", nextTrial.toString());
-          }
           break;
         case 'video':
           if (!formData.base64Image) {
@@ -320,6 +313,14 @@ function AgentsContent() {
         default:
           throw new Error("Agent logic currently under maintenance.");
       }
+
+      // Increment trials for all agents if not paid
+      if (status.type === 'trial') {
+        const nextTrials = { ...agentTrials, [selectedAgent.id]: (agentTrials[selectedAgent.id] || 0) + 1 };
+        setAgentTrials(nextTrials);
+        localStorage.setItem("marketmind_agent_trials", JSON.stringify(nextTrials));
+      }
+
       toast({ title: "Execution Complete", description: "Agent has delivered the studio output." });
     } catch (err: any) {
       toast({ variant: "destructive", title: "Execution Failed", description: err.message });
