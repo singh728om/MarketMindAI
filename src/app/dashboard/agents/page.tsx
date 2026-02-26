@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, Suspense, useMemo } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { 
   Sparkles, 
   Camera, 
@@ -25,7 +25,8 @@ import {
   Cpu,
   X,
   Clock,
-  VideoIcon
+  Lock,
+  Unlock
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -59,14 +60,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 
 const AGENTS = [
-  { id: "photoshoot", title: "AI Photoshoot Studio", icon: Camera, desc: "Virtual try-ons and professional studio reshoots.", color: "text-purple-500" },
-  { id: "video", title: "Product to AI Video Ads", icon: Video, desc: "Transform products into cinematic virtual try-on video ads.", color: "text-rose-500" },
-  { id: "listing", title: "Listing Optimizer", icon: FileText, desc: "SEO-friendly titles, bullets, and descriptions via Gemini Vision.", color: "text-blue-500" },
-  { id: "catalog", title: "Catalog Automation", icon: LayoutGrid, desc: "Template generation + marketplace rule validation.", color: "text-emerald-500" },
-  { id: "ugc", title: "UGC Script Studio", icon: Users, desc: "Creative hooks + detailed scripts.", color: "text-orange-500" },
-  { id: "ranking", title: "Ranking Keyword Finder", icon: Search, desc: "Discover 10 high-intent keywords to boost visibility.", color: "text-amber-500" },
-  { id: "leads", title: "Lead Generation Agent", icon: Globe, desc: "Extract B2B leads via location or website analysis.", color: "text-cyan-500" },
-  { id: "webbuilder", title: "AI Website Builder", icon: Layout, desc: "Generate a fully responsive, optimized brand landing page.", color: "text-indigo-400" },
+  { id: "photoshoot", title: "AI Photoshoot Studio", icon: Camera, desc: "Virtual try-ons and professional studio reshoots.", color: "text-purple-500", services: ["AI Photoshoot (5 Images)", "AI Creative Director"] },
+  { id: "video", title: "Product to AI Video Ads", icon: Video, desc: "Transform products into cinematic virtual try-on video ads.", color: "text-rose-500", services: ["AI UGC Ad Video", "AI Social Media Manager"] },
+  { id: "listing", title: "Listing Optimizer", icon: FileText, desc: "SEO-friendly titles, bullets, and descriptions via Gemini Vision.", color: "text-blue-500", services: ["Listing SEO Optimized", "AI Listing Architect"] },
+  { id: "catalog", title: "Catalog Automation", icon: LayoutGrid, desc: "Template generation + marketplace rule validation.", color: "text-emerald-500", services: ["Onboarding Bundle (5 Platforms)", "AI Listing Architect"] },
+  { id: "ugc", title: "UGC Script Studio", icon: Users, desc: "Creative hooks + detailed scripts.", color: "text-orange-500", services: ["AI Reels Monthly (8 reels)", "AI Social Media Manager"] },
+  { id: "ranking", title: "Ranking Keyword Finder", icon: Search, desc: "Discover 10 high-intent keywords to boost visibility.", color: "text-amber-500", services: ["AI Keyword Research", "AI Listing Architect"] },
+  { id: "leads", title: "Lead Generation Agent", icon: Globe, desc: "Extract B2B leads via location or website analysis.", color: "text-cyan-500", services: ["Lead Generation Agent", "AI CEO & Chief Strategist"] },
+  { id: "webbuilder", title: "AI Website Builder", icon: Layout, desc: "Generate a fully responsive, optimized brand landing page.", color: "text-indigo-400", services: ["Shopify Store Starter", "Basic Static Website", "Enterprise E-com Setup"] },
 ];
 
 function AgentsContent() {
@@ -76,9 +77,12 @@ function AgentsContent() {
   const [output, setOutput] = useState<any>(null);
   const [isApiActive, setIsApiActive] = useState(false);
   const [activeKeys, setActiveKeys] = useState<{ gemini: string; openai: string }>({ gemini: "", openai: "" });
+  const [hiredRoles, setHiredRoles] = useState<string[]>([]);
+  const [photoshootTrial, setPhotoshootTrial] = useState(0);
   const [hasMounted, setHasMounted] = useState(false);
   
   const searchParams = useSearchParams();
+  const router = useRouter();
   const initialAgentId = searchParams.get("agent");
 
   const [formData, setFormData] = useState({
@@ -106,10 +110,28 @@ function AgentsContent() {
 
   useEffect(() => {
     setHasMounted(true);
+    
+    const loadState = () => {
+      try {
+        const projectsStr = localStorage.getItem("marketmind_projects");
+        if (projectsStr) {
+          const projects = JSON.parse(projectsStr);
+          setHiredRoles(projects.filter((p: any) => p.status !== 'Canceled').map((p: any) => p.name));
+        }
+        
+        const trialCount = parseInt(localStorage.getItem("marketmind_photoshoot_trial") || "0");
+        setPhotoshootTrial(trialCount);
+      } catch (e) {}
+    };
+
+    loadState();
     if (initialAgentId) {
       const agent = AGENTS.find(a => a.id === initialAgentId);
       if (agent) setSelectedAgent(agent);
     }
+    
+    window.addEventListener('storage', loadState);
+    return () => window.removeEventListener('storage', loadState);
   }, [initialAgentId]);
 
   useEffect(() => {
@@ -130,9 +152,21 @@ function AgentsContent() {
     };
 
     checkKeys();
-    window.addEventListener('storage', checkKeys);
-    return () => window.removeEventListener('storage', checkKeys);
   }, []);
+
+  const getLockStatus = (agent: any) => {
+    const isPaid = hiredRoles.some(role => agent.services.includes(role));
+    
+    if (agent.id === 'photoshoot') {
+      if (isPaid) return { locked: false, label: "Premium Active", type: 'paid' };
+      if (photoshootTrial < 3) return { locked: false, label: `${3 - photoshootTrial} Trial Images Left`, type: 'trial' };
+      return { locked: true, label: "Trial Ended", type: 'locked' };
+    }
+    
+    return isPaid 
+      ? { locked: false, label: "Premium Active", type: 'paid' }
+      : { locked: true, label: "Requires Subscription", type: 'locked' };
+  };
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -206,8 +240,9 @@ function AgentsContent() {
       return;
     }
 
-    if (formData.aiEngine === 'openai' && !activeKeys.openai) {
-      toast({ variant: "destructive", title: "OpenAI Node Offline", description: "Please enter your OpenAI API Key in System Config." });
+    const status = getLockStatus(selectedAgent);
+    if (status.locked) {
+      toast({ variant: "destructive", title: "Agent Locked", description: "Please opt for this service to continue." });
       return;
     }
 
@@ -230,6 +265,13 @@ function AgentsContent() {
             aiEngine: formData.aiEngine as any
           });
           setOutput({ imageUrl: result.generatedImageDataUri, type: 'creative' });
+          
+          // Increment trial if not paid
+          if (status.type === 'trial') {
+            const nextTrial = photoshootTrial + 1;
+            setPhotoshootTrial(nextTrial);
+            localStorage.setItem("marketmind_photoshoot_trial", nextTrial.toString());
+          }
           break;
         case 'video':
           if (!formData.base64Image) {
@@ -286,8 +328,6 @@ function AgentsContent() {
     }
   };
 
-  const agentCards = useMemo(() => AGENTS, []);
-
   if (!hasMounted) return null;
 
   return (
@@ -306,23 +346,65 @@ function AgentsContent() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {agentCards.map((agent) => (
-          <Card key={agent.id} className="group hover:border-primary/50 transition-all rounded-2xl border-white/5 bg-card overflow-hidden cursor-pointer shadow-xl" onClick={() => { setOutput(null); setSelectedAgent(agent); }}>
-            <CardHeader>
-              <div className={`w-12 h-12 rounded-xl bg-muted flex items-center justify-center mb-4 ${agent.color}`}>
-                <agent.icon size={24} />
-              </div>
-              <CardTitle className="font-headline text-lg text-white">{agent.title}</CardTitle>
-              <CardDescription className="text-slate-400 text-sm">{agent.desc}</CardDescription>
-            </CardHeader>
-            <CardFooter className="pt-0 justify-between">
-              <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Ready</span>
-              <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
-                Try Agent <ChevronRight size={14} className="ml-1" />
-              </Button>
-            </CardFooter>
-          </Card>
-        ))}
+        {AGENTS.map((agent) => {
+          const status = getLockStatus(agent);
+          return (
+            <Card 
+              key={agent.id} 
+              className={cn(
+                "group transition-all rounded-2xl border-white/5 bg-card overflow-hidden cursor-pointer shadow-xl relative",
+                status.locked ? "opacity-80 grayscale-[0.5]" : "hover:border-primary/50"
+              )} 
+              onClick={() => { 
+                if (status.locked) {
+                  router.push("/pricing");
+                  return;
+                }
+                setOutput(null); 
+                setSelectedAgent(agent); 
+              }}
+            >
+              {status.locked && (
+                <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] z-10 flex flex-col items-center justify-center p-6 text-center">
+                  <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white mb-4">
+                    <Lock size={24} />
+                  </div>
+                  <p className="text-xs font-bold uppercase tracking-widest text-white mb-2">Service Locked</p>
+                  <Button variant="secondary" size="sm" className="rounded-xl h-8 text-[10px] font-bold">Unlock Service</Button>
+                </div>
+              )}
+              
+              <CardHeader>
+                <div className="flex justify-between items-start mb-2">
+                  <div className={`w-12 h-12 rounded-xl bg-muted flex items-center justify-center ${agent.color}`}>
+                    <agent.icon size={24} />
+                  </div>
+                  <Badge variant="outline" className={cn(
+                    "text-[8px] font-bold uppercase tracking-tighter px-2 py-0",
+                    status.type === 'trial' ? "text-amber-500 border-amber-500/20" : 
+                    status.type === 'paid' ? "text-emerald-500 border-emerald-500/20" : 
+                    "text-slate-500 border-white/10"
+                  )}>
+                    {status.label}
+                  </Badge>
+                </div>
+                <CardTitle className="font-headline text-lg text-white">{agent.title}</CardTitle>
+                <CardDescription className="text-slate-400 text-sm">{agent.desc}</CardDescription>
+              </CardHeader>
+              <CardFooter className="pt-0 justify-between">
+                <span className={cn(
+                  "text-[10px] font-bold uppercase tracking-widest",
+                  status.locked ? "text-slate-500" : "text-emerald-500"
+                )}>
+                  {status.locked ? "Restricted" : "Ready"}
+                </span>
+                <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                  {status.locked ? "Get Access" : "Try Agent"} <ChevronRight size={14} className="ml-1" />
+                </Button>
+              </CardFooter>
+            </Card>
+          );
+        })}
       </div>
 
       <Dialog open={!!selectedAgent} onOpenChange={(open) => !open && setSelectedAgent(null)}>
@@ -337,7 +419,9 @@ function AgentsContent() {
                     </div>
                     <div className="min-w-0">
                       <DialogTitle className="text-xl md:text-2xl font-headline font-bold truncate">{selectedAgent.title}</DialogTitle>
-                      <DialogDescription className="text-slate-400 text-xs md:text-sm truncate">{selectedAgent.desc}</DialogDescription>
+                      <DialogDescription className="text-slate-400 text-xs md:text-sm truncate">
+                        {getLockStatus(selectedAgent).label} • {selectedAgent.desc}
+                      </DialogDescription>
                     </div>
                   </div>
                   <Button variant="ghost" size="icon" className="rounded-full hover:bg-white/5" onClick={() => setSelectedAgent(null)}>
@@ -351,7 +435,6 @@ function AgentsContent() {
                   {!output ? (
                     <form id="agent-config-form" onSubmit={handleRunAgent} className="space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
-                        {/* AI Engine Selection - Rebranded */}
                         {selectedAgent.id === 'photoshoot' && (
                           <div className="md:col-span-2 space-y-2 pb-2 border-b border-white/5">
                             <Label className="text-[10px] uppercase font-bold text-primary tracking-widest flex items-center gap-2 mb-1">
@@ -367,7 +450,6 @@ function AgentsContent() {
                           </div>
                         )}
 
-                        {/* Common Fields */}
                         <div className="space-y-2">
                           <Label className="text-[10px] uppercase font-bold text-slate-500 tracking-widest">Marketplace Context</Label>
                           <Select value={formData.marketplace} onValueChange={(val) => handleInputChange("marketplace", val)}>
@@ -396,7 +478,6 @@ function AgentsContent() {
                           </Select>
                         </div>
 
-                        {/* Video Specific Controls */}
                         {selectedAgent.id === 'video' && (
                           <>
                             <div className="space-y-2">
@@ -462,7 +543,6 @@ function AgentsContent() {
                           </>
                         )}
 
-                        {/* Photoshoot Specific */}
                         {selectedAgent.id === 'photoshoot' && (
                           <>
                             <div className="space-y-2">
@@ -516,7 +596,6 @@ function AgentsContent() {
                           </>
                         )}
 
-                        {/* Asset Upload - Crucial for Video/Photoshoot */}
                         {(['photoshoot', 'video', 'listing'].includes(selectedAgent.id)) && (
                           <div className="md:col-span-2 space-y-3">
                             <Label className="text-[10px] uppercase font-bold text-slate-500 tracking-widest">Raw Product Image (Reference for Try-On)</Label>

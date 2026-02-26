@@ -19,7 +19,8 @@ import {
   ArrowUpRight,
   HardDrive,
   History,
-  Boxes
+  Boxes,
+  Lock
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -48,6 +49,7 @@ export default function CommandHubPage() {
   const [hasMounted, setHasMounted] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
   const [marketplace, setMarketplace] = useState("Amazon");
+  const [isEnrolled, setIsEnrolled] = useState(false);
   
   const db = useFirestore();
   const auth = useAuth();
@@ -56,11 +58,30 @@ export default function CommandHubPage() {
 
   useEffect(() => {
     setHasMounted(true);
+    
+    const checkEnrollment = () => {
+      try {
+        const projectsStr = localStorage.getItem("marketmind_projects");
+        if (projectsStr) {
+          const projects = JSON.parse(projectsStr);
+          const active = projects.some((p: any) => 
+            p.status !== 'Canceled' && 
+            (p.name === 'AI CEO & Chief Strategist' || p.name === 'Astra')
+          );
+          setIsEnrolled(active);
+        }
+      } catch (e) {}
+    };
+
+    checkEnrollment();
+    window.addEventListener('storage', checkEnrollment);
+    return () => window.removeEventListener('storage', checkEnrollment);
   }, []);
 
   useEffect(() => {
-    if (!hasMounted || isUserLoading || !user || !db) {
+    if (!hasMounted || isUserLoading || !user || !db || !isEnrolled) {
       if (!isUserLoading && !user) setIsLoading(false);
+      if (isEnrolled === false && hasMounted) setIsLoading(false);
       return;
     }
 
@@ -86,7 +107,7 @@ export default function CommandHubPage() {
     });
 
     return () => unsubscribe();
-  }, [db, user, isUserLoading, hasMounted]);
+  }, [db, user, isUserLoading, hasMounted, isEnrolled]);
 
   const handleRunAudit = async () => {
     if (!user || !db) {
@@ -155,10 +176,39 @@ export default function CommandHubPage() {
     });
   };
 
-  if (!hasMounted) {
+  if (!hasMounted || isLoading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
         <Loader2 className="animate-spin text-primary w-12 h-12" />
+      </div>
+    );
+  }
+
+  if (!isEnrolled) {
+    return (
+      <div className="min-h-[70vh] flex flex-col items-center justify-center animate-in fade-in zoom-in duration-700">
+        <Card className="max-w-2xl w-full p-12 text-center space-y-8 bg-slate-900/50 border-white/5 rounded-[3rem] relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-12 opacity-5">
+            <Activity size={300} />
+          </div>
+          <div className="w-24 h-24 rounded-3xl bg-primary/10 flex items-center justify-center text-primary mx-auto shadow-2xl relative z-10">
+            <Lock size={48} />
+          </div>
+          <div className="space-y-4 relative z-10">
+            <Badge variant="outline" className="text-primary border-primary/20 bg-primary/5 uppercase font-bold tracking-widest text-[10px]">Premium Strategic Service</Badge>
+            <h2 className="text-4xl font-headline font-bold text-white leading-tight">Strategic Hub Restricted</h2>
+            <p className="text-slate-400 text-lg max-w-md mx-auto leading-relaxed">
+              Recruit Astra (AI CEO) to access the high-performance command hub for financial orchestration and market analysis.
+            </p>
+          </div>
+          <div className="pt-6 relative z-10">
+            <Button size="lg" className="rounded-2xl h-16 px-10 text-lg font-bold bg-primary text-white shadow-2xl shadow-primary/20" asChild>
+              <Link href="/dashboard/hire-ai">
+                Recruit Astra <ArrowUpRight size={20} className="ml-2" />
+              </Link>
+            </Button>
+          </div>
+        </Card>
       </div>
     );
   }
