@@ -353,7 +353,7 @@ function AgentsContent() {
               key={agent.id} 
               className={cn(
                 "group transition-all rounded-2xl border-white/5 bg-card overflow-hidden cursor-pointer shadow-xl relative",
-                status.locked ? "opacity-80 grayscale-[0.5]" : "hover:border-primary/50"
+                status.locked ? "opacity-90 grayscale-[0.3]" : "hover:border-primary/50"
               )} 
               onClick={() => { 
                 if (status.locked) {
@@ -365,12 +365,12 @@ function AgentsContent() {
               }}
             >
               {status.locked && (
-                <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] z-10 flex flex-col items-center justify-center p-6 text-center">
-                  <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white mb-4">
-                    <Lock size={24} />
+                <div className="absolute inset-0 bg-slate-900/40 z-10 flex flex-col items-center justify-center p-6 text-center">
+                  <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white mb-3 shadow-lg">
+                    <Lock size={20} />
                   </div>
-                  <p className="text-xs font-bold uppercase tracking-widest text-white mb-2">Service Locked</p>
-                  <Button variant="secondary" size="sm" className="rounded-xl h-8 text-[10px] font-bold">Unlock Service</Button>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-white mb-3 drop-shadow-md">Agent Locked</p>
+                  <Button variant="secondary" size="sm" className="rounded-xl h-8 text-[10px] font-bold shadow-xl">Unlock Agent</Button>
                 </div>
               )}
               
