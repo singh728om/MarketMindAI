@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { BrainCircuit, ArrowLeft, Zap, ShoppingBag, Sparkles, Check, ShoppingCart, X, TrendingUp, Globe } from "lucide-react";
+import { BrainCircuit, ArrowLeft, Zap, ShoppingBag, Sparkles, Check, ShoppingCart, X, TrendingUp, Globe, Tag } from "lucide-react";
 import { cn } from "@/lib/utils";
 import LinkNext from "next/link";
 
@@ -35,15 +35,14 @@ const PRICING_CATEGORIES: Category[] = [
       { id: "myntra", name: "Myntra Onboarding", price: 29999, priceDisplay: "₹29,999", period: "one-time" },
       { id: "nykaa", name: "Nykaa Onboarding", price: 24999, priceDisplay: "₹24,999", period: "one-time" },
       { id: "ajio", name: "Ajio Onboarding", price: 19999, priceDisplay: "₹19,999", period: "one-time" },
-      { id: "amazon", name: "Amazon Onboarding", price: 8999, priceDisplay: "₹8,999", period: "one-time" },
-      { id: "flipkart", name: "Flipkart Onboarding", price: 8999, priceDisplay: "₹8,999", period: "one-time" },
+      { id: "amazon", name: "Amazon Onboarding", price: 8999, priceDisplay: "₹8,9,99", period: "one-time" },
+      { id: "flipkart", name: "Flipkart Onboarding", price: 8999, priceDisplay: "₹8,9,99", period: "one-time" },
     ]
   },
   {
-    title: "AI & SEO Studio",
+    title: "AI Studio",
     description: "High-converting assets optimized by proprietary AI.",
     icon: Sparkles,
-    highlight: "Bulk rates available",
     items: [
       { id: "listing", name: "Listing SEO Optimized", price: 39, priceDisplay: "₹39", period: "per SKU" },
       { id: "photoshoot", name: "AI Photoshoot (5 Images)", price: 199, priceDisplay: "₹199", period: "per SKU" },
@@ -141,13 +140,21 @@ export default function PricingPage() {
 
       <main className="flex-1 pt-32 pb-32">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16 max-w-2xl mx-auto">
+          <div className="text-center mb-12 max-w-2xl mx-auto">
             <h1 className="font-headline text-4xl md:text-6xl font-bold mb-6 tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-white to-white/60">
               Select Your Services
             </h1>
             <p className="text-muted-foreground text-lg">
               Customize your growth plan. Choose one or more AI agents and expert onboarding services to build your custom package.
             </p>
+          </div>
+
+          {/* Promo Banner */}
+          <div className="max-w-4xl mx-auto mb-16 animate-in fade-in slide-in-from-top-4 duration-700">
+            <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-5 flex items-center justify-center gap-4 text-emerald-400 shadow-lg shadow-emerald-500/5">
+              <Tag size={20} className="animate-pulse" />
+              <span className="font-bold text-sm md:text-base uppercase tracking-[0.1em]">Special Launch Offer: 10% OFF for 1st Time Users</span>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
