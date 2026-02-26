@@ -44,6 +44,8 @@ const PRICE_MAP: Record<string, number> = {
   "Listing SEO Optimized": 39,
   "AI Photoshoot (5 Images)": 199,
   "AI UGC Ad Video": 1999,
+  "AI Reels Monthly (8 reels)": 9999,
+  "Google Business Setup": 4499,
   "Amazon/Flipkart Ads Mgmt": 21999,
   "Meta/Google Ads Mgmt": 19999,
   "Multi-Platform Ads Mgmt": 39999,

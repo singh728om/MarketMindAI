@@ -47,6 +47,8 @@ const PRICING_CATEGORIES: Category[] = [
       { id: "listing", name: "Listing SEO Optimized", price: 39, priceDisplay: "₹39", period: "per SKU" },
       { id: "photoshoot", name: "AI Photoshoot (5 Images)", price: 199, priceDisplay: "₹199", period: "per SKU" },
       { id: "video", name: "AI UGC Ad Video", price: 1999, priceDisplay: "₹1,999", period: "per video" },
+      { id: "reels-monthly", name: "AI Reels Monthly (8 reels)", price: 9999, priceDisplay: "₹9,999", period: "per month" },
+      { id: "google-biz", name: "Google Business Setup", price: 4499, priceDisplay: "₹4,499", period: "one-time" },
       { id: "keyword", name: "AI Keyword Research", price: 999, priceDisplay: "₹999", period: "per audit" },
     ]
   },

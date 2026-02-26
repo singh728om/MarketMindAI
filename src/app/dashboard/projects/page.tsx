@@ -24,7 +24,8 @@ import {
   Building2,
   Ticket,
   XCircle,
-  TrendingUp
+  TrendingUp,
+  LayoutGrid
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -59,7 +60,8 @@ const ICON_MAP: Record<string, any> = {
   ListChecks,
   Zap,
   Search,
-  TrendingUp
+  TrendingUp,
+  LayoutGrid
 };
 
 const AVAILABLE_SERVICES = [
@@ -71,6 +73,8 @@ const AVAILABLE_SERVICES = [
   { id: "listing-opt", name: "Listing SEO Optimized", category: "SEO", iconKey: "Zap", marketplace: "Multi-channel", price: 39 },
   { id: "photoshoot", name: "AI Photoshoot (5 Images)", category: "Creative", iconKey: "Sparkles", marketplace: "Creative Studio", price: 199 },
   { id: "video-ad", name: "AI UGC Ad Video", category: "Creative", iconKey: "Video", marketplace: "Creative Studio", price: 1999 },
+  { id: "reels-monthly", name: "AI Reels Monthly (8 reels)", category: "SEO", iconKey: "Video", marketplace: "Social", price: 9999 },
+  { id: "google-biz", name: "Google Business Setup", category: "SEO", iconKey: "Globe", marketplace: "Google", price: 4499 },
   { id: "ads-market", name: "Amazon/Flipkart Ads Mgmt", category: "Growth", iconKey: "TrendingUp", marketplace: "Marketplaces", price: 21999 },
   { id: "ads-meta", name: "Meta/Google Ads Mgmt", category: "Growth", iconKey: "TrendingUp", marketplace: "Social/Search", price: 19999 },
   { id: "ads-multi", name: "Multi-Platform Ads Mgmt", category: "Growth", iconKey: "TrendingUp", marketplace: "Omnichannel", price: 39999 },
