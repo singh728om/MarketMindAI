@@ -65,6 +65,7 @@ const ICON_MAP: Record<string, any> = {
 };
 
 const AVAILABLE_SERVICES = [
+  { id: "onboarding-bundle", name: "Onboarding Bundle (5 Platforms)", category: "Onboarding", iconKey: "ShoppingBag", marketplace: "Multi-channel", price: 69999 },
   { id: "myntra-on", name: "Myntra Onboarding", category: "Onboarding", iconKey: "ShoppingBag", marketplace: "Myntra", price: 29999 },
   { id: "ajio-on", name: "Ajio Onboarding", category: "Onboarding", iconKey: "ShoppingBag", marketplace: "Ajio", price: 19999 },
   { id: "nykaa-on", name: "Nykaa Onboarding", category: "Onboarding", iconKey: "ShoppingBag", marketplace: "Nykaa", price: 24999 },

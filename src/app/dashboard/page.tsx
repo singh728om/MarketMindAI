@@ -37,6 +37,7 @@ import { KPI_DATA as STATIC_KPI, PERFORMANCE_CHART } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
 const PRICE_MAP: Record<string, number> = {
+  "Onboarding Bundle (5 Platforms)": 69999,
   "Myntra Onboarding": 29999,
   "Nykaa Onboarding": 24999,
   "Ajio Onboarding": 19999,

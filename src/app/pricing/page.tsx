@@ -31,6 +31,7 @@ const PRICING_CATEGORIES: Category[] = [
     description: "Launch your brand on premium platforms with expert setup.",
     icon: ShoppingBag,
     items: [
+      { id: "bundle-on", name: "Onboarding Bundle (5 Platforms)", price: 69999, priceDisplay: "₹69,999", period: "one-time" },
       { id: "myntra", name: "Myntra Onboarding", price: 29999, priceDisplay: "₹29,999", period: "one-time" },
       { id: "nykaa", name: "Nykaa Onboarding", price: 24999, priceDisplay: "₹24,999", period: "one-time" },
       { id: "ajio", name: "Ajio Onboarding", price: 19999, priceDisplay: "₹19,999", period: "one-time" },

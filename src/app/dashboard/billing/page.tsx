@@ -36,6 +36,7 @@ import { cn } from "@/lib/utils";
 
 // Price mapping for fallback calculation if metadata is missing
 const PRICE_MAP: Record<string, number> = {
+  "Onboarding Bundle (5 Platforms)": 69999,
   "Myntra Onboarding": 29999,
   "Nykaa Onboarding": 24999,
   "Ajio Onboarding": 19999,
