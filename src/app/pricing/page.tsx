@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { BrainCircuit, ArrowLeft, Zap, ShoppingBag, Sparkles, Check, ShoppingCart, X } from "lucide-react";
+import { BrainCircuit, ArrowLeft, Zap, ShoppingBag, Sparkles, Check, ShoppingCart, X, TrendingUp, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
 import LinkNext from "next/link";
 
@@ -27,38 +27,40 @@ interface Category {
 
 const PRICING_CATEGORIES: Category[] = [
   {
-    title: "Marketplace Onboarding",
+    title: "Onboarding",
     description: "Launch your brand on premium platforms with expert setup.",
     icon: ShoppingBag,
-    highlight: "First 10 listings are free on onboarding",
     items: [
-      { id: "myntra", name: "Myntra Onboarding", price: 14999, priceDisplay: "₹14,999", period: "one-time" },
-      { id: "ajio", name: "Ajio Onboarding", price: 14999, priceDisplay: "₹14,999", period: "one-time" },
-      { id: "nykaa", name: "Nykaa Onboarding", price: 14999, priceDisplay: "₹14,999", period: "one-time" },
-      { id: "amazon", name: "Amazon Onboarding", price: 4999, priceDisplay: "₹4,999", period: "one-time" },
-      { id: "flipkart", name: "Flipkart Onboarding", price: 4999, priceDisplay: "₹4,999", period: "one-time" },
+      { id: "myntra", name: "Myntra Onboarding", price: 29999, priceDisplay: "₹29,999", period: "one-time" },
+      { id: "nykaa", name: "Nykaa Onboarding", price: 24999, priceDisplay: "₹24,999", period: "one-time" },
+      { id: "ajio", name: "Ajio Onboarding", price: 19999, priceDisplay: "₹19,999", period: "one-time" },
+      { id: "amazon", name: "Amazon Onboarding", price: 8999, priceDisplay: "₹8,999", period: "one-time" },
+      { id: "flipkart", name: "Flipkart Onboarding", price: 8999, priceDisplay: "₹8,999", period: "one-time" },
     ]
   },
   {
-    title: "Content & SEO",
-    description: "High-converting listings optimized for discovery.",
-    icon: Zap,
-    items: [
-      { id: "listing", name: "Listing Creation & Optimization", price: 1999, priceDisplay: "₹1,999", period: "Starting from" },
-      { id: "keyword", name: "AI-Based Ranking Keyword Research", price: 999, priceDisplay: "₹999", period: "per audit" },
-      { id: "suggestions", name: "AI Listing Improvement Suggestions", price: 999, priceDisplay: "₹999", period: "per listing" },
-      { id: "competitor", name: "Competitor Analysis & Market Positioning", price: 999, priceDisplay: "₹999", period: "per report" },
-    ]
-  },
-  {
-    title: "AI Creative Studio",
-    description: "Next-gen visual assets powered by proprietary AI.",
+    title: "AI & SEO Studio",
+    description: "High-converting assets optimized by proprietary AI.",
     icon: Sparkles,
+    highlight: "Bulk rates available",
     items: [
-      { id: "photoshoot", name: "AI Photoshoot", price: 999, priceDisplay: "₹999", period: "per style" },
-      { id: "video", name: "AI Video Ad (15s)", price: 1499, priceDisplay: "₹1,499", period: "per video" },
-      { id: "website-builder", name: "Website Store Builder", price: 11999, priceDisplay: "₹11,999", period: "one-time" },
-      { id: "shopify-store", name: "Shopify Store", price: 14999, priceDisplay: "₹14,999", period: "one-time" },
+      { id: "listing", name: "Listing SEO Optimized", price: 39, priceDisplay: "₹39", period: "per SKU" },
+      { id: "photoshoot", name: "AI Photoshoot (5 Images)", price: 199, priceDisplay: "₹199", period: "per SKU" },
+      { id: "video", name: "AI UGC Ad Video", price: 1999, priceDisplay: "₹1,999", period: "per video" },
+      { id: "keyword", name: "AI Keyword Research", price: 999, priceDisplay: "₹999", period: "per audit" },
+    ]
+  },
+  {
+    title: "Growth & Development",
+    description: "Scale your revenue with expert management and stores.",
+    icon: TrendingUp,
+    items: [
+      { id: "meta-ads", name: "Meta/Google Ads Mgmt", price: 19999, priceDisplay: "₹19,999", period: "per month" },
+      { id: "marketplace-ads", name: "Amazon/Flipkart Ads Mgmt", price: 21999, priceDisplay: "₹21,999", period: "per month" },
+      { id: "multi-ads", name: "Multi-Platform Ads Mgmt", price: 39999, priceDisplay: "₹39,999", period: "per month" },
+      { id: "static-web", name: "Basic Static Website", price: 15000, priceDisplay: "₹15,000", period: "3-5 pages" },
+      { id: "shopify-starter", name: "Shopify Store Starter", price: 44999, priceDisplay: "₹44,999", period: "one-time" },
+      { id: "ecom-ent", name: "Enterprise E-com Setup", price: 129999, priceDisplay: "₹1,29,999", period: "50+ SKUs" },
     ]
   }
 ];

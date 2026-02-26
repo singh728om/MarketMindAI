@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -27,18 +26,20 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
 const PRICE_MAP: Record<string, number> = {
-  "Myntra Onboarding": 14999,
-  "Amazon Onboarding": 4999,
-  "Flipkart Onboarding": 4999,
-  "Ajio Onboarding": 14999,
-  "Nykaa Onboarding": 14999,
-  "Listing Creation": 1999,
-  "Listing Optimization": 1999,
-  "Keyword Research": 999,
-  "AI Photoshoot": 999,
-  "AI Video Ad (15s)": 1499,
-  "Website Store Builder": 11999,
-  "Shopify Store": 14999,
+  "Myntra Onboarding": 29999,
+  "Nykaa Onboarding": 24999,
+  "Ajio Onboarding": 19999,
+  "Amazon Onboarding": 8999,
+  "Flipkart Onboarding": 8999,
+  "Listing SEO Optimized": 39,
+  "AI Photoshoot (5 Images)": 199,
+  "AI UGC Ad Video": 1999,
+  "Amazon/Flipkart Ads Mgmt": 21999,
+  "Meta/Google Ads Mgmt": 19999,
+  "Multi-Platform Ads Mgmt": 39999,
+  "Basic Static Website": 15000,
+  "Shopify Store Starter": 44999,
+  "Enterprise E-com Setup": 129999,
   "AI CEO & Chief Strategist": 24999,
   "AI Social Media Manager": 9999,
   "AI Listing Architect": 7999,
@@ -93,14 +94,14 @@ export function Sidebar({ onClose }: SidebarProps) {
     
     const totalValue = active.reduce((sum, p) => sum + (Number(p.price) || PRICE_MAP[p.name] || 0), 0);
     
-    if (totalValue >= 50000) return { 
+    if (totalValue >= 100000) return { 
       name: "Enterprise Plan", 
       color: "text-indigo-500", 
       border: "border-indigo-500/30", 
       bg: "bg-indigo-500/10", 
       badge: "Enterprise" 
     };
-    if (totalValue >= 10000) return { 
+    if (totalValue >= 30000) return { 
       name: "Pro Plan", 
       color: "text-amber-500", 
       border: "border-amber-500/30", 

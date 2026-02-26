@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
@@ -37,18 +36,20 @@ import { cn } from "@/lib/utils";
 
 // Price mapping for fallback calculation if metadata is missing
 const PRICE_MAP: Record<string, number> = {
-  "Myntra Onboarding": 14999,
-  "Amazon Onboarding": 4999,
-  "Flipkart Onboarding": 4999,
-  "Ajio Onboarding": 14999,
-  "Nykaa Onboarding": 14999,
-  "Listing Creation": 1999,
-  "Listing Optimization": 1999,
-  "Keyword Research": 999,
-  "AI Photoshoot": 999,
-  "AI Video Ad (15s)": 1499,
-  "Website Store Builder": 11999,
-  "Shopify Store": 14999,
+  "Myntra Onboarding": 29999,
+  "Nykaa Onboarding": 24999,
+  "Ajio Onboarding": 19999,
+  "Amazon Onboarding": 8999,
+  "Flipkart Onboarding": 8999,
+  "Listing SEO Optimized": 39,
+  "AI Photoshoot (5 Images)": 199,
+  "AI UGC Ad Video": 1999,
+  "Amazon/Flipkart Ads Mgmt": 21999,
+  "Meta/Google Ads Mgmt": 19999,
+  "Multi-Platform Ads Mgmt": 39999,
+  "Basic Static Website": 15000,
+  "Shopify Store Starter": 44999,
+  "Enterprise E-com Setup": 129999,
   "AI CEO & Chief Strategist": 24999,
   "AI Social Media Manager": 9999,
   "AI Listing Architect": 7999,
@@ -108,14 +109,14 @@ export default function BillingPage() {
       desc: "You have 7 days remaining in your high-performance agency trial." 
     };
     
-    if (totalInvestment >= 50000) return { 
+    if (totalInvestment >= 100000) return { 
       name: "Enterprise Plan", 
       badge: "Enterprise", 
       color: "bg-indigo-500", 
       desc: "Exclusive node capacity and dedicated strategic consultants." 
     };
 
-    if (totalInvestment >= 10000) return { 
+    if (totalInvestment >= 30000) return { 
       name: "Pro Plan", 
       badge: "Professional", 
       color: "bg-amber-500", 

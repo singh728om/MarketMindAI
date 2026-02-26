@@ -23,7 +23,8 @@ import {
   Info,
   Building2,
   Ticket,
-  XCircle
+  XCircle,
+  TrendingUp
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -58,21 +59,24 @@ const ICON_MAP: Record<string, any> = {
   ListChecks,
   Zap,
   Search,
+  TrendingUp
 };
 
 const AVAILABLE_SERVICES = [
-  { id: "myntra-on", name: "Myntra Onboarding", category: "Onboarding", iconKey: "ShoppingBag", marketplace: "Myntra", price: 14999 },
-  { id: "amazon-on", name: "Amazon Onboarding", category: "Onboarding", iconKey: "ShoppingBag", marketplace: "Amazon", price: 4999 },
-  { id: "flipkart-on", name: "Flipkart Onboarding", category: "Onboarding", iconKey: "ShoppingBag", marketplace: "Flipkart", price: 4999 },
-  { id: "ajio-on", name: "Ajio Onboarding", category: "Onboarding", iconKey: "ShoppingBag", marketplace: "Ajio", price: 14999 },
-  { id: "nykaa-on", name: "Nykaa Onboarding", category: "Onboarding", iconKey: "ShoppingBag", marketplace: "Nykaa", price: 14999 },
-  { id: "listing-creation", name: "Listing Creation", category: "SEO", iconKey: "ListChecks", marketplace: "Multi-channel", price: 1999 },
-  { id: "listing-opt", name: "Listing Optimization", category: "SEO", iconKey: "Zap", marketplace: "Multi-channel", price: 1999 },
-  { id: "keyword-res", name: "Keyword Research", category: "SEO", iconKey: "Search", marketplace: "Multi-channel", price: 999 },
-  { id: "photoshoot", name: "AI Photoshoot", category: "Creative", iconKey: "Sparkles", marketplace: "Creative Studio", price: 999 },
-  { id: "video-ad", name: "AI Video Ad (15s)", category: "Creative", iconKey: "Video", marketplace: "Creative Studio", price: 1499 },
-  { id: "web-builder", name: "Website Store Builder", category: "Development", iconKey: "Globe", marketplace: "Direct", price: 11999 },
-  { id: "shopify", name: "Shopify Store", category: "Development", iconKey: "ShoppingBag", marketplace: "Shopify", price: 14999 },
+  { id: "myntra-on", name: "Myntra Onboarding", category: "Onboarding", iconKey: "ShoppingBag", marketplace: "Myntra", price: 29999 },
+  { id: "ajio-on", name: "Ajio Onboarding", category: "Onboarding", iconKey: "ShoppingBag", marketplace: "Ajio", price: 19999 },
+  { id: "nykaa-on", name: "Nykaa Onboarding", category: "Onboarding", iconKey: "ShoppingBag", marketplace: "Nykaa", price: 24999 },
+  { id: "amazon-on", name: "Amazon Onboarding", category: "Onboarding", iconKey: "ShoppingBag", marketplace: "Amazon", price: 8999 },
+  { id: "flipkart-on", name: "Flipkart Onboarding", category: "Onboarding", iconKey: "ShoppingBag", marketplace: "Flipkart", price: 8999 },
+  { id: "listing-opt", name: "Listing SEO Optimized", category: "SEO", iconKey: "Zap", marketplace: "Multi-channel", price: 39 },
+  { id: "photoshoot", name: "AI Photoshoot (5 Images)", category: "Creative", iconKey: "Sparkles", marketplace: "Creative Studio", price: 199 },
+  { id: "video-ad", name: "AI UGC Ad Video", category: "Creative", iconKey: "Video", marketplace: "Creative Studio", price: 1999 },
+  { id: "ads-market", name: "Amazon/Flipkart Ads Mgmt", category: "Growth", iconKey: "TrendingUp", marketplace: "Marketplaces", price: 21999 },
+  { id: "ads-meta", name: "Meta/Google Ads Mgmt", category: "Growth", iconKey: "TrendingUp", marketplace: "Social/Search", price: 19999 },
+  { id: "ads-multi", name: "Multi-Platform Ads Mgmt", category: "Growth", iconKey: "TrendingUp", marketplace: "Omnichannel", price: 39999 },
+  { id: "static-web", name: "Basic Static Website", category: "Development", iconKey: "Globe", marketplace: "Direct", price: 15000 },
+  { id: "shopify-starter", name: "Shopify Store Starter", category: "Development", iconKey: "ShoppingBag", marketplace: "Shopify", price: 44999 },
+  { id: "ecom-ent", name: "Enterprise E-com Setup", category: "Development", iconKey: "Globe", marketplace: "Enterprise", price: 129999 },
 ];
 
 const INITIAL_PROJECTS = [
@@ -84,7 +88,7 @@ const INITIAL_PROJECTS = [
     progress: 45,
     updatedAt: "1 hour ago",
     assets: 0,
-    price: 14999,
+    price: 29999,
     priority: "High",
     type: "Onboarding",
     iconKey: "ShoppingBag",
@@ -97,30 +101,6 @@ const INITIAL_PROJECTS = [
         { id: "m2", name: "Brand Registry Approval", completed: true },
         { id: "m3", name: "Catalog Template Selection", completed: false },
         { id: "m4", name: "Final QC & Live", completed: false },
-      ]
-    }
-  },
-  {
-    id: "proj-listing-1",
-    name: "Listing Creation",
-    marketplace: "Amazon India",
-    status: "Drafting",
-    progress: 30,
-    updatedAt: "45 mins ago",
-    assets: 15,
-    price: 1999,
-    priority: "High",
-    type: "SEO",
-    iconKey: "ListChecks",
-    details: {
-      listingsCreated: 5,
-      listingsInProgress: 25,
-      brandOnboarded: true,
-      milestones: [
-        { id: "l1", name: "Product Data Ingestion", completed: true },
-        { id: "l2", name: "AI Copy Generation", completed: false },
-        { id: "l3", name: "Image Attachment", completed: false },
-        { id: "l4", name: "Bulk Marketplace Push", completed: false },
       ]
     }
   }
