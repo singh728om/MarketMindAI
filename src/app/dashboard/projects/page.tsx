@@ -84,6 +84,14 @@ const AVAILABLE_SERVICES = [
   { id: "ecom-ent", name: "Enterprise E-com Setup", category: "Development", iconKey: "Globe", marketplace: "Enterprise", price: 129999 },
 ];
 
+const ONBOARDING_INDIVIDUAL_NAMES = [
+  "Myntra Onboarding", 
+  "Ajio Onboarding", 
+  "Nykaa Onboarding", 
+  "Amazon Onboarding", 
+  "Flipkart Onboarding"
+];
+
 const INITIAL_PROJECTS = [
   {
     id: "proj-1",
@@ -140,13 +148,14 @@ export default function ProjectsPage() {
   }, []);
 
   const handleStartService = (service: any) => {
-    const exists = projects.some(p => p.name === service.name && p.status !== 'Canceled');
+    const isBundleEnrolled = projects.some(p => p.name === "Onboarding Bundle (5 Platforms)" && p.status !== 'Canceled');
+    const isSelfEnrolled = projects.some(p => p.name === service.name && p.status !== 'Canceled');
     
-    if (exists) {
+    if (isSelfEnrolled || (isBundleEnrolled && ONBOARDING_INDIVIDUAL_NAMES.includes(service.name))) {
       toast({
         variant: "destructive",
         title: "Service Already Active",
-        description: `You already have an active project for ${service.name}.`,
+        description: `You already have an active project for this onboarding channel.`,
       });
       return;
     }
@@ -224,7 +233,10 @@ export default function ProjectsPage() {
             </DialogHeader>
             <div className="flex-1 overflow-y-auto p-8 pt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
               {AVAILABLE_SERVICES.map((service) => {
-                const isActive = projects.some(p => p.name === service.name && p.status !== 'Canceled');
+                const isBundleEnrolled = projects.some(p => p.name === "Onboarding Bundle (5 Platforms)" && p.status !== 'Canceled');
+                const isSelfEnrolled = projects.some(p => p.name === service.name && p.status !== 'Canceled');
+                const isActive = isSelfEnrolled || (isBundleEnrolled && ONBOARDING_INDIVIDUAL_NAMES.includes(service.name));
+                
                 const Icon = ICON_MAP[service.iconKey] || ShoppingBag;
                 return (
                   <div 

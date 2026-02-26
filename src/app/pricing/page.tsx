@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { BrainCircuit, ArrowLeft, Zap, ShoppingBag, Sparkles, Check, ShoppingCart, X, TrendingUp, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -68,17 +68,36 @@ const PRICING_CATEGORIES: Category[] = [
   }
 ];
 
+const ONBOARDING_INDIVIDUAL_IDS = ['myntra', 'nykaa', 'ajio', 'amazon', 'flipkart'];
+const ONBOARDING_BUNDLE_ID = 'bundle-on';
+
 export default function PricingPage() {
   const [selectedServiceIds, setSelectedServiceIds] = useState<Set<string>>(new Set());
   const router = useRouter();
 
   const toggleService = (id: string) => {
     const newSelected = new Set(selectedServiceIds);
-    if (newSelected.has(id)) {
-      newSelected.delete(id);
+    
+    if (id === ONBOARDING_BUNDLE_ID) {
+      if (newSelected.has(id)) {
+        newSelected.delete(id);
+      } else {
+        newSelected.add(id);
+        // Unselect individual onboarding options if bundle is chosen
+        ONBOARDING_INDIVIDUAL_IDS.forEach(oid => newSelected.delete(oid));
+      }
     } else {
-      newSelected.add(id);
+      if (newSelected.has(id)) {
+        newSelected.delete(id);
+      } else {
+        // If selecting an individual onboarding option, unselect the bundle
+        if (ONBOARDING_INDIVIDUAL_IDS.includes(id)) {
+          newSelected.delete(ONBOARDING_BUNDLE_ID);
+        }
+        newSelected.add(id);
+      }
     }
+    
     setSelectedServiceIds(newSelected);
   };
 
@@ -95,6 +114,8 @@ export default function PricingPage() {
     const itemNames = selectedServices.map(s => s.name).join("|");
     router.push(`/checkout?items=${encodeURIComponent(itemNames)}&total=${totalPrice}`);
   };
+
+  const isBundleSelected = selectedServiceIds.has(ONBOARDING_BUNDLE_ID);
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -154,14 +175,17 @@ export default function PricingPage() {
                 <CardContent className="px-8 pb-8 space-y-4">
                   {category.items.map((item) => {
                     const isSelected = selectedServiceIds.has(item.id);
+                    const isDisabled = isBundleSelected && ONBOARDING_INDIVIDUAL_IDS.includes(item.id);
+                    
                     return (
                       <div 
                         key={item.id} 
                         className={cn(
                           "flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer group",
-                          isSelected ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-white/5 bg-white/5 hover:bg-white/10"
+                          isSelected ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-white/5 bg-white/5 hover:bg-white/10",
+                          isDisabled && "opacity-40 cursor-not-allowed grayscale"
                         )}
-                        onClick={() => toggleService(item.id)}
+                        onClick={() => !isDisabled && toggleService(item.id)}
                       >
                         <div className="space-y-1 pr-4">
                           <p className="font-bold text-sm leading-tight">{item.name}</p>
